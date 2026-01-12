@@ -1,0 +1,959 @@
+/* Container */
+.cd-container {
+  max-width: 1400px;
+  margin: auto;
+  padding: 0 90px;
+}
+
+/*HERO */
+.cd-hero-exact {
+  position: relative;
+  padding: 40px 20px 20px;
+  overflow: hidden;
+  background: #FFF;
+  text-align: center;
+}
+
+/* CONTENT */
+.cd-hero-content {
+  position: relative;
+  max-width: 900px;
+  margin: auto;
+  z-index: 2;
+}
+
+/* PILL */
+.cd-pill-exact {
+  display: inline-block;
+  padding: 6px 18px;
+  border-radius: 999px;
+  border: 1px solid #8ea2ff;
+  color: #000;
+  font-style: inter ;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 22px;
+  background: #fff;
+}
+
+/* HEADING */
+.cd-hero-exact h1 {
+  font-size: 46px;
+  line-height: 1.25;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.highlight {
+  color: #6c7cff;
+}
+
+.highlight-light {
+  color: #6c7cff;
+  font-weight: 600;
+}
+
+/* SUBTEXT */
+.cd-hero-exact p {
+  max-width: 698px;
+  margin: auto;
+  font-size: 16px;
+  font-weight: 400;
+  color: #000000;
+}
+
+/* BUTTONS */
+.hero-buttons {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+
+.btn-primary-exact {
+  background: #7b8cff;
+  color: #fff;
+  padding: 12px 34px;
+  border-radius: 6px;
+  border: none;
+  font-size: 13px;
+  box-shadow: 0 6px 0 #5f6fe0;
+  cursor: pointer;
+}
+
+.btn-dark-exact {
+  background: #000;
+  color: #fff;
+  padding: 12px 34px;
+  border-radius: 6px;
+  border: none;
+  font-size: 13px;
+  box-shadow: 0 6px 0 #404047;
+  cursor: pointer;
+}
+/* CENTER */
+.hero-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 260px;
+  height: 260px;
+  background: rgba(124, 140, 255, 0.15);
+  filter: blur(80px);
+  transform: translate(-50%, -60%);
+  z-index: 1;
+}
+
+/* DECORATIVE CIRCLES */
+.figma-circle {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* LEFT CIRCLE */
+.figma-circle.left {
+  width: 122px; 
+  height: 122px;;
+  left: 60px;
+  top: 174px;
+}
+
+/* RIGHT CIRCLE */
+.figma-circle.right {
+  width: 122px;
+  height: 122px;;
+  right: 60px;
+  top: 257px;
+}
+
+
+/* WHAT IS CONTRACT DISPUTES*/
+.cd-what-figma {
+  padding: 30px 20px;
+}
+
+.cd-what-box {
+  max-width: 1200px;
+  margin: auto;
+  background: #f9fafb;
+  border-radius: 22px;
+  padding: 40px 50px;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  align-items: center;
+  gap: 40px;
+}
+
+/*CIRCLES*/
+.cd-what-circles {
+  position: relative;
+  width: 220px;
+  height: 180px;
+}
+
+.circle {
+  position: absolute;
+}
+
+/* BIG RIGHT CIRCLE */
+.circle.c1 {
+  width: 120px;
+  top: 0;
+  right: 0;
+}
+
+/* LEFT MID CIRCLE */
+.circle.c2 {
+  width: 90px;
+  top: 35px;
+  left: 10px;
+}
+
+/* SMALL BOTTOM CIRCLE */
+.circle.c3 {
+  width: 48px;
+  bottom: 10px;
+  left: 60px;
+}
+
+/*CONTENT*/
+.cd-what-content h2 {
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.cd-what-desc {
+  font-size: 16px;
+  font-weight: 400;
+  color: #000000;
+  line-height: 150%;
+  max-width: 700px;
+}
+
+/* DIVIDER LINE */
+.cd-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 20px 0;
+}
+
+/* BULLET POINTS */
+.cd-what-points {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.cd-what-points ul {
+  padding-left: 18px;
+}
+
+.cd-what-points li {
+  font-size: 16px;
+  font-weight: 400;
+  color: #111827;
+  line-height: 150%;
+}
+
+/*CONTRACT DISPUTES LIST*/
+.cd-list-figma {
+  padding: 30px 20px;
+}
+
+.cd-list-container {
+  max-width: 1200px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 50px;
+  align-items: center;
+}
+
+/* LEFT IMAGE */
+.cd-list-image img {
+  width: 100%;
+  border-radius: 24px;
+  object-fit: cover;
+}
+
+/* RIGHT CONTENT */
+.cd-list-content h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+
+/* ACCORDION */
+.cd-accordion-item {
+  background: #f4f6ff;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  transition: all 0.3s ease;
+}
+
+.cd-accordion-header {
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.cd-accordion-header h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.cd-accordion-header p {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* ARROW */
+.cd-accordion-arrow {
+  font-size: 22px;
+  color: #6c7cff;
+  transition: transform 0.3s ease;
+}
+
+.cd-accordion-item.open .cd-accordion-arrow {
+  transform: rotate(90deg);
+}
+
+/* BODY */
+.cd-accordion-body {
+  padding: 0 18px 14px;
+  font-size: 12px;
+  color: #4b5563;
+}
+
+/* SEE MORE BUTTON */
+.cd-see-more {
+  margin-top: 18px;
+  background: #6c7cff;
+  color: #fff;
+  padding: 10px 26px;
+  border-radius: 6px;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #5666dd;
+}
+
+
+/* HOW WE RESOLVE - EXACT DESIGN */
+.cd-how-exact {
+  width: 100%;
+  margin: 30px 0;
+}
+
+.cd-how-box {
+  max-width: 1300px;
+  margin: auto;
+  background: #fafafa;
+  border-radius: 28px;
+  padding: 60px 70px;
+  text-align: center;
+}
+
+.cd-how-box h2 {
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.cd-how-sub {
+  font-size: 16px;
+  font-weight: 400;
+  color: #555;
+  margin-bottom: 40px;
+}
+
+.cd-how-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 36px 40px;
+  justify-items: center;
+}
+
+.cd-how-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #ffffff;
+  padding: 18px 22px;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 360px;
+}
+
+.cd-how-item img {
+  width: 60px;
+  height: 64px;
+  background: #F1F1F1;
+  padding: 10px;
+  border-radius: 14px;
+}
+
+.cd-how-item span {
+  font-size: 14.5px;
+  text-align: left;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+/* BREACH OF CONTRACT */
+.cd-breach {
+  margin: 30px 0;
+}
+
+.cd-breach-wrap {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+}
+
+.cd-breach-left {
+  flex: 1;
+}
+
+.cd-breach-left h2 {
+  font-size: 32px;
+  margin-bottom: 26px;
+}
+
+.cd-breach-item {
+  background: #f3f6ff;
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  cursor: pointer;
+}
+
+.cd-breach-item h4 {
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.cd-breach-item p {
+  font-size: 13px;
+  color: #666;
+}
+
+.cd-arrow {
+  width: 26px;
+  height: 26px;
+  background: #5a6dff;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.cd-breach-btn {
+  margin-top: 20px;
+  background: #6a7cff;
+  color: #fff;
+  border: none;
+  padding: 10px 26px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* RIGHT IMAGE */
+.cd-breach-right {
+  flex: 1;
+}
+
+.cd-breach-right img {
+  width: 100%;
+  border-radius: 22px;
+  object-fit: cover;
+}
+
+
+/*WHY CHOOSE US*/
+.why-choose-section {
+  padding: 30px 0;
+  background: #ffffff;
+}
+
+.why-choose-container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 0 20px;
+  text-align: center;
+}
+
+/* TITLE */
+.why-choose-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.why-choose-subtitle {
+  font-size: 16px;
+  color: #000000;
+  max-width: 600px;
+  margin: 0 auto 60px;
+}
+
+/* GRID */
+.why-choose-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 40px;
+}
+
+/* ITEM */
+.why-choose-item {
+  text-align: center;
+}
+
+.why-icon-circle img {
+  width: 182px;
+  height: 182px;
+}
+
+/* TEXT */
+.why-choose-item h4 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.why-choose-item p {
+  font-size: 16px;
+  color: #6E6E6E;
+  line-height: 1.5;
+}
+
+/*RESPONSIVE*/
+@media (max-width: 1024px) {
+  .why-choose-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .why-choose-grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  .why-icon-circle {
+    width: 95px;
+    height: 95px;
+  }
+}
+
+
+/* FAQ */
+.faq-section {
+  padding: 20px 96px;
+  background: #ffffff;
+}
+
+.faq-title {
+  text-align: center;
+  font-size: 34px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.faq-subtitle {
+  text-align: center;
+  font-size: 15px;
+  color: #666;
+  max-width: 720px;
+  margin: 0 auto 40px;
+}
+
+.faq-container {
+  background: #fff;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 0 0 1px #eee;
+}
+
+/* Tabs */
+.faq-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 30px;
+}
+
+.faq-tab {
+  padding: 10px 22px;
+  background: #f5f5f5;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.faq-tab.active {
+  background: #6f85ff;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(111, 133, 255, 0.4);
+}
+
+/* FAQ Items */
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.faq-item {
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 18px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: 0.3s;
+  font-size: 14px;
+}
+
+.faq-item:hover {
+  background: #f0f3ff;
+}
+
+.faq-arrow {
+  font-size: 22px;
+  color: #6f85ff;
+}
+
+/*CTA SECTION */
+.contract-cta {
+  padding: 30px 34px;
+}
+
+.contract-cta-box {
+  width: 1280px;
+  margin: auto;
+  background: #778AFF;
+  border-radius: 16px;
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* LEFT CONTENT */
+.contract-cta-content {
+  padding: 40px 50px;
+  color: #ffffff;
+}
+
+.contract-cta-content h2 {
+  font-size: 26px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.contract-cta-content p {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+  max-width: 520px;
+  margin-bottom: 22px;
+}
+
+/* BUTTONS */
+.contract-cta-buttons {
+  display: flex;
+  gap: 14px;
+}
+
+.cta-primary {
+  background: #fff;
+  color: #000;
+  padding: 12px 34px;
+  border-radius: 6px;
+  border: none;
+  font-size: 18px;
+  font-weight: 600;
+  box-shadow: 0 6px 0 #5f6fe0;
+  cursor: pointer;
+}
+
+.cta-secondary {
+  background: #000;
+  color: #fff;
+  padding: 12px 34px;
+  border-radius: 6px;
+  border: none;
+  font-size: 18px;
+  font-weight: 600;
+  box-shadow: 0 6px 0 #404047;
+  cursor: pointer;
+}
+
+/* RIGHT IMAGE */
+.contract-cta-image {
+  height: 100%;
+}
+
+.contract-cta-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-top-right-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+/* ===============================
+   CONTRACT DISPUTE – MOBILE EXACT
+   =============================== */
+@media (max-width: 768px) {
+
+  /* RESET OVERFLOW */
+  html, body {
+    overflow-x: hidden;
+  }
+
+  * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  section {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  /* ================= HERO ================= */
+  .cd-hero-exact {
+    padding: 24px 16px 18px;
+    text-align: center;
+  }
+
+  .cd-pill-exact {
+    font-size: 12px;
+    padding: 4px 12px;
+    margin-bottom: 10px;
+  }
+
+  .cd-hero-exact h1 {
+    font-size: 24px;
+    line-height: 1.25;
+  }
+
+  .cd-hero-exact p {
+    font-size: 13px;
+    line-height: 1.55;
+    margin-top: 10px;
+  }
+
+  .hero-buttons {
+    margin-top: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btn-primary-exact,
+  .btn-dark-exact {
+    width: 100%;
+    font-size: 14px;
+    padding: 12px 0;
+  }
+
+  .figma-circle,
+  .hero-glow {
+    display: none;
+  }
+
+  /* ================= WHAT IS CONTRACT ================= */
+  .cd-what-box {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 20px 16px;
+  }
+
+  .cd-what-content h2 {
+    font-size: 20px;
+    text-align: center;
+  }
+
+  .cd-what-desc {
+    font-size: 13px;
+    line-height: 1.55;
+    text-align: center;
+  }
+
+  .cd-what-points {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .cd-what-points li {
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .cd-what-circles {
+    width: 150px;
+    height: 130px;
+    margin: 0 auto;
+  }
+
+  /* ================= CONTRACT TYPES ================= */
+  .cd-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .cd-list-content h2 {
+    font-size: 20px;
+    text-align: center;
+  }
+
+  .cd-accordion {
+    border-radius: 10px;
+  }
+
+  .cd-accordion-header {
+    padding: 14px 16px;
+  }
+
+  .cd-accordion-header h4 {
+    font-size: 13px;
+  }
+
+  .cd-accordion-header p {
+    font-size: 12px;
+  }
+
+  /* ================= HOW WE RESOLVE ================= */
+  .cd-how-box {
+    padding: 24px 16px;
+  }
+
+  .cd-how-box h2 {
+    font-size: 20px;
+    text-align: center;
+  }
+
+  .cd-how-sub {
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .cd-how-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .cd-how-item {
+    padding: 14px 14px;
+    border-radius: 10px;
+  }
+
+  .cd-how-item span {
+    font-size: 13px;
+  }
+
+  /* ================= BREACH SECTION ================= */
+  .cd-breach-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .cd-breach-left h2 {
+    font-size: 20px;
+    text-align: center;
+  }
+
+  .cd-breach-item {
+    padding: 14px 16px;
+  }
+
+  .cd-breach-item h4 {
+    font-size: 14px;
+  }
+
+  .cd-breach-item p {
+    font-size: 12.5px;
+    line-height: 1.45;
+  }
+
+  /* ================= WHY CHOOSE ================= */
+  .why-choose-title {
+    font-size: 20px;
+    text-align: center;
+  }
+
+  .why-choose-subtitle {
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 22px;
+  }
+
+  .why-choose-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .why-icon-circle img {
+    width: 80px;
+    height: 80px;
+  }
+
+  .why-choose-item h4 {
+    font-size: 14px;
+  }
+
+  .why-choose-item p {
+    font-size: 13px;
+  }
+
+  /* ================= FAQ ================= */
+  .faq-section {
+    padding: 24px 16px;
+  }
+
+  .faq-title {
+    font-size: 20px;
+    text-align: center;
+  }
+
+  .faq-subtitle {
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .faq-container {
+    padding: 14px;
+  }
+
+  .faq-item {
+    font-size: 13px;
+    padding: 14px 14px;
+  }
+
+  /* ================= CTA ================= */
+  .contract-cta {
+    padding: 16px;
+  }
+
+  .contract-cta-box {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .contract-cta-content {
+    padding: 22px 16px;
+    text-align: center;
+  }
+
+  .contract-cta-content h2 {
+    font-size: 18px;
+    line-height: 1.3;
+  }
+
+  .contract-cta-content p {
+    font-size: 13px;
+    margin-top: 8px;
+  }
+
+  .contract-cta-buttons {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .cta-primary,
+  .cta-secondary {
+    width: 100%;
+    font-size: 14px;
+    padding: 12px 0;
+  }
+
+  .contract-cta-image {
+    display: none;
+  }
+}
