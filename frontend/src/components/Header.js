@@ -1,13 +1,17 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect,  useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import "../styles/header.css";
+
 
 export default function Header() {
   const pathname = usePathname();
   const [mobileMenu, setMobileMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
+
+  const servicesRef = useRef(null);
 
   const isActive = (path) => pathname === path;
   const isServiceActive = pathname.startsWith("/Services");
@@ -17,10 +21,20 @@ export default function Header() {
       setScrolled(window.scrollY > 20);
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    const handleClickOutside = (e) => {
+      if (servicesRef.current && !servicesRef.current.contains(e.target)) {
+        setServicesOpen(false);
+      }
+    };
 
+    window.addEventListener("scroll", handleScroll);
+    document.addEventListener("click", handleClickOutside);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
   return (
     <>
       <header className={`header ${scrolled ? "scrolled" : ""}`}>
@@ -36,7 +50,12 @@ export default function Header() {
 
           {/* Desktop Menu */}
           <nav className="nav-links">
-            <div className="services-dropdown">
+           <div
+  className="services-dropdown"
+  ref={servicesRef}
+  onClick={(e) => e.stopPropagation()}
+>
+
               <span
                 className={`services-link ${
                   isServiceActive ? "active" : ""
@@ -47,7 +66,7 @@ export default function Header() {
 
               <div className="dropdown-menu">
                 <div className="dropdown-item">
-                  <span>Professional Dispute ➜</span>
+                  <span>Commercial Dispute ➜</span>
                   <div className="sub-menu">
                     <Link
                       href="/Services/ContractDisputes"
@@ -71,7 +90,7 @@ export default function Header() {
                 </div>
 
                 <div className="dropdown-item">
-                  <span>Personal Dispute ➜</span>
+                  <span>Individual Dispute ➜</span>
                   <div className="sub-menu">
                     <Link
                       href="/Services/Property&RentalDisputes"
@@ -154,8 +173,8 @@ export default function Header() {
               </div>
 
               <div className="mobile-tabs">
-                <button className="active">Professional Disputes</button>
-                <button>Personal Disputes</button>
+                <button className="active">Commercial Disputes</button>
+                <button>Individual Disputes</button>
               </div>
 
               <div className="mobile-sub-links">
