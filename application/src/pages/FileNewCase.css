@@ -1,0 +1,236 @@
+.dashboard-container {
+  display: flex;
+  height: 100vh;
+  background-color: #f8f8fb;
+  font-family: "Poppins", sans-serif;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  background-color: #fff;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid #eee;
+}
+
+.sidebar-title {
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.menu-item:hover,
+.menu-item.active {
+  background: linear-gradient(to right, #e8eaff, #f6f6f6);
+}
+
+.logout {
+  margin-top: auto;
+}
+
+/* Navbar styling */
+.navbar {
+  background-color: #fff;
+  border-bottom: 1px solid #eee;
+  padding: 12px 24px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-icon {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.profile-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.username {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.profile-pic {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Step Progress Bar */
+.step-bar {
+  background-color: #f9f9fc;
+  padding: 16px 48px;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #eee;
+  color: #777;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.step-bar span {
+  position: relative;
+  padding-bottom: 4px;
+  cursor: default;
+}
+
+.active-step {
+  color: #3b5bff;
+  font-weight: 600;
+}
+
+.active-step::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 35px;
+  height: 2px;
+  background-color: #3b5bff;
+  border-radius: 4px;
+}
+
+/* Main section */
+.main-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.navbar {
+  background-color: #fff;
+  border-bottom: 1px solid #eee;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.form-content {
+  padding: 32px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.full-width {
+  grid-column: span 4;
+}
+
+input,
+textarea {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+  font-size: 14px;
+  width: 100%;
+}
+
+textarea {
+  height: 120px;
+  resize: none;
+}
+
+/* Align checkbox and text side-by-side */
+.declaration {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+/* Style the checkbox */
+.declaration input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #22c55e; /* ✅ Tailwind green-500 color */
+  cursor: pointer;
+}
+
+/* Declaration text styling */
+.declaration label {
+  font-size: 15px;
+  color: #111827;
+}
+
+.next-btn {
+  background: linear-gradient(90deg, #6a73ff, #9fa8ff);
+  border: none;
+  padding: 10px 24px;
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.3s;
+}
+
+.next-btn:hover {
+  opacity: 0.9;
+}
+
+/* Make all labels take full width above inputs */
+.form-grid > div {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Label styling */
+.form-grid > div span {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Red star styling */
+.form-grid > div span .required {
+  margin-left: 2px;
+  font-weight: 700;
+  color: red;
+}
+
+/* Uniform input height */
+.form-grid input,
+.form-grid select,
+.form-grid textarea {
+  height: 38px; /* adjust as needed */
+  box-sizing: border-box;
+}
