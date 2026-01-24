@@ -1,6 +1,8 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axios"; // ✅ Use production-ready axios
 
 import HomeIcon from "../assets/icons/home.png";
 import Vector from "../assets/icons/Vector.png";
@@ -24,21 +26,10 @@ const UserMyCases = () => {
   const [opponentCases, setOpponentCases] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔹 Fetch real cases from backend
   useEffect(() => {
     const fetchCases = async () => {
       try {
-        const token = localStorage.getItem("token");
-
-        const res = await axios.get(
-          "http://localhost:5000/api/cases/my-cases",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
+        const res = await api.get("/api/cases/my-cases"); // ✅ Use axios instance
         setRaisedCases(res.data.raisedCases || []);
         setOpponentCases(res.data.opponentCases || []);
       } catch (error) {
@@ -61,60 +52,46 @@ const UserMyCases = () => {
     c.caseId?.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (loading) {
-    return <p style={{ padding: 20 }}>Loading cases...</p>;
-  }
+  if (loading) return <p style={{ padding: 20 }}>Loading cases...</p>;
 
   return (
     <div className="dashboard-container">
       {/* Sidebar */}
       <aside className="sidebar">
         <h2 className="sidebar-title">Dashboard</h2>
-
         <nav className="menu">
-          <div className="menu-item" onClick={() => navigate("/user/dashboard")}>
+          <div className="menu-item active" onClick={() => navigate("/user/dashboard")}>
             <img src={HomeIcon} alt="Home" />
             <span>Home</span>
           </div>
-
           <div className="menu-item" onClick={() => navigate("/user/my-profile")}>
             <img src={Vector} alt="Profile" />
             <span>My Profile</span>
           </div>
-
-          <div
-            className="menu-item"
-            onClick={() => navigate("/user/file-new-case/step1")}
-          >
+          <div className="menu-item" onClick={() => navigate("/user/file-new-case/step1")}>
             <img src={FileIcon} alt="File New Case" />
             <span>File New Case</span>
           </div>
-
-          <div className="menu-item active">
+          <div className="menu-item" onClick={() => navigate("/user/my-cases")}>
             <img src={CaseIcon} alt="My Cases" />
             <span>My Cases</span>
           </div>
-
           <div className="menu-item" onClick={() => navigate("/user/case-meetings")}>
-            <img src={MeetingIcon} alt="Meetings" />
+            <img src={MeetingIcon} alt="Case Meetings" />
             <span>Case Meetings</span>
           </div>
-
           <div className="menu-item">
             <img src={DocsIcon} alt="Documents" />
             <span>Documents</span>
           </div>
-
-          <div className="menu-item">
+          <div className="menu-item" onClick={() => navigate("/user/chats")}>
             <img src={ChatIcon} alt="Chats" />
             <span>Chats</span>
           </div>
-
           <div className="menu-item">
             <img src={PaymentIcon} alt="Payment" />
             <span>Payment</span>
           </div>
-
           <div className="menu-item">
             <img src={SupportIcon} alt="Support" />
             <span>Support</span>
@@ -131,7 +108,6 @@ const UserMyCases = () => {
 
       {/* Main Section */}
       <section className="main-section">
-        {/* Navbar */}
         <header className="navbar">
           <div></div>
           <div className="nav-icons">
@@ -144,7 +120,6 @@ const UserMyCases = () => {
           </div>
         </header>
 
-        {/* Search */}
         <div className="search-bar">
           <input
             type="text"
@@ -157,10 +132,9 @@ const UserMyCases = () => {
           </button>
         </div>
 
-        {/* My Raised Cases */}
+        {/* Tables */}
         <div className="table-section">
           <h3>My Raised Cases</h3>
-
           <table className="cases-table">
             <thead>
               <tr>
@@ -172,7 +146,6 @@ const UserMyCases = () => {
                 <th>Status</th>
               </tr>
             </thead>
-
             <tbody>
               {filteredRaisedCases.length === 0 ? (
                 <tr>
@@ -188,9 +161,7 @@ const UserMyCases = () => {
                     <td>{c.petitionerDetails?.fullName || "-"}</td>
                     <td>{c.defendantDetails?.fullName || "-"}</td>
                     <td>{c.caseType}</td>
-                    <td className={`status ${c.status.toLowerCase()}`}>
-                      {c.status}
-                    </td>
+                    <td className={`status ${c.status.toLowerCase()}`}>{c.status}</td>
                   </tr>
                 ))
               )}
@@ -198,10 +169,8 @@ const UserMyCases = () => {
           </table>
         </div>
 
-        {/* Opponent Cases */}
         <div className="table-section">
           <h3>Opponent Parties Raised Cases</h3>
-
           <table className="cases-table">
             <thead>
               <tr>
@@ -213,7 +182,6 @@ const UserMyCases = () => {
                 <th>Status</th>
               </tr>
             </thead>
-
             <tbody>
               {filteredOpponentCases.length === 0 ? (
                 <tr>
@@ -229,9 +197,7 @@ const UserMyCases = () => {
                     <td>{c.petitionerDetails?.fullName || "-"}</td>
                     <td>{c.defendantDetails?.fullName || "-"}</td>
                     <td>{c.caseType}</td>
-                    <td className={`status ${c.status.toLowerCase()}`}>
-                      {c.status}
-                    </td>
+                    <td className={`status ${c.status.toLowerCase()}`}>{c.status}</td>
                   </tr>
                 ))
               )}

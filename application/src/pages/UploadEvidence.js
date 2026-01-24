@@ -5,25 +5,37 @@ import api from "../api/axios";
 export default function UploadEvidence({ caseId }) {
   const [evidence, setEvidence] = useState("");
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleUpload = async (e) => {
     e.preventDefault();
 
+    if (!evidence.trim()) {
+      setMessage("Evidence cannot be empty");
+      return;
+    }
+
+    setLoading(true);
+    setMessage("");
+
     try {
       const token = localStorage.getItem("token");
-      const role = localStorage.getItem("role"); //  dynamic (party1 or party2)
+      const role = localStorage.getItem("role"); // dynamically party1 or party2
 
       const res = await api.put(
-        `/${role}/cases/${caseId}/evidence`, //  auto-switches between party1/party2
+        `/${role}/cases/${caseId}/evidence`,
         { evidence },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      setMessage(res.data.message);
+      setMessage(res.data.message || "Evidence uploaded successfully");
+      setEvidence("");
     } catch (err) {
       setMessage(err.response?.data?.message || "Upload failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -36,10 +48,13 @@ export default function UploadEvidence({ caseId }) {
           value={evidence}
           onChange={(e) => setEvidence(e.target.value)}
           required
+          disabled={loading}
         />
-        <button type="submit">Upload</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Uploading..." : "Upload"}
+        </button>
       </form>
-      {message && <p>{message}</p>}
+      {message && <p className="upload-message">{message}</p>}
     </div>
   );
 }

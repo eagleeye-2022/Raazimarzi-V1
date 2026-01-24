@@ -88,43 +88,51 @@ const handleNext = () => {
       <aside className="sidebar">
         <h2 className="sidebar-title">Dashboard</h2>
         <nav className="menu">
-          <div className="menu-item" onClick={() => navigate("/user/dashboard")}>
-            <img src={HomeIcon} alt="Home" />
-            <span>Home</span>
-          </div>
-          <div className="menu-item" onClick={() => navigate("/user/my-profile")}>
-            <img src={Vector} alt="Profile" />
-            <span>My Profile</span>
-          </div>
-          <div className="menu-item active" onClick={() => navigate("/user/file-new-case/step1")}>
-            <img src={FileIcon} alt="File New Case" />
-            <span>File New Case</span>
-          </div>
-          <div className="menu-item" onClick={() => navigate("/user/my-cases")}>
-            <img src={CaseIcon} alt="My Cases" />
-            <span>My Cases</span>
-          </div>
-          <div className="menu-item" onClick={() => navigate("/user/case-meetings")}>
-            <img src={MeetingIcon} alt="Case Meetings" />
-            <span>Case Meetings</span>
-          </div>
-          <div className="menu-item">
-            <img src={DocsIcon} alt="Documents" />
-            <span>Documents</span>
-          </div>
-          <div className="menu-item">
-            <img src={ChatIcon} alt="Chats" />
-            <span>Chats</span>
-          </div>
-          <div className="menu-item">
-            <img src={PaymentIcon} alt="Payment" />
-            <span>Payment</span>
-          </div>
-          <div className="menu-item">
-            <img src={SupportIcon} alt="Support" />
-            <span>Support</span>
-          </div>
-        </nav>
+                 <div className="menu-item active" onClick={() => navigate("/user/dashboard")}>
+                   <img src={HomeIcon} alt="Home" />
+                   <span>Home</span>
+                 </div>
+       
+                 <div className="menu-item" onClick={() => navigate("/user/my-profile")}>
+                   <img src={Vector} alt="Profile" />
+                   <span>My Profile</span>
+                 </div>
+       
+                 <div className="menu-item" onClick={() => navigate("/user/file-new-case/step1")}>
+                   <img src={FileIcon} alt="File New Case" />
+                   <span>File New Case</span>
+                 </div>
+       
+                 <div className="menu-item" onClick={() => navigate("/user/my-cases")}>
+                   <img src={CaseIcon} alt="My Cases" />
+                   <span>My Cases</span>
+                 </div>
+       
+                 <div className="menu-item" onClick={() => navigate("/user/case-meetings")}>
+                   <img src={MeetingIcon} alt="Case Meetings" />
+                   <span>Case Meetings</span>
+                 </div>
+       
+                 <div className="menu-item">
+                   <img src={DocsIcon} alt="Documents" />
+                   <span>Documents</span>
+                 </div>
+       
+                 <div className="menu-item" onClick={() => navigate("/user/chats")}>
+                   <img src={ChatIcon} alt="Chats" />
+                   <span>Chats</span>
+                 </div>
+       
+                 <div className="menu-item">
+                   <img src={PaymentIcon} alt="Payment" />
+                   <span>Payment</span>
+                 </div>
+       
+                 <div className="menu-item">
+                   <img src={SupportIcon} alt="Support" />
+                   <span>Support</span>
+                 </div>
+               </nav>
 
         <div className="logout">
           <div className="menu-item">

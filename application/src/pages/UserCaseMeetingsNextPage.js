@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import HomeIcon from "../assets/icons/home.png";
@@ -13,28 +15,30 @@ import LogoutIcon from "../assets/icons/logout.png";
 import "./UserCaseMeetingsNextPage.css";
 import { FaCog, FaBell, FaVideo, FaPhoneSlash, FaMicrophone, FaDesktop } from "react-icons/fa";
 
+
 const CaseMeetings = () => {
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([
     {
       sender: "Abhishek Singh",
-      text: "It is a long established fact that a reader will be distracted by the readable content of a page when looking at it.",
+      text: "It is a long established fact that a reader will be distracted by the readable content of a page.",
       time: "03:15 pm",
       type: "opponent",
     },
     {
       sender: "Rohan Singh",
-      text: "It is a long established fact that a reader will be distracted by the readable content of a page when looking at it.",
-      time: "03:15 pm",
+      text: "Sure, noted!",
+      time: "03:16 pm",
       type: "mediator",
     },
   ]);
 
   const handleSend = () => {
     if (message.trim() === "") return;
-    setChat([
-      ...chat,
+
+    setChat((prev) => [
+      ...prev,
       {
         sender: "You",
         text: message,
@@ -42,6 +46,7 @@ const CaseMeetings = () => {
         type: "self",
       },
     ]);
+
     setMessage("");
   };
 
@@ -55,14 +60,11 @@ const CaseMeetings = () => {
             <img src={HomeIcon} alt="Home" />
             <span>Home</span>
           </div>
-           <div className="menu-item" onClick={() => navigate("/user/my-profile")}>
-                      <img src={Vector} alt="Profile" />
-                      <span>My Profile</span>
-                    </div>
-          <div
-            className="menu-item"
-            onClick={() => navigate("/user/file-new-case/step1")}
-          >
+          <div className="menu-item" onClick={() => navigate("/user/my-profile")}>
+            <img src={Vector} alt="Profile" />
+            <span>My Profile</span>
+          </div>
+          <div className="menu-item" onClick={() => navigate("/user/file-new-case/step1")}>
             <img src={FileIcon} alt="File New Case" />
             <span>File New Case</span>
           </div>
@@ -86,7 +88,7 @@ const CaseMeetings = () => {
             <img src={PaymentIcon} alt="Payment" />
             <span>Payment</span>
           </div>
-          <div className="menu-item" onClick={() => navigate("/user/suport")}>
+          <div className="menu-item" onClick={() => navigate("/user/support")}>
             <img src={SupportIcon} alt="Support" />
             <span>Support</span>
           </div>
@@ -109,11 +111,7 @@ const CaseMeetings = () => {
             <FaCog className="icon" />
             <FaBell className="icon" />
             <div className="profile">
-              <img
-                src="https://i.pravatar.cc/40"
-                alt="profile"
-                className="profile-img"
-              />
+              <img src="https://i.pravatar.cc/40" alt="profile" className="profile-img" />
               <span>Rohan Singhania</span>
             </div>
           </div>
@@ -128,28 +126,15 @@ const CaseMeetings = () => {
 
           <div className="video-section">
             <div className="video-card opponent">
-              <img
-                src="https://i.pravatar.cc/500?img=12"
-                alt="Opponent"
-                className="video-frame"
-              />
+              <img src="https://i.pravatar.cc/500?img=12" alt="Opponent" className="video-frame" />
               <span className="label">Opponent</span>
             </div>
             <div className="video-card mediator">
-              <img
-                src="https://i.pravatar.cc/500?img=32"
-                alt="Mediator"
-                className="video-frame"
-              />
+              <img src="https://i.pravatar.cc/500?img=32" alt="Mediator" className="video-frame" />
               <span className="label">Mediator</span>
             </div>
-
             <div className="video-small">
-              <img
-                src="https://i.pravatar.cc/150?img=56"
-                alt="You"
-                className="video-frame-small"
-              />
+              <img src="https://i.pravatar.cc/150?img=56" alt="You" className="video-frame-small" />
             </div>
           </div>
 
@@ -184,17 +169,16 @@ const CaseMeetings = () => {
             <div className="chat-box">
               <div className="chat-messages">
                 <p className="chat-date">Today</p>
-                {chat.map((msg, index) => (
-                  <div
-                    key={index}
-                    className={`chat-message ${
-                      msg.type === "self" ? "self" : ""
-                    }`}
-                  >
-                    <p className="chat-text">{msg.text}</p>
-                    <span className="chat-time">{msg.time}</span>
-                  </div>
-                ))}
+                {chat.length === 0 ? (
+                  <p style={{ textAlign: "center", padding: 10 }}>No messages yet.</p>
+                ) : (
+                  chat.map((msg, index) => (
+                    <div key={index} className={`chat-message ${msg.type === "self" ? "self" : ""}`}>
+                      <p className="chat-text">{msg.text}</p>
+                      <span className="chat-time">{msg.time}</span>
+                    </div>
+                  ))
+                )}
               </div>
               <div className="chat-input">
                 <input
@@ -204,7 +188,9 @@ const CaseMeetings = () => {
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
                 />
-                <button onClick={handleSend}>&#9658;</button>
+                <button onClick={handleSend} disabled={!message.trim()}>
+                  &#9658;
+                </button>
               </div>
             </div>
           </div>

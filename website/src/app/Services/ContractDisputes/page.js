@@ -24,162 +24,145 @@ export default function ContractDisputes() {
     "What evidence is required for a contract dispute?",
     "What compensation can I claim?",
   ];
-function AccordionItem({ title }) {
-  const [open, setOpen] = useState(false);
 
-  return (
-    <div className={`cd-accordion-item ${open ? "open" : ""}`}>
-      <div className="cd-accordion-header" onClick={() => setOpen(!open)}>
-        <div>
-          <h4>{title}</h4>
-          <p>When one party fails to fulfill their contractual obligations...</p>
+  function AccordionItem({ title }) {
+    const [open, setOpen] = useState(false);
+
+    return (
+      <div className={`cd-accordion-item ${open ? "open" : ""}`}>
+        <div className="cd-accordion-header" onClick={() => setOpen(!open)}>
+          <div>
+            <h4>{title}</h4>
+            <p>When one party fails to fulfill their contractual obligations...</p>
+          </div>
+          <span className="cd-accordion-arrow">›</span>
         </div>
 
-        <span className="cd-accordion-arrow">›</span>
+        {open && (
+          <div className="cd-accordion-body">
+            Detailed explanation about {title.toLowerCase()} and how we help
+            resolve such disputes efficiently.
+          </div>
+        )}
       </div>
+    );
+  }
 
-      {open && (
-        <div className="cd-accordion-body">
-          Detailed explanation about {title.toLowerCase()} and how we help
-          resolve such disputes efficiently.
-        </div>
-      )}
-    </div>
-  );
-}
+  // ✅ Unified APP_BASE_URL approach for all redirects
+  const APP_BASE_URL = process.env.NEXT_PUBLIC_SITE_URL
+    ? process.env.NEXT_PUBLIC_SITE_URL.replace("https://", "https://app.")
+    : "http://localhost:3001"; 
 
   return (
     <>
       <Header />
 
-    {/* HERO */}
+      {/* HERO */}
+      <section className="cd-hero-exact">
+        <img src="/assets/icons/left-circle.png" alt="" className="figma-circle left" />
+        <img src="/assets/icons/right-circle.png" alt="" className="figma-circle right" />
+        <div className="hero-glow"></div>
 
-<section className="cd-hero-exact">
-  {/* Decorative Circles*/}
-  <img
-    src="/assets/icons/left circle.png"
-    alt=""
-    className="figma-circle left"
-  />
+        <div className="cd-hero-content">
+          <span className="cd-pill-exact">Contract Disputes</span>
 
-  <img
-    src="/assets/icons/right circle.png"
-    alt=""
-    className="figma-circle right"
-  />
-  {/* Glow behind heading */}
-  <div className="hero-glow"></div>
+          <h1>
+            Protecting Your <span className="highlight">Rights</span> and <br />
+            <span className="highlight-light">Resolving</span> Conflicts Efficiently
+          </h1>
 
-  <div className="cd-hero-content">
-    <span className="cd-pill-exact">Contract Disputes</span>
+          <p>
+            Clear guidance, strategic solutions, and strong advocacy for individuals and
+            businesses involved in contract disagreements.
+          </p>
 
-    <h1>
-      Protecting Your <span className="highlight">Rights</span> and <br />
-      <span className="highlight-light">Resolving</span> Conflicts Efficiently
-    </h1>
-
-    <p>
-      Clear guidance, strategic solutions, and strong advocacy for individuals and
-      businesses involved in contract disagreements.
-    </p>
-
-    <div className="hero-buttons">
-        <button
+          <div className="hero-buttons">
+            <button
               className="btn-primary-exact"
               onClick={() => {
-                window.location.href =
-                  "http://localhost:3001/login?redirect=/user/file-new-case/step1";
+                window.location.href = `${APP_BASE_URL}/login?redirect=/user/file-new-case/step1`;
               }}
             >
               File A Case
             </button>
-       <button
+
+            <button
               className="btn-dark-exact"
               onClick={() => {
-                window.location.href = "http://localhost:3001/login";
+                window.location.href = `${APP_BASE_URL}/login?redirect=/user/chats`;
               }}
             >
               Talk To Expert
             </button>
-    </div>
-  </div>
-</section>
+          </div>
+        </div>
+      </section>
 
-{/* WHAT IS CONTRACT DISPUTES */}
-<section className="cd-what-figma">
-  <div className="cd-what-box">
+      {/* WHAT IS CONTRACT DISPUTES */}
+      <section className="cd-what-figma">
+        <div className="cd-what-box">
+          <div className="cd-what-circles">
+            <img src="/assets/icons/circle1.png" alt="" className="circle c1" />
+            <img src="/assets/icons/circle2.png" alt="" className="circle c2" />
+            <img src="/assets/icons/circle3.png" alt="" className="circle c3" />
+          </div>
 
-    {/* LEFT – CIRCLES */}
-    <div className="cd-what-circles">
-      <img src="/assets/icons/circle1.png" alt="" className="circle c1" />
-      <img src="/assets/icons/circle2.png" alt="" className="circle c2" />
-      <img src="/assets/icons/circle3.png" alt="" className="circle c3" />
-    </div>
+          <div className="cd-what-content">
+            <h2>What is Contract Disputes?</h2>
 
-    {/* RIGHT – CONTENT */}
-    <div className="cd-what-content">
-      <h2>What is Contract Disputes?</h2>
+            <p className="cd-what-desc">
+              Contract disputes arise when one or more parties believe that the terms
+              of an agreement have not been met. These disagreements can disrupt
+              business operations, damage relationships, and lead to financial losses.
+            </p>
 
-      <p className="cd-what-desc">
-        Contract disputes arise when one or more parties believe that the terms
-        of an agreement have not been met. These disagreements can disrupt
-        business operations, damage relationships, and lead to financial losses.
-      </p>
+            <div className="cd-divider"></div>
 
-      {/* DIVIDER */}
-      <div className="cd-divider"></div>
+            <div className="cd-what-points">
+              <ul>
+                <li>
+                  Our team helps clients understand their rights, assess their options,
+                  and take strategic steps toward resolving the conflict efficiently.
+                </li>
+              </ul>
 
-      <div className="cd-what-points">
-        <ul>
-          <li>
-            Our team helps clients understand their rights, assess their options,
-            and take strategic steps toward resolving the conflict efficiently.
-          </li>
-        </ul>
+              <ul>
+                <li>
+                  Whether you're facing a breach of contract, payment issues, or
+                  disagreement over contract terms, we provide clear, practical
+                  support.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <ul>
-          <li>
-            Whether you're facing a breach of contract, payment issues, or
-            disagreement over contract terms, we provide clear, practical
-            support.
-          </li>
-        </ul>
-      </div>
-    </div>
+      {/* Contract Dispute List */}
+      <section className="cd-list-figma">
+        <div className="cd-list-container">
+          <div className="cd-list-image">
+            <img src="/assets/images/CD.png" alt="Contract Disputes" />
+          </div>
 
-  </div>
-</section>
+          <div className="cd-list-content">
+            <h2>Contract Disputes</h2>
 
-{/* Contract Dispute List */}
-<section className="cd-list-figma">
-  <div className="cd-list-container">
+            <div className="cd-accordion-figma">
+              {[
+                "Breach of Contract",
+                "Payment Disputes",
+                "Non-performance",
+                "Delay in Delivery",
+              ].map((title, index) => (
+                <AccordionItem key={index} title={title} />
+              ))}
+            </div>
 
-    {/* LEFT IMAGE */}
-    <div className="cd-list-image">
-      <img src="/assets/images/CD.png" alt="Contract Disputes" />
-    </div>
-
-    {/* RIGHT CONTENT */}
-    <div className="cd-list-content">
-      <h2>Contract Disputes</h2>
-
-      <div className="cd-accordion-figma">
-        {[
-          "Breach of Contract",
-          "Payment Disputes",
-          "Non-performance",
-          "Delay in Delivery",
-        ].map((title, index) => (
-          <AccordionItem key={index} title={title} />
-        ))}
-      </div>
-
-      <button className="cd-see-more">See More</button>
-    </div>
-
-  </div>
-</section>
-
+            <button className="cd-see-more">See More</button>
+          </div>
+        </div>
+      </section>
 
       {/* HOW WE RESOLVE */}
       <section className="cd-how-exact">
@@ -245,71 +228,59 @@ function AccordionItem({ title }) {
           </div>
         </div>
       </section>
-{/* WHY CHOOSE US */}
-    <section className="why-choose-section">
-  <div className="why-choose-container">
 
-    <h2 className="why-choose-title">Why Choose Us</h2>
-    <p className="why-choose-subtitle">
-      Resolve business, customer, or personal conflicts through a secure,
-      transparent online platform.
-    </p>
+      {/* WHY CHOOSE US */}
+      <section className="why-choose-section">
+        <div className="why-choose-container">
+          <h2 className="why-choose-title">Why Choose Us</h2>
+          <p className="why-choose-subtitle">
+            Resolve business, customer, or personal conflicts through a secure,
+            transparent online platform.
+          </p>
 
-    <div className="why-choose-grid">
+          <div className="why-choose-grid">
+            <div className="why-choose-item">
+              <div className="why-icon-circle">
+                <img src="/assets/icons/Fast.png" alt="Fast Resolution" />
+              </div>
+              <h4>Fast Resolution</h4>
+              <p>Resolve business, customer, or personal conflicts through a secure.</p>
+            </div>
 
-      <div className="why-choose-item">
-        <div className="why-icon-circle">
-          <img src="/assets/icons/Fast.png" alt="Fast Resolution" />
+            <div className="why-choose-item">
+              <div className="why-icon-circle">
+                <img src="/assets/icons/Legally.png" alt="Legally Compliant" />
+              </div>
+              <h4>Legally Compliant</h4>
+              <p>Resolve business, customer, or personal conflicts through a secure.</p>
+            </div>
+
+            <div className="why-choose-item">
+              <div className="why-icon-circle">
+                <img src="/assets/icons/Secure.png" alt="Secure & Confidential" />
+              </div>
+              <h4>Secure & Confidential</h4>
+              <p>Resolve business, customer, or personal conflicts through a secure.</p>
+            </div>
+
+            <div className="why-choose-item">
+              <div className="why-icon-circle">
+                <img src="/assets/icons/Neutral.png" alt="Neutral Experts" />
+              </div>
+              <h4>Neutral Experts</h4>
+              <p>Resolve business, customer, or personal conflicts through a secure.</p>
+            </div>
+
+            <div className="why-choose-item">
+              <div className="why-icon-circle">
+                <img src="/assets/icons/24.png" alt="24/7 Access" />
+              </div>
+              <h4>24/7 Access</h4>
+              <p>Resolve business, customer, or personal conflicts through a secure.</p>
+            </div>
+          </div>
         </div>
-        <h4>Fast Resolution</h4>
-        <p>
-          Resolve business, customer, or personal conflicts through a secure.
-        </p>
-      </div>
-
-      <div className="why-choose-item">
-        <div className="why-icon-circle">
-          <img src="/assets/icons/Legally.png" alt="Legally Compliant" />
-        </div>
-        <h4>Legally Compliant</h4>
-        <p>
-          Resolve business, customer, or personal conflicts through a secure.
-        </p>
-      </div>
-
-      <div className="why-choose-item">
-        <div className="why-icon-circle">
-          <img src="/assets/icons/Secure.png" alt="Secure & Confidential" />
-        </div>
-        <h4>Secure & Confidential</h4>
-        <p>
-          Resolve business, customer, or personal conflicts through a secure.
-        </p>
-      </div>
-
-      <div className="why-choose-item">
-        <div className="why-icon-circle">
-          <img src="/assets/icons/Neutral.png" alt="Neutral Experts" />
-        </div>
-        <h4>Neutral Experts</h4>
-        <p>
-          Resolve business, customer, or personal conflicts through a secure.
-        </p>
-      </div>
-
-      <div className="why-choose-item">
-        <div className="why-icon-circle">
-          <img src="/assets/icons/24.png" alt="24/7 Access" />
-        </div>
-        <h4>24/7 Access</h4>
-        <p>
-          Resolve business, customer, or personal conflicts through a secure.
-        </p>
-      </div>
-
-    </div>
-  </div>
-</section>
+      </section>
 
       {/* FAQ */}
       <section className="faq-section">
@@ -339,34 +310,44 @@ function AccordionItem({ title }) {
         </div>
       </section>
 
-      
+      {/* CTA */}
       <section className="contract-cta">
-  <div className="contract-cta-box">
+        <div className="contract-cta-box">
+          <div className="contract-cta-content">
+            <h2>Resolve Contract Disputes Without Court Delays</h2>
 
-    {/* LEFT CONTENT */}
-    <div className="contract-cta-content">
-      <h2>Resolve Contract Disputes Without Court Delays</h2>
+            <p>
+              Whether it’s a breach of contract, unpaid dues, or service agreement
+              issues, RaaziMerzi helps you resolve contract disputes online—securely,
+              legally, and efficiently.
+            </p>
 
-      <p>
-        Whether it’s a breach of contract, unpaid dues, or service agreement
-        issues, RaaziMerzi helps you resolve contract disputes online—securely,
-        legally, and efficiently.
-      </p>
+            <div className="contract-cta-buttons">
+              <button
+                className="cta-primary"
+                onClick={() => {
+                  window.location.href = `${APP_BASE_URL}/login?redirect=/user/file-new-case/step1`;
+                }}
+              >
+                Start Contract Resolution
+              </button>
 
-      <div className="contract-cta-buttons">
-        <button className="cta-primary">Start Contract Resolution</button>
-        <button className="cta-secondary">Consult a Legal Expert</button>
-      </div>
-    </div>
+              <button
+                className="cta-secondary"
+                onClick={() => {
+                  window.location.href = `${APP_BASE_URL}/login?redirect=/user/chats`;
+                }}
+              >
+                Consult a Legal Expert
+              </button>
+            </div>
+          </div>
 
-    {/* RIGHT IMAGE */}
-    <div className="contract-cta-image">
-      <img src="/assets/images/contract.png" alt="Contract Resolution" />
-    </div>
-
-  </div>
-</section>
-
+          <div className="contract-cta-image">
+            <img src="/assets/images/contract.png" alt="Contract Resolution" />
+          </div>
+        </div>
+      </section>
 
       <Footer />
     </>

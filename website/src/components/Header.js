@@ -1,6 +1,8 @@
 "use client";
+
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import "../styles/header.css";
 
@@ -13,10 +15,14 @@ export default function Header() {
 
   const servicesRef = useRef(null);
 
+  // ✅ APP URL FROM ENV (PRODUCTION SAFE)
+  const APP_URL =
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
+
   const isActive = (path) => pathname === path;
   const isServiceActive = pathname.startsWith("/Services");
 
-  /* SCROLL + OUTSIDE CLICK */
+  /*SCROLL */ 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -29,31 +35,39 @@ export default function Header() {
     };
 
     window.addEventListener("scroll", handleScroll);
-    document.addEventListener("click", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      document.removeEventListener("click", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
-  /* LOCK SCROLL ON MOBILE MENU */
+  /* LOCK SCROLL ON MOBILE */
   useEffect(() => {
     document.body.style.overflow = mobileMenu ? "hidden" : "auto";
+    return () => {
+      document.body.style.overflow = "auto";
+    };
   }, [mobileMenu]);
 
   return (
     <>
-      {/* ================= HEADER ================= */}
+      {/*  HEADER  */}
       <header className={`header ${scrolled ? "scrolled" : ""}`}>
         <div className="container">
           {/* LOGO */}
           <div className="logo-area">
-            <img
-              src="/assets/images/logo.png"
-              alt="RaaziMarzi Logo"
-              className="logo"
-            />
+            <Link href="/">
+              <Image
+                src="/assets/images/logo.png"
+                alt="RaaziMarzi Logo"
+                width={160}
+                height={40}
+                priority
+                className="logo"
+              />
+            </Link>
           </div>
 
           {/* DESKTOP NAV */}
@@ -67,7 +81,7 @@ export default function Header() {
                 className={`services-link ${
                   isServiceActive ? "active" : ""
                 }`}
-                onClick={() => setServicesOpen(!servicesOpen)}
+                onClick={() => setServicesOpen((prev) => !prev)}
               >
                 Services <span className="arrow">⌄</span>
               </span>
@@ -83,7 +97,9 @@ export default function Header() {
                     <Link
                       href="/Services/ContractDisputes"
                       className={
-                        isActive("/Services/ContractDisputes") ? "active" : ""
+                        isActive("/Services/ContractDisputes")
+                          ? "active"
+                          : ""
                       }
                     >
                       Contract Dispute
@@ -117,7 +133,9 @@ export default function Header() {
                     <Link
                       href="/Services/ConsumerDisputes"
                       className={
-                        isActive("/Services/ConsumerDisputes") ? "active" : ""
+                        isActive("/Services/ConsumerDisputes")
+                          ? "active"
+                          : ""
                       }
                     >
                       Consumer Dispute
@@ -158,24 +176,26 @@ export default function Header() {
 
           {/* REQUEST DEMO */}
           <div className="demo-btn">
-            <Link href="http://localhost:3001/login">Request Demo</Link>
+            <Link href={`${APP_URL}/login`}>Login</Link>
           </div>
 
           {/* MOBILE ICON */}
-          <div
+          <button
             className="mobile-icon"
+            aria-label="Open Menu"
             onClick={() => setMobileMenu(true)}
           >
             ☰
-          </div>
+          </button>
         </div>
       </header>
 
-      {/* ================= MOBILE MENU ================= */}
+      {/*  MOBILE MENU  */}
       <div className={`mobile-menu-overlay ${mobileMenu ? "show" : ""}`}>
         <div className="mobile-menu">
           <button
             className="mobile-close"
+            aria-label="Close Menu"
             onClick={() => setMobileMenu(false)}
           >
             ✕
@@ -185,14 +205,9 @@ export default function Header() {
           <div className={`mobile-box ${servicesOpen ? "open" : ""}`}>
             <div
               className="mobile-box-header"
-              onClick={() => setServicesOpen(!servicesOpen)}
+              onClick={() => setServicesOpen((prev) => !prev)}
             >
               Services <span>{servicesOpen ? "⌃" : "⌄"}</span>
-            </div>
-
-            <div className="mobile-tabs">
-              <button className="active">Commercial Disputes</button>
-              <button>Individual Disputes</button>
             </div>
 
             <div className="mobile-sub-links">
@@ -202,11 +217,8 @@ export default function Header() {
               <Link href="/Services/PartnershipDisputes">
                 Partnership Disputes
               </Link>
-            </div>
-
-            <div className="mobile-sub-links">
               <Link href="/Services/Property&RentalDisputes">
-                Property & Rental Dispute Resolution (ODR)
+                Property & Rental Dispute
               </Link>
               <Link href="/Services/ConsumerDisputes">
                 Consumer Disputes
@@ -214,11 +226,17 @@ export default function Header() {
             </div>
           </div>
 
-          <Link href="/AboutUs" className="mobile-box">About Us</Link>
-          <Link href="/case-journey" className="mobile-box">Case Journey</Link>
-          <Link href="/ContactUs" className="mobile-box">Contact Us</Link>
+          <Link href="/AboutUs" className="mobile-box">
+            About Us
+          </Link>
+          <Link href="/case-journey" className="mobile-box">
+            Case Journey
+          </Link>
+          <Link href="/ContactUs" className="mobile-box">
+            Contact Us
+          </Link>
 
-          <Link href="/request-demo" className="mobile-demo-btn">
+          <Link href={`${APP_URL}/login`} className="mobile-demo-btn">
             Request Demo
           </Link>
         </div>

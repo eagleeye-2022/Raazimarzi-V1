@@ -1,12 +1,13 @@
+// src/pages/Signup.js
 import React, { useState } from "react";
 import "./Signup.css";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import signupBg from "../assets/icons/rec.png"; 
+import signupBg from "../assets/icons/rec.png";
 import google from "../assets/icons/google.png";
 import linkdin from "../assets/icons/linkdin.png";
 import phone from "../assets/icons/phone.png";
 import fb from "../assets/icons/fb.png";
+import api from "../api/axios"; 
 
 const Signup = () => {
   const [form, setForm] = useState({
@@ -16,9 +17,8 @@ const Signup = () => {
     role: "user",
   });
 
-  const [password, setPassword] = useState(""); // UI ONLY
+  const [password, setPassword] = useState(""); // UI only
   const [showPassword, setShowPassword] = useState(false);
-
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState("form"); // form | otp
   const [message, setMessage] = useState("");
@@ -30,16 +30,13 @@ const Signup = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ✅ STEP 1: SEND OTP (unchanged backend)
+  // ✅ STEP 1: SEND OTP
   const handleSendOtp = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setMessage("Sending OTP...");
     try {
-      setMessage("Sending OTP...");
-      await axios.post("http://localhost:5000/api/otp/send-otp", {
-        ...form,
-        type: "signup",
-      });
+      await api.post("/otp/send-otp", { ...form, type: "signup" });
       setStep("otp");
       setMessage("OTP sent to your email!");
     } catch (err) {
@@ -49,19 +46,19 @@ const Signup = () => {
     }
   };
 
-  // ✅ STEP 2: VERIFY OTP (unchanged backend)
+  // ✅ STEP 2: VERIFY OTP
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post("http://localhost:5000/api/otp/verify-otp", {
+      await api.post("/otp/verify-otp", {
         email: form.email,
         otp,
         type: "signup",
         name: form.name,
         phone: form.phone,
         role: form.role,
-        // ❌ password NOT sent
+        // password is UI only; backend handles hashing
       });
 
       alert("Signup successful! You can now login.");
@@ -76,7 +73,6 @@ const Signup = () => {
   return (
     <div className="login-wrapper">
       <div className="login-card">
-
         {/* LEFT IMAGE */}
         <div className="login-image">
           <img src={signupBg} alt="Signup" />
@@ -89,13 +85,11 @@ const Signup = () => {
             <span>ODR Platform</span>
           </div>
 
-          <h2>Welcome to Raazimerzi</h2>
+          <h2>Welcome to Raazimarzi</h2>
           <p className="subtitle">Register your account with us!</p>
 
           {step === "form" && (
             <form onSubmit={handleSendOtp}>
-
-              {/* NAME */}
               <div className="input-group">
                 <input
                   type="text"
@@ -107,7 +101,6 @@ const Signup = () => {
                 />
               </div>
 
-              {/* EMAIL */}
               <div className="input-group">
                 <input
                   type="email"
@@ -119,7 +112,6 @@ const Signup = () => {
                 />
               </div>
 
-              {/* PASSWORD (UI ONLY) */}
               <div className="input-group password-group">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -133,7 +125,6 @@ const Signup = () => {
                 </span>
               </div>
 
-              {/* PHONE */}
               <div className="input-group">
                 <input
                   type="text"
@@ -145,14 +136,21 @@ const Signup = () => {
                 />
               </div>
 
-                  <div className="social-row">
-                              <span> <img src={google} alt="G" /></span>
-                              <span> <img src={linkdin} alt="L" /></span>
-                              <span> <img src={phone} alt="M" /></span>
-                              <span> <img src={fb} alt="F" /></span>
-                            </div>
+              <div className="social-row">
+                <span>
+                  <img src={google} alt="Google" />
+                </span>
+                <span>
+                  <img src={linkdin} alt="LinkedIn" />
+                </span>
+                <span>
+                  <img src={phone} alt="Phone" />
+                </span>
+                <span>
+                  <img src={fb} alt="Facebook" />
+                </span>
+              </div>
 
-              {/* ROLE */}
               <div className="input-group">
                 <select name="role" value={form.role} onChange={handleChange}>
                   <option value="user">User</option>

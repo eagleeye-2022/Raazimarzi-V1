@@ -1,7 +1,10 @@
 // src/pages/MyProfile.js
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./MyProfile.css";
 import { useNavigate } from "react-router-dom";
+import api from "../api/axios";
+
+// Icons
 import Vector from "../assets/icons/Vector.png";
 import HomeIcon from "../assets/icons/home.png";
 import FileIcon from "../assets/icons/file.png";
@@ -12,28 +15,70 @@ import ChatIcon from "../assets/icons/chat.png";
 import PaymentIcon from "../assets/icons/payment.png";
 import SupportIcon from "../assets/icons/support.png";
 import LogoutIcon from "../assets/icons/logout.png";
+
 import { FaCog, FaBell } from "react-icons/fa";
 
 const MyProfile = () => {
   const navigate = useNavigate();
+
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Fetch profile data
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get("/api/users/me");
+        setProfile(res.data);
+      } catch (err) {
+        console.error("Profile fetch error:", err);
+        setError("Failed to load profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
+  if (loading) {
+    return <div style={{ padding: 40 }}>Loading profile...</div>;
+  }
+
+  if (error) {
+    return <div style={{ padding: 40, color: "red" }}>{error}</div>;
+  }
 
   return (
     <div className="dashboard-container">
       {/* Sidebar */}
       <aside className="sidebar">
         <h2 className="sidebar-title">Dashboard</h2>
+
         <nav className="menu">
           <div className="menu-item" onClick={() => navigate("/user/dashboard")}>
             <img src={HomeIcon} alt="Home" />
             <span>Home</span>
           </div>
 
-          <div className="menu-item active" onClick={() => navigate("/user/my-profile")}>
+          <div
+            className="menu-item active"
+            onClick={() => navigate("/user/my-profile")}
+          >
             <img src={Vector} alt="Profile" />
             <span>My Profile</span>
           </div>
 
-          <div className="menu-item" onClick={() => navigate("/user/file-new-case/step1")}>
+          <div
+            className="menu-item"
+            onClick={() => navigate("/user/file-new-case/step1")}
+          >
             <img src={FileIcon} alt="File New Case" />
             <span>File New Case</span>
           </div>
@@ -43,34 +88,37 @@ const MyProfile = () => {
             <span>My Cases</span>
           </div>
 
-          <div className="menu-item" onClick={() => navigate("/user/case-meetings")}>
+          <div
+            className="menu-item"
+            onClick={() => navigate("/user/case-meetings")}
+          >
             <img src={MeetingIcon} alt="Case Meetings" />
             <span>Case Meetings</span>
           </div>
 
-          <div className="menu-item">
+          <div className="menu-item" onClick={() => navigate("/user/documents")}>
             <img src={DocsIcon} alt="Documents" />
             <span>Documents</span>
           </div>
 
-          <div className="menu-item">
+          <div className="menu-item" onClick={() => navigate("/user/chats")}>
             <img src={ChatIcon} alt="Chats" />
             <span>Chats</span>
           </div>
 
-          <div className="menu-item">
+          <div className="menu-item" onClick={() => navigate("/user/payments")}>
             <img src={PaymentIcon} alt="Payment" />
             <span>Payment</span>
           </div>
 
-          <div className="menu-item">
+          <div className="menu-item" onClick={() => navigate("/user/support")}>
             <img src={SupportIcon} alt="Support" />
             <span>Support</span>
           </div>
         </nav>
 
         <div className="logout">
-          <div className="menu-item">
+          <div className="menu-item" onClick={handleLogout}>
             <img src={LogoutIcon} alt="Logout" />
             <span>Log out</span>
           </div>
@@ -81,13 +129,17 @@ const MyProfile = () => {
       <main className="main-content">
         {/* Navbar */}
         <header className="navbar">
-          <div></div>
+          <div />
           <div className="nav-icons">
             <FaCog className="icon" />
             <FaBell className="icon" />
             <div className="profile">
-              <img src="https://i.pravatar.cc/40" alt="profile" className="profile-img" />
-              <span>Rohan Singhania</span>
+              <img
+                src={profile.avatar || "https://i.pravatar.cc/40"}
+                alt="profile"
+                className="profile-img"
+              />
+              <span>{profile.name}</span>
             </div>
           </div>
         </header>
@@ -96,52 +148,52 @@ const MyProfile = () => {
         <section className="profile-section">
           <div className="profile-left-card">
             <img
-              src="https://i.pravatar.cc/150"
-              alt="Rohan"
+              src={profile.avatar || "https://i.pravatar.cc/150"}
+              alt="User"
               className="profile-avatar"
             />
-            <h3>Rohan Singhania</h3>
-            <p className="email">rohansinghania@gmail.com</p>
-            <p className="phone">+91 8888 2222 66</p>
+            <h3>{profile.name}</h3>
+            <p className="email">{profile.email}</p>
+            <p className="phone">{profile.phone || "—"}</p>
+
             <button className="save-btn">
-              <span>✏️</span> Save
+              <span>✏️</span> Edit Profile
             </button>
           </div>
 
           <div className="profile-right-card">
-            <h3>Rohan Singhania</h3>
+            <h3>Personal Information</h3>
+
             <div className="info-grid">
               <div>
                 <p>Date of Birth</p>
-                <h4>22 Sep, 1994</h4>
+                <h4>{profile.dob || "—"}</h4>
               </div>
               <div>
                 <p>Gender</p>
-                <h4>Male</h4>
+                <h4>{profile.gender || "—"}</h4>
               </div>
               <div>
                 <p>City</p>
-                <h4>Indore</h4>
+                <h4>{profile.city || "—"}</h4>
               </div>
               <div>
                 <p>Country</p>
-                <h4>India</h4>
+                <h4>{profile.country || "India"}</h4>
               </div>
               <div>
                 <p>State</p>
-                <h4>Madhya Pradesh</h4>
+                <h4>{profile.state || "—"}</h4>
               </div>
               <div>
                 <p>Pin Code</p>
-                <h4>224670</h4>
+                <h4>{profile.pincode || "—"}</h4>
               </div>
             </div>
 
             <div className="address-section">
               <p>Address</p>
-              <h4>
-                World cup square, Pipliyana, Scheme 200A, Indore, Madhya Pradesh, India.
-              </h4>
+              <h4>{profile.address || "—"}</h4>
             </div>
           </div>
         </section>
