@@ -1,11 +1,17 @@
 "use client";
 import React from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import "@/styles/consumerDisputes.css";
 
+// ✅ Define base paths
+const WEBSITE_PATH = "/website";
+const APP_PATH = "/app";
+
 export default function ConsumerDisputePage() {
-  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3001";
+
+  const router = useRouter();
 
   const consumerTypes = [
     { title: "Defective or Faulty Products", desc: "Product not working, damaged, or poor quality.", icon: "/assets/icons/defective.png" },
@@ -24,14 +30,6 @@ export default function ConsumerDisputePage() {
     "Right to Choose",
     "Right to Redressal",
     "Right to Consumer Education",
-  ];
-
-  const whyChoose = [
-    { icon: "Fast.png", title: "Fast Resolution", desc: "Resolve business, customer, or personal conflicts securely." },
-    { icon: "Legally.png", title: "Legally Compliant", desc: "All processes follow legal guidelines for consumer protection." },
-    { icon: "Secure.png", title: "Secure & Confidential", desc: "Your data and dispute details remain fully confidential." },
-    { icon: "Neutral.png", title: "Neutral Experts", desc: "Mediators are impartial to ensure fair resolutions." },
-    { icon: "24.png", title: "24/7 Access", desc: "Access the platform anytime from anywhere." },
   ];
 
   const faqQuestions = [
@@ -69,14 +67,18 @@ export default function ConsumerDisputePage() {
           <div className="hero-buttons">
             <button
               className="btn-primary-exact"
-              onClick={() => (window.location.href = `${SITE_URL}/login?redirect=/user/file-new-case/step1`)}
+              onClick={() =>
+                router.push(`${APP_PATH}/login?redirect=${APP_PATH}/user/file-new-case/step1`)
+              }
             >
               File A Case
             </button>
 
             <button
               className="btn-dark-exact"
-              onClick={() => (window.location.href = `${SITE_URL}/login`)}
+              onClick={() =>
+                router.push(`${APP_PATH}/login`)
+              }
             >
               Talk To Expert
             </button>
@@ -127,6 +129,7 @@ export default function ConsumerDisputePage() {
       <section className="who-can-file">
         <h2>Who Can File a Consumer Dispute?</h2>
         <p className="subtitle">We Help You Recover Money From</p>
+
         <div className="flow-container">
           <svg className="flow-svg" viewBox="0 0 1200 200" preserveAspectRatio="none">
             <path d="M150 100 C250 40, 350 40, 450 100" />
@@ -145,7 +148,7 @@ export default function ConsumerDisputePage() {
             ].map((label, i) => (
               <div key={i} className="flow-item">
                 <div className="circle"></div>
-                <p dangerouslySetInnerHTML={{ __html: label.replace(/\n/g, "<br />") }}></p>
+                <p>{label}</p>
               </div>
             ))}
           </div>
@@ -168,22 +171,29 @@ export default function ConsumerDisputePage() {
         </div>
       </section>
 
-      {/* WHY CHOOSE US */}
+      {/* WHY CHOOSE */}
       <section className="why-choose-section">
         <div className="why-choose-container">
           <h2 className="why-choose-title">Why Choose Us</h2>
+
           <p className="why-choose-subtitle">
             Resolve conflicts through a secure, transparent online platform.
           </p>
 
           <div className="why-choose-grid">
-            {whyChoose.map((item, i) => (
-              <div className="why-choose-item" key={i}>
+            {[
+              ["fast.png", "Fast Resolution", "Get disputes resolved faster than traditional court procedures."],
+              ["secure.png", "Secure Platform", "Your data and communication remain encrypted and protected."],
+              ["legal.png", "Legally Compliant", "We follow all legal standards and compliance requirements."],
+              ["neutral.png", "Neutral Experts", "Work with unbiased mediators and legal professionals."],
+              ["24.png", "24/7 Support", "Access assistance and case updates anytime, anywhere."],
+            ].map(([icon, title, desc]) => (
+              <div key={title} className="why-choose-item">
                 <div className="why-icon-circle">
-                  <img src={`/assets/icons/${item.icon}`} alt={item.title} />
+                  <img src={`/assets/icons/${icon}`} alt={title} />
                 </div>
-                <h4>{item.title}</h4>
-                <p>{item.desc}</p>
+                <h4>{title}</h4>
+                <p>{desc}</p>
               </div>
             ))}
           </div>
@@ -194,6 +204,7 @@ export default function ConsumerDisputePage() {
       <section className="faq-section">
         <div className="faq-container">
           <h2>Frequently Asked Questions (FAQ)</h2>
+
           <p className="faq-subtitle">
             Resolve business, customer, or personal conflicts securely.
           </p>
@@ -201,7 +212,9 @@ export default function ConsumerDisputePage() {
           <div className="faq-box">
             <div className="faq-tabs">
               {["Cases","Money","Policies","Resolve Cases","Victory %","Ordinary"].map((tab, i) => (
-                <button key={i} className={`faq-tab ${i===0 ? "active" : ""}`}>{tab}</button>
+                <button key={i} className={`faq-tab ${i===0 ? "active" : ""}`}>
+                  {tab}
+                </button>
               ))}
             </div>
 
@@ -222,6 +235,7 @@ export default function ConsumerDisputePage() {
         <div className="contract-cta-box">
           <div className="contract-cta-content">
             <h2>Resolve Consumer Complaints Without Court Stress</h2>
+
             <p>
               Don’t let unresolved complaints go unheard. Resolve consumer disputes
               through a secure and legally compliant online process.
@@ -230,14 +244,18 @@ export default function ConsumerDisputePage() {
             <div className="contract-cta-buttons">
               <button
                 className="cta-primary"
-                onClick={() => (window.location.href = `${SITE_URL}/login?redirect=/user/file-new-case/step1`)}
+                onClick={() =>
+                  router.push(`${APP_PATH}/login?redirect=${APP_PATH}/user/file-new-case/step1`)
+                }
               >
                 File A Case
               </button>
 
               <button
                 className="cta-secondary"
-                onClick={() => (window.location.href = `${SITE_URL}/login`)}
+                onClick={() =>
+                  router.push(`${APP_PATH}/login`)
+                }
               >
                 Talk To Expert
               </button>

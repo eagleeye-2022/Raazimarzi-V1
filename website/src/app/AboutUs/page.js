@@ -1,13 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import "@/styles/aboutUs.css";
 import Link from "next/link";
+import "@/styles/aboutUs.css";
+
+// ✅ Updated: app path under same domain
+const APP_PATH = "/app";
 
 export default function AboutUs() {
   const [activeTab, setActiveTab] = useState("Cases");
+  const router = useRouter();
 
   const tabs = [
     "Cases",
@@ -25,9 +30,6 @@ export default function AboutUs() {
     "What documents are required for filing a complaint?",
     "How long does it take to resolve a dispute online?",
   ];
-
-  // Use environment variable for base URL in production
-  const APP_BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3001";
 
   return (
     <>
@@ -55,13 +57,13 @@ export default function AboutUs() {
             <button
               className="btn-primary"
               onClick={() =>
-                (window.location.href = `${APP_BASE_URL}/login?redirect=/user/file-new-case/step1`)
+                router.push(`${APP_PATH}/login?redirect=${APP_PATH}/user/file-new-case/step1`)
               }
             >
               File A Case
             </button>
 
-            <Link href="/ContactUs" className="btn-dark">
+            <Link href="/website/ContactUs" className="btn-dark">
               Contact Us
             </Link>
           </div>
@@ -152,11 +154,12 @@ export default function AboutUs() {
       <section className="what-we-do-exact">
         <div className="what-we-do-container">
           <div className="what-we-do-image">
-            <img src="/assets/images/CD.png" alt="What RaaziMarzi Do" />
+            <img src="/assets/images/cd.png" alt="What RaaziMarzi Do" />
           </div>
 
           <div className="what-we-do-content">
             <h3>What RaaziMarzi Do?</h3>
+
             <div className="what-we-do-list">
               {[
                 "Consumer Disputes",
@@ -173,6 +176,7 @@ export default function AboutUs() {
                 </div>
               ))}
             </div>
+
             <button className="what-we-do-btn">See More</button>
           </div>
         </div>
@@ -185,12 +189,19 @@ export default function AboutUs() {
           <p className="our-value-sub">The story you should know</p>
 
           <div className="our-value-grid">
-            {["Responsibility","Integrity","Transparency","Empathy","Innovation","Security"].map((item) => (
-              <div key={item} className="our-value-item">
+            {[
+              ["responsibility.png", "Responsibility"],
+              ["integrity.png", "Integrity"],
+              ["transparency.png", "Transparency"],
+              ["empathy.png", "Empathy"],
+              ["innovation.png", "Innovation"],
+              ["security.png", "Security"],
+            ].map(([icon, label]) => (
+              <div key={label} className="our-value-item">
                 <div className="our-value-circle">
-                  <img src={`/assets/icons/${item}.png`} alt={item} />
+                  <img src={`/assets/icons/${icon}`} alt={label} />
                 </div>
-                <p className="our-value-label">{item}</p>
+                <p className="our-value-label">{label}</p>
               </div>
             ))}
           </div>
@@ -222,16 +233,15 @@ export default function AboutUs() {
         <div className="cd-container">
           <h2>Why Choose Us</h2>
           <p className="cd-why-sub">
-            Resolve business, customer, or personal conflicts through a secure,
-            transparent online platform.
+            Resolve business, customer, or personal conflicts through a secure, transparent online platform.
           </p>
 
           <div className="cd-why-grid">
             {[
-              ["Fast.png", "Fast Resolution"],
-              ["Legally.png", "Legally Compliant"],
-              ["Secure.png", "Secure & Confidential"],
-              ["Neutral.png", "Neutral Experts"],
+              ["fast.png", "Fast Resolution"],
+              ["legal.png", "Legally Compliant"],
+              ["secure.png", "Secure & Confidential"],
+              ["neutral.png", "Neutral Experts"],
               ["24.png", "24/7 Access"],
             ].map(([icon, title]) => (
               <div key={title} className="cd-why-item">
@@ -251,8 +261,7 @@ export default function AboutUs() {
         <div className="pd-container">
           <h2 className="faq-title">Frequently Asked Questions (FAQ)</h2>
           <p className="faq-subtitle">
-            Resolve business, customer, or personal conflicts through a secure,
-            transparent online platform.
+            Resolve business, customer, or personal conflicts through a secure, transparent online platform.
           </p>
 
           <div className="faq-container">

@@ -1,12 +1,13 @@
 "use client";
-
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import "@/styles/contractDisputes.css";
 
 export default function ContractDisputes() {
   const [activeTab, setActiveTab] = useState("Cases");
+  const router = useRouter();
 
   const tabs = [
     "Cases",
@@ -48,10 +49,8 @@ export default function ContractDisputes() {
     );
   }
 
-  // ✅ Unified APP_BASE_URL approach for all redirects
-  const APP_BASE_URL = process.env.NEXT_PUBLIC_SITE_URL
-    ? process.env.NEXT_PUBLIC_SITE_URL.replace("https://", "https://app.")
-    : "http://localhost:3001"; 
+  // ✅ Use APP_PATH for all links
+  const APP_PATH = "/app";
 
   return (
     <>
@@ -79,18 +78,14 @@ export default function ContractDisputes() {
           <div className="hero-buttons">
             <button
               className="btn-primary-exact"
-              onClick={() => {
-                window.location.href = `${APP_BASE_URL}/login?redirect=/user/file-new-case/step1`;
-              }}
+              onClick={() => router.push(`${APP_PATH}/login?redirect=${APP_PATH}/user/file-new-case/step1`)}
             >
               File A Case
             </button>
 
             <button
               className="btn-dark-exact"
-              onClick={() => {
-                window.location.href = `${APP_BASE_URL}/login?redirect=/user/chats`;
-              }}
+              onClick={() => router.push(`${APP_PATH}/login?redirect=${APP_PATH}/user/chats`)}
             >
               Talk To Expert
             </button>
@@ -149,12 +144,7 @@ export default function ContractDisputes() {
             <h2>Contract Disputes</h2>
 
             <div className="cd-accordion-figma">
-              {[
-                "Breach of Contract",
-                "Payment Disputes",
-                "Non-performance",
-                "Delay in Delivery",
-              ].map((title, index) => (
+              {["Breach of Contract","Payment Disputes","Non-performance","Delay in Delivery"].map((title, index) => (
                 <AccordionItem key={index} title={title} />
               ))}
             </div>
@@ -168,7 +158,7 @@ export default function ContractDisputes() {
       <section className="cd-how-exact">
         <div className="cd-how-box">
           <h2>How We Resolve Contract Disputes?</h2>
-          <p className="cd-how-sub">Common Employment Conflicts We Handle</p>
+          <p className="cd-how-sub">Common Contract Conflicts We Handle</p>
 
           <div className="cd-how-grid">
             <div className="cd-how-item">
@@ -205,12 +195,7 @@ export default function ContractDisputes() {
           <div className="cd-breach-left">
             <h2>Breach Of Contract</h2>
 
-            {[
-              "Material Breach",
-              "Minor Breach",
-              "Fundamental Breach",
-              "Anticipatory Breach",
-            ].map((item) => (
+            {["Material Breach","Minor Breach","Fundamental Breach","Anticipatory Breach"].map((item) => (
               <div className="cd-breach-item" key={item}>
                 <div>
                   <h4>{item}</h4>
@@ -239,45 +224,21 @@ export default function ContractDisputes() {
           </p>
 
           <div className="why-choose-grid">
-            <div className="why-choose-item">
-              <div className="why-icon-circle">
-                <img src="/assets/icons/Fast.png" alt="Fast Resolution" />
+            {[
+              ["fast.png", "Fast Resolution", "Resolve disputes fast and efficiently."],
+              ["legal.png", "Legally Compliant", "All processes follow legal standards."],
+              ["secure.png", "Secure & Confidential", "Your data is fully protected."],
+              ["neutral.png", "Neutral Experts", "Fair and unbiased mediation."],
+              ["24.png", "24/7 Access", "Access assistance anytime, anywhere."],
+            ].map(([icon, title, desc]) => (
+              <div key={title} className="why-choose-item">
+                <div className="why-icon-circle">
+                  <img src={`/assets/icons/${icon}`} alt={title} />
+                </div>
+                <h4>{title}</h4>
+                <p>{desc}</p>
               </div>
-              <h4>Fast Resolution</h4>
-              <p>Resolve business, customer, or personal conflicts through a secure.</p>
-            </div>
-
-            <div className="why-choose-item">
-              <div className="why-icon-circle">
-                <img src="/assets/icons/Legally.png" alt="Legally Compliant" />
-              </div>
-              <h4>Legally Compliant</h4>
-              <p>Resolve business, customer, or personal conflicts through a secure.</p>
-            </div>
-
-            <div className="why-choose-item">
-              <div className="why-icon-circle">
-                <img src="/assets/icons/Secure.png" alt="Secure & Confidential" />
-              </div>
-              <h4>Secure & Confidential</h4>
-              <p>Resolve business, customer, or personal conflicts through a secure.</p>
-            </div>
-
-            <div className="why-choose-item">
-              <div className="why-icon-circle">
-                <img src="/assets/icons/Neutral.png" alt="Neutral Experts" />
-              </div>
-              <h4>Neutral Experts</h4>
-              <p>Resolve business, customer, or personal conflicts through a secure.</p>
-            </div>
-
-            <div className="why-choose-item">
-              <div className="why-icon-circle">
-                <img src="/assets/icons/24.png" alt="24/7 Access" />
-              </div>
-              <h4>24/7 Access</h4>
-              <p>Resolve business, customer, or personal conflicts through a secure.</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -318,25 +279,21 @@ export default function ContractDisputes() {
 
             <p>
               Whether it’s a breach of contract, unpaid dues, or service agreement
-              issues, RaaziMerzi helps you resolve contract disputes online—securely,
+              issues, RaaziMarzi helps you resolve contract disputes online—securely,
               legally, and efficiently.
             </p>
 
             <div className="contract-cta-buttons">
               <button
                 className="cta-primary"
-                onClick={() => {
-                  window.location.href = `${APP_BASE_URL}/login?redirect=/user/file-new-case/step1`;
-                }}
+                onClick={() => router.push(`${APP_PATH}/login?redirect=${APP_PATH}/user/file-new-case/step1`)}
               >
                 Start Contract Resolution
               </button>
 
               <button
                 className="cta-secondary"
-                onClick={() => {
-                  window.location.href = `${APP_BASE_URL}/login?redirect=/user/chats`;
-                }}
+                onClick={() => router.push(`${APP_PATH}/login?redirect=${APP_PATH}/user/chats`)}
               >
                 Consult a Legal Expert
               </button>

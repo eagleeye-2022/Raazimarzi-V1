@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import "@/styles/partnershipDisputes.css";
 
 export default function PartnershipDisputes() {
   const [activeTab, setActiveTab] = useState("Cases");
+  const router = useRouter();
 
   const tabs = [
     "Cases",
@@ -25,9 +27,7 @@ export default function PartnershipDisputes() {
     "What evidence is needed for a partnership dispute?",
   ];
 
-  const APP_BASE_URL = process.env.NEXT_PUBLIC_SITE_URL
-    ? process.env.NEXT_PUBLIC_SITE_URL.replace("https://", "https://app.")
-    : "http://localhost:3001";
+  const APP_PATH = "/app"; // ✅ centralized base path
 
   function AccordionItem({ title }) {
     const [open, setOpen] = useState(false);
@@ -67,7 +67,7 @@ export default function PartnershipDisputes() {
 
           <h1>
             Resolve <span className="highlight">Partnership</span> Disputes <br />
-            <span className="highlight-light">Quickly</span> & professionally
+            <span className="highlight-light">Quickly</span> & Professionally
           </h1>
 
           <p>
@@ -78,7 +78,7 @@ export default function PartnershipDisputes() {
             <button
               className="btn-primary-exact"
               onClick={() =>
-                (window.location.href = `${APP_BASE_URL}/login?redirect=/user/file-new-case/step1`)
+                router.push(`${APP_PATH}/login?redirect=${APP_PATH}/user/file-new-case/step1`)
               }
             >
               File A Case
@@ -86,7 +86,7 @@ export default function PartnershipDisputes() {
             <button
               className="btn-dark-exact"
               onClick={() =>
-                (window.location.href = `${APP_BASE_URL}/login?redirect=/user/chats`)
+                router.push(`${APP_PATH}/login?redirect=${APP_PATH}/user/chats`)
               }
             >
               Talk To Expert
@@ -99,7 +99,7 @@ export default function PartnershipDisputes() {
       <section className="pd-diagonal">
         <div className="pd-container pd-diagonal-inner">
           <div className="pd-diagonal-img">
-            <img src="/assets/images/PD-1.png" alt="Partnership discussion" />
+            <img src="/assets/images/pd-1.png" alt="Partnership discussion" />
           </div>
 
           <div className="pd-diagonal-text">
@@ -115,7 +115,7 @@ export default function PartnershipDisputes() {
       <section className="pd-diagonal reverse">
         <div className="pd-container pd-diagonal-inner">
           <div className="pd-diagonal-img">
-            <img src="/assets/images/PD-2.png" alt="Business dispute discussion" />
+            <img src="/assets/images/pd-2.png" alt="Business dispute discussion" />
           </div>
 
           <div className="pd-diagonal-text">
@@ -131,23 +131,54 @@ export default function PartnershipDisputes() {
       <section className="pd-occur-exact">
         <div className="pd-occur-wrapper">
           <h2>Why Partnership Disputes Occur?</h2>
+
           <p className="pd-occur-sub">
-            Streamline conflict resolution between business partners with our efficient Online Dispute Resolution platform.
+            Streamline conflict resolution between business partners with our efficient
+            Online Dispute Resolution platform.
           </p>
 
           <div className="pd-occur-cards">
-            {[
-              ["Lack.png", "Lack of clarity in partnership agreement"],
-              ["Financial.png", "Financial transparency issues"],
-              ["Differences.png", "Differences in vision or leadership style"],
-              ["Poor.png", "Poor documentation & delayed decisions"],
-              ["Mistrust.png", "Mistrust or miscommunication"],
-            ].map(([icon, text]) => (
-              <div className="pd-occur-card" key={text}>
-                <img src={`/assets/icons/${icon}`} alt={text} />
-                <p>{text}</p>
-              </div>
-            ))}
+
+            <div className="pd-occur-card">
+              <img
+                src="/assets/icons/lack.png"
+                alt="Lack of clarity in partnership agreement"
+              />
+              <p>Lack of clarity in partnership agreement</p>
+            </div>
+
+            <div className="pd-occur-card">
+              <img
+                src="/assets/icons/financial.png"
+                alt="Financial transparency issues"
+              />
+              <p>Financial transparency issues</p>
+            </div>
+
+            <div className="pd-occur-card">
+              <img
+                src="/assets/icons/differences.png"
+                alt="Differences in vision or leadership style"
+              />
+              <p>Differences in vision or leadership style</p>
+            </div>
+
+            <div className="pd-occur-card">
+              <img
+                src="/assets/icons/poor.png"
+                alt="Poor documentation & delayed decisions"
+              />
+              <p>Poor documentation & delayed decisions</p>
+            </div>
+
+            <div className="pd-occur-card">
+              <img
+                src="/assets/icons/mistrust.png"
+                alt="Mistrust or miscommunication"
+              />
+              <p>Mistrust or miscommunication</p>
+            </div>
+
           </div>
         </div>
       </section>
@@ -156,7 +187,7 @@ export default function PartnershipDisputes() {
       <section className="pd-disagree">
         <div className="pd-container pd-disagree-grid">
           <div className="pd-disagree-img">
-            <img src="/assets/images/CD.png" alt="Partnership disagreement" />
+            <img src="/assets/images/cd.png" alt="Partnership disagreement" />
           </div>
 
           <div className="pd-disagree-content">
@@ -240,7 +271,7 @@ export default function PartnershipDisputes() {
         </div>
       </section>
 
-      {/* CTA SECTION */}
+      {/* CTA */}
       <section className="contract-cta">
         <div className="contract-cta-box">
           <div className="contract-cta-content">
@@ -253,7 +284,7 @@ export default function PartnershipDisputes() {
               <button
                 className="cta-primary"
                 onClick={() =>
-                  (window.location.href = `${APP_BASE_URL}/login?redirect=/user/file-new-case/step1`)
+                  router.push(`${APP_PATH}/login?redirect=${APP_PATH}/user/file-new-case/step1`)
                 }
               >
                 File A Case
@@ -261,7 +292,7 @@ export default function PartnershipDisputes() {
               <button
                 className="cta-secondary"
                 onClick={() =>
-                  (window.location.href = `${APP_BASE_URL}/login?redirect=/user/chats`)
+                  router.push(`${APP_PATH}/login?redirect=${APP_PATH}/user/chats`)
                 }
               >
                 Talk To Expert

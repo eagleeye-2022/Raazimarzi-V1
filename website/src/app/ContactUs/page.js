@@ -3,6 +3,10 @@
 import { useState } from "react";
 import "@/styles/contact.css";
 
+// ✅ Updated: Website path for contact page
+const WEBSITE_PATH = "/website";
+const APP_PATH = "/app";
+
 export default function ContactUs() {
   const [formData, setFormData] = useState({
     name: "",
@@ -12,7 +16,7 @@ export default function ContactUs() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState(null); // success or error
+  const [status, setStatus] = useState(null); // "success" | "error"
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -22,6 +26,13 @@ export default function ContactUs() {
     e.preventDefault();
     setLoading(true);
     setStatus(null);
+
+    // Optional: Basic client-side validation for phone
+    if (formData.phone && !/^[0-9+\-() ]+$/.test(formData.phone)) {
+      setStatus("error");
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/contact`, {
@@ -42,7 +53,7 @@ export default function ContactUs() {
         message: "",
       });
     } catch (error) {
-      console.error(error);
+      console.error("Contact form error:", error);
       setStatus("error");
     } finally {
       setLoading(false);
@@ -63,6 +74,7 @@ export default function ContactUs() {
         <p className="sub-text">Your solution awaits you.</p>
 
         <form onSubmit={handleSubmit} className="contact-form">
+          {/* Name */}
           <div className="input-group">
             <span className="icon">👤</span>
             <input
@@ -75,6 +87,7 @@ export default function ContactUs() {
             />
           </div>
 
+          {/* Email */}
           <div className="input-group">
             <span className="icon">✉️</span>
             <input
@@ -87,6 +100,7 @@ export default function ContactUs() {
             />
           </div>
 
+          {/* Phone */}
           <div className="input-group">
             <span className="icon">📱</span>
             <input
@@ -100,6 +114,7 @@ export default function ContactUs() {
             />
           </div>
 
+          {/* Message */}
           <textarea
             name="message"
             placeholder="Message"
@@ -109,21 +124,30 @@ export default function ContactUs() {
             required
           />
 
-          <button
-            type="submit"
-            className="submit-btn"
-            disabled={loading}
-          >
+          {/* Submit Button */}
+          <button type="submit" className="submit-btn" disabled={loading}>
             {loading ? "Sending..." : "Get Solution"}
           </button>
 
+          {/* Status Messages */}
           {status === "success" && (
-            <p className="form-message success">Thank you! We’ll contact you soon.</p>
+            <p className="form-message success">
+              Thank you! We’ll contact you soon.
+            </p>
           )}
           {status === "error" && (
-            <p className="form-message error">Something went wrong. Try again later.</p>
+            <p className="form-message error">
+              Something went wrong. Please check your input or try again later.
+            </p>
           )}
         </form>
+
+        {/* Redirect to app login after successful contact */}
+        {status === "success" && (
+          <p className="redirect-msg">
+            Or <a href={`${APP_PATH}/login`}>login to your account</a>
+          </p>
+        )}
       </div>
     </section>
   );

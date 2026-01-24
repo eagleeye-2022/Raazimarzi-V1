@@ -176,7 +176,7 @@ export default function Header() {
 
           {/* REQUEST DEMO */}
           <div className="demo-btn">
-            <Link href={`${APP_URL}/login`}>Login</Link>
+            <Link href={`${APP_URL}/login`}></Link>
           </div>
 
           {/* MOBILE ICON */}

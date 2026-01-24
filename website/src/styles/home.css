@@ -1200,9 +1200,9 @@
 
 .features-wrapper {
   display: flex;
-  justify-content: center;       /* 🔥 space-between → center */
+  justify-content: center;     
   align-items: flex-start;
-  gap: 80px;                     /* consistent spacing */
+  gap: 80px;                     
   max-width: 1200px;
   margin: 70px auto 0;
   position: relative;
