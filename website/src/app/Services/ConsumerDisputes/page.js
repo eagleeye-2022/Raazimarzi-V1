@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -9,6 +9,7 @@ import { APP_BASE_PATH } from "@/config/appConfig";
 
 export default function ConsumerDisputePage() {
   const router = useRouter();
+  const [openFaqIndex, setOpenFaqIndex] = useState(null);
 
   const consumerTypes = [
     {
@@ -84,16 +85,8 @@ export default function ConsumerDisputePage() {
 
       {/* HERO */}
       <section className="cd-hero-exact">
-        <img
-          src="/assets/icons/left-circle.png"
-          alt=""
-          className="figma-circle left"
-        />
-        <img
-          src="/assets/icons/right-circle.png"
-          alt=""
-          className="figma-circle right"
-        />
+        <img src="/assets/icons/left-circle.png" alt="" className="figma-circle left" />
+        <img src="/assets/icons/right-circle.png" alt="" className="figma-circle right" />
         <div className="hero-glow"></div>
 
         <div className="cd-hero-content">
@@ -113,9 +106,7 @@ export default function ConsumerDisputePage() {
           <div className="hero-buttons">
             <button
               className="btn-primary-exact"
-              onClick={() =>
-                goToLogin("/user/file-new-case/step1")
-              }
+              onClick={() => goToLogin("/user/file-new-case/step1")}
             >
               File A Case
             </button>
@@ -133,10 +124,7 @@ export default function ConsumerDisputePage() {
       {/* WHAT ARE CONSUMER DISPUTES */}
       <section className="info-section">
         <div className="info-grid">
-          <img
-            src="/assets/images/consumer.png"
-            alt="Consumer Dispute"
-          />
+          <img src="/assets/images/consumer.png" alt="Consumer Dispute" />
           <div>
             <h2>What Are Consumer Disputes?</h2>
             <p>
@@ -198,9 +186,7 @@ export default function ConsumerDisputePage() {
       {/* RIGHTS */}
       <section className="rights-section">
         <h2>Consumer Rights Awareness</h2>
-        <p className="rights-subtitle">
-          Inform users about basic rights:
-        </p>
+        <p className="rights-subtitle">Inform users about basic rights:</p>
 
         <div className="rights-cards">
           {rights.map((title, i) => (
@@ -211,7 +197,7 @@ export default function ConsumerDisputePage() {
         </div>
       </section>
 
-      {/* FAQ */}
+      {/* FAQ – EXPAND / COLLAPSE */}
       <section className="faq-section">
         <div className="faq-container">
           <h2>Frequently Asked Questions (FAQ)</h2>
@@ -238,9 +224,32 @@ export default function ConsumerDisputePage() {
 
             <div className="faq-list">
               {faqQuestions.map((q, i) => (
-                <div key={i} className="faq-item">
-                  <span>{q}</span>
-                  <span className="faq-arrow">›</span>
+                <div key={i}>
+                  <div
+                    className="faq-item"
+                    onClick={() =>
+                      setOpenFaqIndex(openFaqIndex === i ? null : i)
+                    }
+                  >
+                    <span>{q}</span>
+                    <span className="faq-arrow">
+                      {openFaqIndex === i ? "−" : "›"}
+                    </span>
+                  </div>
+
+                  {openFaqIndex === i && (
+                    <div
+                      style={{
+                        padding: "12px 10px",
+                        fontSize: "13px",
+                        color: "#4b5563",
+                        lineHeight: "1.6",
+                      }}
+                    >
+                      This is the answer for <b>{q}</b>. Replace this text with
+                      the actual FAQ answer.
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -252,22 +261,17 @@ export default function ConsumerDisputePage() {
       <section className="contract-cta">
         <div className="contract-cta-box">
           <div className="contract-cta-content">
-            <h2>
-              Resolve Consumer Complaints Without Court Stress
-            </h2>
+            <h2>Resolve Consumer Complaints Without Court Stress</h2>
 
             <p>
               Don’t let unresolved complaints go unheard. Resolve consumer
-              disputes through a secure and legally compliant online
-              process.
+              disputes through a secure and legally compliant online process.
             </p>
 
             <div className="contract-cta-buttons">
               <button
                 className="cta-primary"
-                onClick={() =>
-                  goToLogin("/user/file-new-case/step1")
-                }
+                onClick={() => goToLogin("/user/file-new-case/step1")}
               >
                 File A Case
               </button>

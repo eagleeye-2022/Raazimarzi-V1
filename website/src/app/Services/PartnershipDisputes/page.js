@@ -9,6 +9,7 @@ import "@/styles/partnershipDisputes.css";
 
 export default function PartnershipDisputes() {
   const [activeTab, setActiveTab] = useState("Cases");
+  const [openFaqIndex, setOpenFaqIndex] = useState(null);
   const router = useRouter();
 
   const tabs = [
@@ -29,9 +30,7 @@ export default function PartnershipDisputes() {
   ];
 
   const goToLogin = (redirectPath = "") => {
-    const redirectQuery = redirectPath
-      ? `?redirect=${redirectPath}`
-      : "";
+    const redirectQuery = redirectPath ? `?redirect=${redirectPath}` : "";
     router.push(`${APP_BASE_PATH}/login${redirectQuery}`);
   };
 
@@ -51,7 +50,7 @@ export default function PartnershipDisputes() {
               obligations...
             </p>
           </div>
-          <span className="pd-accordion-arrow">›</span>
+          <span className="pd-accordion-arrow">{open ? "−" : "›"}</span>
         </div>
 
         {open && (
@@ -162,47 +161,18 @@ export default function PartnershipDisputes() {
           </p>
 
           <div className="pd-occur-cards">
-
-            <div className="pd-occur-card">
-              <img
-                src="/assets/icons/lack.png"
-                alt="Lack of clarity in partnership agreement"
-              />
-              <p>Lack of clarity in partnership agreement</p>
-            </div>
-
-            <div className="pd-occur-card">
-              <img
-                src="/assets/icons/financial.png"
-                alt="Financial transparency issues"
-              />
-              <p>Financial transparency issues</p>
-            </div>
-
-            <div className="pd-occur-card">
-              <img
-                src="/assets/icons/differences.png"
-                alt="Differences in vision or leadership style"
-              />
-              <p>Differences in vision or leadership style</p>
-            </div>
-
-            <div className="pd-occur-card">
-              <img
-                src="/assets/icons/poor.png"
-                alt="Poor documentation & delayed decisions"
-              />
-              <p>Poor documentation & delayed decisions</p>
-            </div>
-
-            <div className="pd-occur-card">
-              <img
-                src="/assets/icons/mistrust.png"
-                alt="Mistrust or miscommunication"
-              />
-              <p>Mistrust or miscommunication</p>
-            </div>
-
+            {[
+              ["lack.png", "Lack of clarity in partnership agreement"],
+              ["financial.png", "Financial transparency issues"],
+              ["differences.png", "Differences in vision or leadership style"],
+              ["poor.png", "Poor documentation & delayed decisions"],
+              ["mistrust.png", "Mistrust or miscommunication"]
+            ].map(([icon, text]) => (
+              <div className="pd-occur-card" key={text}>
+                <img src={`/assets/icons/${icon}`} alt={text} />
+                <p>{text}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -217,12 +187,7 @@ export default function PartnershipDisputes() {
           <div className="pd-disagree-content">
             <h3>Partnership disagreements</h3>
 
-            {[
-              "Franchise Agreement Disputes",
-              "Real Estate / Commercial & Contract Disputes",
-              "Profit-sharing disputes",
-              "Business dissolution disputes",
-            ].map((title) => (
+            {[ "Franchise Agreement Disputes","Real Estate / Commercial & Contract Disputes","Profit-sharing disputes","Business dissolution disputes"].map((title) => (
               <div className="pd-disagree-item" key={title}>
                 <div>
                   <h4>{title}</h4>
@@ -267,7 +232,7 @@ export default function PartnershipDisputes() {
         </div>
       </section>
 
-      {/* FAQ SECTION */}
+      {/* FAQ SECTION – expandable */}
       <section className="faq-section">
         <div className="pd-container">
           <h2 className="faq-title">Frequently Asked Questions (FAQ)</h2>
@@ -285,16 +250,38 @@ export default function PartnershipDisputes() {
           </div>
 
           <div className="faq-list">
-            {questions.map((q, index) => (
-              <div key={index} className="faq-item">
-                <span>{q}</span>
-                <span className="faq-arrow">›</span>
+            {questions.map((q, i) => (
+              <div key={i}>
+                <div
+                  className="faq-item"
+                  onClick={() =>
+                    setOpenFaqIndex(openFaqIndex === i ? null : i)
+                  }
+                >
+                  <span>{q}</span>
+                  <span className="faq-arrow">
+                    {openFaqIndex === i ? "−" : "›"}
+                  </span>
+                </div>
+
+                {openFaqIndex === i && (
+                  <div
+                    style={{
+                      padding: "12px 10px",
+                      fontSize: "13px",
+                      color: "#4b5563",
+                      lineHeight: "1.6",
+                    }}
+                  >
+                    This is the answer for <b>{q}</b>. Replace with actual FAQ answer.
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </div>
       </section>
-      
+
       {/* CTA */}
       <section className="contract-cta">
         <div className="contract-cta-box">

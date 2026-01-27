@@ -9,6 +9,7 @@ import { APP_BASE_PATH } from "@/config/appConfig";
 
 export default function ContractDisputes() {
   const [activeTab, setActiveTab] = useState("Cases");
+  const [openFaqIndex, setOpenFaqIndex] = useState(null);
   const router = useRouter();
 
   const tabs = [
@@ -49,7 +50,7 @@ export default function ContractDisputes() {
               obligations...
             </p>
           </div>
-          <span className="cd-accordion-arrow">›</span>
+          <span className="cd-accordion-arrow">{open ? "−" : "›"}</span>
         </div>
 
         {open && (
@@ -69,16 +70,8 @@ export default function ContractDisputes() {
 
       {/* HERO */}
       <section className="cd-hero-exact">
-        <img
-          src="/assets/icons/left-circle.png"
-          alt=""
-          className="figma-circle left"
-        />
-        <img
-          src="/assets/icons/right-circle.png"
-          alt=""
-          className="figma-circle right"
-        />
+        <img src="/assets/icons/left-circle.png" alt="" className="figma-circle left" />
+        <img src="/assets/icons/right-circle.png" alt="" className="figma-circle right" />
         <div className="hero-glow"></div>
 
         <div className="cd-hero-content">
@@ -127,21 +120,9 @@ export default function ContractDisputes() {
       <section className="cd-what-figma">
         <div className="cd-what-box">
           <div className="cd-what-circles">
-            <img
-              src="/assets/icons/circle1.png"
-              alt=""
-              className="circle c1"
-            />
-            <img
-              src="/assets/icons/circle2.png"
-              alt=""
-              className="circle c2"
-            />
-            <img
-              src="/assets/icons/circle3.png"
-              alt=""
-              className="circle c3"
-            />
+            <img src="/assets/icons/circle1.png" alt="" className="circle c1" />
+            <img src="/assets/icons/circle2.png" alt="" className="circle c2" />
+            <img src="/assets/icons/circle3.png" alt="" className="circle c3" />
           </div>
 
           <div className="cd-what-content">
@@ -184,26 +165,15 @@ export default function ContractDisputes() {
       <section className="cd-list-figma">
         <div className="cd-list-container">
           <div className="cd-list-image">
-            <img
-              src="/assets/images/CD.png"
-              alt="Contract Disputes"
-            />
+            <img src="/assets/images/CD.png" alt="Contract Disputes" />
           </div>
 
           <div className="cd-list-content">
             <h2>Contract Disputes</h2>
 
             <div className="cd-accordion-figma">
-              {[
-                "Breach of Contract",
-                "Payment Disputes",
-                "Non-performance",
-                "Delay in Delivery",
-              ].map((title, index) => (
-                <AccordionItem
-                  key={index}
-                  title={title}
-                />
+              {["Breach of Contract","Payment Disputes","Non-performance","Delay in Delivery"].map((title, index) => (
+                <AccordionItem key={index} title={title} />
               ))}
             </div>
 
@@ -214,20 +184,16 @@ export default function ContractDisputes() {
         </div>
       </section>
 
-      {/* FAQ */}
+      {/* FAQ – EXPAND / COLLAPSE */}
       <section className="faq-section">
         <div className="pd-container">
-          <h2 className="faq-title">
-            Frequently Asked Questions
-          </h2>
+          <h2 className="faq-title">Frequently Asked Questions</h2>
 
           <div className="faq-tabs">
             {tabs.map((tab) => (
               <button
                 key={tab}
-                className={`faq-tab ${
-                  activeTab === tab ? "active" : ""
-                }`}
+                className={`faq-tab ${activeTab === tab ? "active" : ""}`}
                 onClick={() => setActiveTab(tab)}
               >
                 {tab}
@@ -237,9 +203,31 @@ export default function ContractDisputes() {
 
           <div className="faq-list">
             {questions.map((q, i) => (
-              <div className="faq-item" key={i}>
-                <span>{q}</span>
-                <span className="faq-arrow">›</span>
+              <div key={i}>
+                <div
+                  className="faq-item"
+                  onClick={() =>
+                    setOpenFaqIndex(openFaqIndex === i ? null : i)
+                  }
+                >
+                  <span>{q}</span>
+                  <span className="faq-arrow">
+                    {openFaqIndex === i ? "−" : "›"}
+                  </span>
+                </div>
+
+                {openFaqIndex === i && (
+                  <div
+                    style={{
+                      padding: "12px 10px",
+                      fontSize: "13px",
+                      color: "#4b5563",
+                      lineHeight: "1.6",
+                    }}
+                  >
+                    This is the answer for <b>{q}</b>. Replace with actual FAQ answer.
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -250,9 +238,7 @@ export default function ContractDisputes() {
       <section className="contract-cta">
         <div className="contract-cta-box">
           <div className="contract-cta-content">
-            <h2>
-              Resolve Contract Disputes Without Court Delays
-            </h2>
+            <h2>Resolve Contract Disputes Without Court Delays</h2>
 
             <p>
               Whether it’s a breach of contract, unpaid dues,

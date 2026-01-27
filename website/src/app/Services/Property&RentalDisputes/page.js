@@ -10,6 +10,7 @@ const APP_BASE_PATH = "/app";
 
 export default function PropertyRentalDispute() {
   const [activeTab, setActiveTab] = useState("Cases");
+  const [openFaqIndex, setOpenFaqIndex] = useState(null);
   const router = useRouter();
 
   const tabs = ["Cases", "Money", "Policies", "Resolve Cases", "Victory %", "Ordinary"];
@@ -24,7 +25,7 @@ export default function PropertyRentalDispute() {
 
   const goToLogin = (redirectPath = "") => {
     const query = redirectPath ? `?redirect=${redirectPath}` : "";
-    window.location.href = `${APP_BASE_PATH}/login${query}`;
+    router.push(`${APP_BASE_PATH}/login${query}`);
   };
 
   return (
@@ -150,7 +151,7 @@ export default function PropertyRentalDispute() {
         </div>
       </section>
 
-      {/* FAQ */}
+      {/* FAQ SECTION – interactive */}
       <section className="faq-section">
         <div className="pd-container">
           <h2 className="faq-title">Frequently Asked Questions</h2>
@@ -169,9 +170,31 @@ export default function PropertyRentalDispute() {
 
           <div className="faq-list">
             {questions.map((q, i) => (
-              <div key={i} className="faq-item">
-                <span>{q}</span>
-                <span className="faq-arrow">›</span>
+              <div key={i}>
+                <div
+                  className="faq-item"
+                  onClick={() =>
+                    setOpenFaqIndex(openFaqIndex === i ? null : i)
+                  }
+                >
+                  <span>{q}</span>
+                  <span className="faq-arrow">
+                    {openFaqIndex === i ? "−" : "›"}
+                  </span>
+                </div>
+
+                {openFaqIndex === i && (
+                  <div
+                    style={{
+                      padding: "12px 10px",
+                      fontSize: "13px",
+                      color: "#4b5563",
+                      lineHeight: "1.6",
+                    }}
+                  >
+                    This is the answer for <b>{q}</b>. Replace with actual FAQ answer.
+                  </div>
+                )}
               </div>
             ))}
           </div>

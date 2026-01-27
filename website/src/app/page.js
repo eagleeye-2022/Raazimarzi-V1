@@ -9,6 +9,7 @@ import { APP_BASE_PATH } from "@/config/appConfig";
 export default function HomePage() {
   const [animate, setAnimate] = useState(false);
   const [activeFaqTab, setActiveFaqTab] = useState("Cases");
+  const [openFaqIndex, setOpenFaqIndex] = useState(null);
 
   useEffect(() => {
     setAnimate(true);
@@ -145,37 +146,80 @@ export default function HomePage() {
         </p>
 
         <div className="why-items">
-          <div className="why-item">
-            <img src="/assets/icons/faster.png" alt="Faster than court" />
-            <p>Faster than court</p>
+          {[
+            ["faster", "Faster than court"],
+            ["cost", "Cost-effective"],
+            ["confidential", "Confidential & secure"],
+            ["neutral2", "Neutral & Unbiased"],
+            ["personal", "Personal & Professional"],
+            ["legal2", "Legally compliant process"],
+          ].map(([icon, text], i) => (
+            <div key={i} className="why-item">
+              <img src={`/assets/icons/${icon}.png`} alt={text} />
+              <p>{text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FAQ SECTION */}
+      <section className="faq-section">
+        <h2 className="faq-title">Frequently Asked Questions</h2>
+        <p className="faq-subtitle">
+          Clear answers to common questions about our platform
+        </p>
+
+        <div className="faq-box">
+          {/* TABS */}
+          <div className="faq-tabs">
+            {faqTabs.map((tab) => (
+              <button
+                key={tab}
+                className={`faq-tab ${activeFaqTab === tab ? "active" : ""}`}
+                onClick={() => {
+                  setActiveFaqTab(tab);
+                  setOpenFaqIndex(null);
+                }}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
 
-          <div className="why-item">
-            <img src="/assets/icons/cost.png" alt="Cost-effective" />
-            <p>Cost-effective</p>
-          </div>
+          {/* QUESTIONS */}
+          <div className="faq-questions">
+            {faqQuestions.map((question, index) => (
+              <div key={index}>
+                <div
+                  className="faq-question"
+                  onClick={() =>
+                    setOpenFaqIndex(
+                      openFaqIndex === index ? null : index
+                    )
+                  }
+                >
+                  <span>{question}</span>
+                  <span className="faq-arrow">
+                    {openFaqIndex === index ? "−" : "+"}
+                  </span>
+                </div>
 
-          <div className="why-item">
-            <img
-              src="/assets/icons/confidential.png"
-              alt="Confidential & secure"
-            />
-            <p>Confidential & secure</p>
-          </div>
-
-          <div className="why-item">
-            <img src="/assets/icons/neutral2.png" alt="Neutral & Unbiased" />
-            <p>Neutral & Unbiased</p>
-          </div>
-
-          <div className="why-item">
-            <img src="/assets/icons/personal.png" alt="Personal & Professional" />
-            <p>Personal & Professional</p>
-          </div>
-
-          <div className="why-item">
-            <img src="/assets/icons/legal2.png" alt="Legally compliant process" />
-            <p>Legally compliant process</p>
+                {openFaqIndex === index && (
+                  <div
+                    style={{
+                      padding: "12px 18px",
+                      background: "#ffffff",
+                      fontSize: "13px",
+                      color: "#4b5563",
+                      lineHeight: "1.6",
+                    }}
+                  >
+                    This is the answer for: <b>{question}</b>. Replace this text
+                    with the actual answer content.
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>

@@ -10,6 +10,9 @@ import { APP_BASE_PATH } from "@/config/appConfig";
 
 export default function AboutUs() {
   const [activeTab, setActiveTab] = useState("Cases");
+  const [openFaqIndex, setOpenFaqIndex] = useState(null);
+  const [openWhatWeDoIndex, setOpenWhatWeDoIndex] = useState(null);
+
   const router = useRouter();
 
   const tabs = [
@@ -29,7 +32,29 @@ export default function AboutUs() {
     "How long does it take to resolve a dispute online?",
   ];
 
-  // Website → Application redirect (single source of truth)
+  const whatWeDoItems = [
+    {
+      title: "Consumer Disputes",
+      desc:
+        "Resolve issues related to defective products, poor services, or unfair trade practices through online mediation.",
+    },
+    {
+      title: "Property & Rental Disputes",
+      desc:
+        "Handle disputes between landlords and tenants including rent, eviction, and maintenance issues without court visits.",
+    },
+    {
+      title: "Contract Disputes",
+      desc:
+        "When one party fails to fulfil their contractual obligations, we help both sides reach a fair resolution.",
+    },
+    {
+      title: "Partnership Disputes",
+      desc:
+        "Resolve conflicts between business partners related to roles, profit sharing, or business operations.",
+    },
+  ];
+
   const goToLogin = (redirectPath = "") => {
     const redirectQuery = redirectPath ? `?redirect=${redirectPath}` : "";
     router.push(`${APP_BASE_PATH}/login${redirectQuery}`);
@@ -164,7 +189,8 @@ export default function AboutUs() {
         </div>
       </section>
 
-      {/* WHAT WE DO */}
+
+      {/* WHAT WE DO – EXPAND / COLLAPSE */}
       <section className="what-we-do-exact">
         <div className="what-we-do-container">
           <div className="what-we-do-image">
@@ -175,21 +201,36 @@ export default function AboutUs() {
             <h3>What RaaziMarzi Do?</h3>
 
             <div className="what-we-do-list">
-              {[
-                "Consumer Disputes",
-                "Property & Rental Disputes",
-                "Contract Disputes",
-                "Partnership Disputes",
-              ].map((item) => (
-                <div key={item} className="what-we-do-item">
-                  <div>
-                    <h4>{item}</h4>
-                    <p>
-                      When one party fails to fulfil their contractual
-                      obligations...
-                    </p>
+              {whatWeDoItems.map((item, index) => (
+                <div key={item.title}>
+                  <div
+                    className="what-we-do-item"
+                    onClick={() =>
+                      setOpenWhatWeDoIndex(
+                        openWhatWeDoIndex === index ? null : index
+                      )
+                    }
+                  >
+                    <div>
+                      <h4>{item.title}</h4>
+                    </div>
+                    <span className="what-we-do-arrow">
+                      {openWhatWeDoIndex === index ? "−" : "›"}
+                    </span>
                   </div>
-                  <span className="what-we-do-arrow">›</span>
+
+                  {openWhatWeDoIndex === index && (
+                    <div
+                      style={{
+                        padding: "10px 0 14px 0",
+                        fontSize: "14px",
+                        color: "#6b7280",
+                        lineHeight: "1.6",
+                      }}
+                    >
+                      {item.desc}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -225,7 +266,7 @@ export default function AboutUs() {
         </div>
       </section>
 
-      {/* FAQ */}
+      {/* FAQ – EXPAND / COLLAPSE */}
       <section className="faq-section">
         <div className="pd-container">
           <h2 className="faq-title">Frequently Asked Questions (FAQ)</h2>
@@ -239,10 +280,11 @@ export default function AboutUs() {
               {tabs.map((tab) => (
                 <button
                   key={tab}
-                  className={`faq-tab ${
-                    activeTab === tab ? "active" : ""
-                  }`}
-                  onClick={() => setActiveTab(tab)}
+                  className={`faq-tab ${activeTab === tab ? "active" : ""}`}
+                  onClick={() => {
+                    setActiveTab(tab);
+                    setOpenFaqIndex(null);
+                  }}
                 >
                   {tab}
                 </button>
@@ -251,9 +293,34 @@ export default function AboutUs() {
 
             <div className="faq-list">
               {questions.map((q, index) => (
-                <div key={index} className="faq-item">
-                  <span>{q}</span>
-                  <span className="faq-arrow">›</span>
+                <div key={index}>
+                  <div
+                    className="faq-item"
+                    onClick={() =>
+                      setOpenFaqIndex(
+                        openFaqIndex === index ? null : index
+                      )
+                    }
+                  >
+                    <span>{q}</span>
+                    <span className="faq-arrow">
+                      {openFaqIndex === index ? "−" : "›"}
+                    </span>
+                  </div>
+
+                  {openFaqIndex === index && (
+                    <div
+                      style={{
+                        padding: "12px 10px",
+                        fontSize: "13px",
+                        color: "#4b5563",
+                        lineHeight: "1.6",
+                      }}
+                    >
+                      This is the answer for: <b>{q}</b>. Replace with actual
+                      FAQ content.
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -265,3 +332,4 @@ export default function AboutUs() {
     </>
   );
 }
+
