@@ -1,20 +1,24 @@
-// import express from "express";
-// import { signup, sendOtp, verifyOtp } from "../controllers/authController.js";
-
-// const router = express.Router();
-
-
-// router.post("/signup", signup);
-// router.post("/", sendOtp);
-// router.post("/verify", verifyOtp);
-
-// export default router;
-
 import express from "express";
-import { resetPassword } from "../controllers/authController.js";
+import {
+  signup,
+  login,
+  sendPasswordResetOtp,
+  verifyOtp,
+  resetPassword,
+  getCurrentUser
+} from "../controllers/authController.js";
+import protect from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
+// Public routes
+router.post("/signup", signup);
+router.post("/login", login);
+router.post("/forgot-password", sendPasswordResetOtp);
+router.post("/verify-otp", verifyOtp);
 router.post("/reset-password", resetPassword);
+
+// Protected routes
+router.get("/me", protect, getCurrentUser);
 
 export default router;

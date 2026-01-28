@@ -1,19 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useCallback } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import "@/styles/aboutUs.css";
 import { APP_BASE_PATH } from "@/config/appConfig";
+import "@/styles/aboutUs.css";
 
 export default function AboutUs() {
   const [activeTab, setActiveTab] = useState("Cases");
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
   const [openWhatWeDoIndex, setOpenWhatWeDoIndex] = useState(null);
-
-  const router = useRouter();
 
   const tabs = [
     "Cases",
@@ -35,29 +32,96 @@ export default function AboutUs() {
   const whatWeDoItems = [
     {
       title: "Consumer Disputes",
-      desc:
-        "Resolve issues related to defective products, poor services, or unfair trade practices through online mediation.",
+      desc: "Resolve issues related to defective products, poor services, or unfair trade practices through online mediation.",
     },
     {
       title: "Property & Rental Disputes",
-      desc:
-        "Handle disputes between landlords and tenants including rent, eviction, and maintenance issues without court visits.",
+      desc: "Handle disputes between landlords and tenants including rent, eviction, and maintenance issues without court visits.",
     },
     {
       title: "Contract Disputes",
-      desc:
-        "When one party fails to fulfil their contractual obligations, we help both sides reach a fair resolution.",
+      desc: "When one party fails to fulfil their contractual obligations, we help both sides reach a fair resolution.",
     },
     {
       title: "Partnership Disputes",
-      desc:
-        "Resolve conflicts between business partners related to roles, profit sharing, or business operations.",
+      desc: "Resolve conflicts between business partners related to roles, profit sharing, or business operations.",
     },
   ];
 
-  const goToLogin = (redirectPath = "") => {
-    const redirectQuery = redirectPath ? `?redirect=${redirectPath}` : "";
-    router.push(`${APP_BASE_PATH}/login${redirectQuery}`);
+  const ourStoryData = [
+    {
+      title: "Why was RaaziMarzi created?",
+      items: [
+        "To solve the growing problem of delayed justice and overloaded courts in India.",
+        "To provide a simple, accessible, and affordable way for people to resolve their disputes.",
+        "To eliminate stress, paperwork, and long waiting periods for common disputes.",
+      ],
+    },
+    {
+      title: "What problem do we aim to solve?",
+      items: [
+        "Traditional legal processes are slow, expensive, and confusing for most individuals and businesses.",
+        "Most disputes are small but still end up taking months or years to resolve.",
+        "People hesitate to take legal action due to lack of guidance and high costs.",
+      ],
+    },
+    {
+      title: "What inspired the idea of an Online Dispute Resolution platform?",
+      items: [
+        "The rising need for digital solutions in legal services.",
+        "Government push towards ODR and online justice systems.",
+        "A vision to modernize justice and make it as simple as filing a complaint online.",
+      ],
+    },
+    {
+      title: "Who is RaaziMarzi built for?",
+      items: [
+        "Anyone who wants fair, fast, and stress-free conflict resolution.",
+        "Individuals who face consumer, rental, employment, or money recovery disputes.",
+        "Small businesses & startups who want quick business resolution.",
+        "Professionals and partners dealing with contract or partnership disputes.",
+      ],
+    },
+  ];
+
+  const ourValues = [
+    { icon: "responsibility.png", label: "Responsibility" },
+    { icon: "integrity.png", label: "Integrity" },
+    { icon: "transparency.png", label: "Transparency" },
+    { icon: "empathy.png", label: "Empathy" },
+    { icon: "innovation.png", label: "Innovation" },
+    { icon: "security.png", label: "Security" },
+  ];
+
+  /* NAVIGATE TO REACT APP */
+  const navigateToApp = useCallback((path = "/login", queryParams = {}) => {
+    try {
+      const searchParams = new URLSearchParams(queryParams);
+      const query = searchParams.toString() ? `?${searchParams.toString()}` : "";
+      const appUrl = `${APP_BASE_PATH}${path}${query}`;
+      window.location.href = appUrl;
+    } catch (error) {
+      console.error("Navigation error:", error);
+      window.location.href = `${APP_BASE_PATH}/login`;
+    }
+  }, []);
+
+  /* FAQ TOGGLE */
+  const toggleFaq = (index) => {
+    setOpenFaqIndex(openFaqIndex === index ? null : index);
+  };
+
+  /* WHAT WE DO TOGGLE */
+  const toggleWhatWeDo = (index) => {
+    setOpenWhatWeDoIndex(openWhatWeDoIndex === index ? null : index);
+  };
+
+  /* KEYBOARD HANDLERS */
+  const handleKeyDown = (e, index, toggleFunc) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleFunc(index);
+    }
   };
 
   return (
@@ -70,11 +134,13 @@ export default function AboutUs() {
           src="/assets/icons/left-circle.png"
           alt=""
           className="about-circle left"
+          aria-hidden="true"
         />
         <img
           src="/assets/icons/right-circle.png"
           alt=""
           className="about-circle right"
+          aria-hidden="true"
         />
 
         <div className="about-hero-content">
@@ -94,7 +160,8 @@ export default function AboutUs() {
           <div className="about-hero-buttons">
             <button
               className="btn-primary"
-              onClick={() => goToLogin("/user/file-new-case/step1")}
+              onClick={() => navigateToApp("/user/file-new-case/step1")}
+              aria-label="File a new case"
             >
               File A Case
             </button>
@@ -113,47 +180,12 @@ export default function AboutUs() {
           <p className="story-subtitle">The story you should know</p>
 
           <div className="story-grid-exact">
-            {[
-              {
-                title: "Why was RaaziMarzi created?",
-                items: [
-                  "To solve the growing problem of delayed justice and overloaded courts in India.",
-                  "To provide a simple, accessible, and affordable way for people to resolve their disputes.",
-                  "To eliminate stress, paperwork, and long waiting periods for common disputes.",
-                ],
-              },
-              {
-                title: "What problem do we aim to solve?",
-                items: [
-                  "Traditional legal processes are slow, expensive, and confusing for most individuals and businesses.",
-                  "Most disputes are small but still end up taking months or years to resolve.",
-                  "People hesitate to take legal action due to lack of guidance and high costs.",
-                ],
-              },
-              {
-                title:
-                  "What inspired the idea of an Online Dispute Resolution platform?",
-                items: [
-                  "The rising need for digital solutions in legal services.",
-                  "Government push towards ODR and online justice systems.",
-                  "A vision to modernize justice and make it as simple as filing a complaint online.",
-                ],
-              },
-              {
-                title: "Who is RaaziMarzi built for?",
-                items: [
-                  "Anyone who wants fair, fast, and stress-free conflict resolution.",
-                  "Individuals who face consumer, rental, employment, or money recovery disputes.",
-                  "Small businesses & startups who want quick business resolution.",
-                  "Professionals and partners dealing with contract or partnership disputes.",
-                ],
-              },
-            ].map(({ title, items }) => (
+            {ourStoryData.map(({ title, items }) => (
               <div key={title} className="story-item">
                 <h4>{title}</h4>
                 <ul>
-                  {items.map((item) => (
-                    <li key={item}>{item}</li>
+                  {items.map((item, idx) => (
+                    <li key={idx}>{item}</li>
                   ))}
                 </ul>
               </div>
@@ -167,7 +199,7 @@ export default function AboutUs() {
         <div className="mv-grid">
           <div className="mv-card">
             <div className="mv-image">
-              <img src="/assets/images/mission.png" alt="Mission" />
+              <img src="/assets/images/mission.png" alt="Our mission - accessible justice for all" />
             </div>
             <h4>Our Mission</h4>
             <p>
@@ -178,23 +210,22 @@ export default function AboutUs() {
 
           <div className="mv-card">
             <div className="mv-image">
-              <img src="/assets/images/vision-1.png" alt="Vision" />
+              <img src="/assets/images/vision-1.png" alt="Our vision - trusted ODR ecosystem" />
             </div>
             <h4>Our Vision</h4>
             <p>
-              Building India’s most trusted online ecosystem for resolving
+              Building India's most trusted online ecosystem for resolving
               disputes without stress or delays.
             </p>
           </div>
         </div>
       </section>
 
-
       {/* WHAT WE DO – EXPAND / COLLAPSE */}
       <section className="what-we-do-exact">
         <div className="what-we-do-container">
           <div className="what-we-do-image">
-            <img src="/assets/images/cd.png" alt="What RaaziMarzi Do" />
+            <img src="/assets/images/cd.png" alt="RaaziMarzi dispute resolution services" />
           </div>
 
           <div className="what-we-do-content">
@@ -205,28 +236,32 @@ export default function AboutUs() {
                 <div key={item.title}>
                   <div
                     className="what-we-do-item"
-                    onClick={() =>
-                      setOpenWhatWeDoIndex(
-                        openWhatWeDoIndex === index ? null : index
-                      )
-                    }
+                    onClick={() => toggleWhatWeDo(index)}
+                    onKeyDown={(e) => handleKeyDown(e, index, toggleWhatWeDo)}
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={openWhatWeDoIndex === index}
+                    aria-label={item.title}
                   >
                     <div>
                       <h4>{item.title}</h4>
                     </div>
-                    <span className="what-we-do-arrow">
+                    <span className="what-we-do-arrow" aria-hidden="true">
                       {openWhatWeDoIndex === index ? "−" : "›"}
                     </span>
                   </div>
 
                   {openWhatWeDoIndex === index && (
                     <div
+                      className="what-we-do-description"
                       style={{
                         padding: "10px 0 14px 0",
                         fontSize: "14px",
                         color: "#6b7280",
                         lineHeight: "1.6",
                       }}
+                      role="region"
+                      aria-label="Service description"
                     >
                       {item.desc}
                     </div>
@@ -235,7 +270,9 @@ export default function AboutUs() {
               ))}
             </div>
 
-            <button className="what-we-do-btn">See More</button>
+            <Link href="/Services/ContractDisputes" className="what-we-do-btn">
+              See More
+            </Link>
           </div>
         </div>
       </section>
@@ -244,20 +281,17 @@ export default function AboutUs() {
       <section className="our-value-exact">
         <div className="our-value-container">
           <h2>Our Value</h2>
-          <p className="our-value-sub">The story you should know</p>
+          <p className="our-value-sub">The principles that guide us</p>
 
           <div className="our-value-grid">
-            {[
-              ["responsibility.png", "Responsibility"],
-              ["integrity.png", "Integrity"],
-              ["transparency.png", "Transparency"],
-              ["empathy.png", "Empathy"],
-              ["innovation.png", "Innovation"],
-              ["security.png", "Security"],
-            ].map(([icon, label]) => (
+            {ourValues.map(({ icon, label }) => (
               <div key={label} className="our-value-item">
                 <div className="our-value-circle">
-                  <img src={`/assets/icons/${icon}`} alt={label} />
+                  <img 
+                    src={`/assets/icons/${icon}`} 
+                    alt="" 
+                    aria-hidden="true"
+                  />
                 </div>
                 <p className="our-value-label">{label}</p>
               </div>
@@ -276,7 +310,7 @@ export default function AboutUs() {
           </p>
 
           <div className="faq-container">
-            <div className="faq-tabs">
+            <div className="faq-tabs" role="tablist" aria-label="FAQ categories">
               {tabs.map((tab) => (
                 <button
                   key={tab}
@@ -285,39 +319,50 @@ export default function AboutUs() {
                     setActiveTab(tab);
                     setOpenFaqIndex(null);
                   }}
+                  role="tab"
+                  aria-selected={activeTab === tab}
+                  aria-controls={`faq-panel-${tab}`}
                 >
                   {tab}
                 </button>
               ))}
             </div>
 
-            <div className="faq-list">
+            <div 
+              className="faq-list"
+              role="tabpanel"
+              id={`faq-panel-${activeTab}`}
+            >
               {questions.map((q, index) => (
                 <div key={index}>
                   <div
                     className="faq-item"
-                    onClick={() =>
-                      setOpenFaqIndex(
-                        openFaqIndex === index ? null : index
-                      )
-                    }
+                    onClick={() => toggleFaq(index)}
+                    onKeyDown={(e) => handleKeyDown(e, index, toggleFaq)}
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={openFaqIndex === index}
+                    aria-label={q}
                   >
                     <span>{q}</span>
-                    <span className="faq-arrow">
+                    <span className="faq-arrow" aria-hidden="true">
                       {openFaqIndex === index ? "−" : "›"}
                     </span>
                   </div>
 
                   {openFaqIndex === index && (
                     <div
+                      className="faq-answer"
                       style={{
                         padding: "12px 10px",
                         fontSize: "13px",
                         color: "#4b5563",
                         lineHeight: "1.6",
                       }}
+                      role="region"
+                      aria-label="Answer"
                     >
-                      This is the answer for: <b>{q}</b>. Replace with actual
+                      This is the answer for: <strong>{q}</strong>. Replace with actual
                       FAQ content.
                     </div>
                   )}
@@ -332,4 +377,3 @@ export default function AboutUs() {
     </>
   );
 }
-

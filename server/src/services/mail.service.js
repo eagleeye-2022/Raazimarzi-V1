@@ -1,78 +1,77 @@
 import nodemailer from "nodemailer";
 
-// Create reusable transporter using Zoho SMTP
+// ✅ Create transporter (Zoho-safe)
 const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: Number(process.env.EMAIL_PORT) || 465,
-  secure: process.env.EMAIL_SECURE === "true", 
+  host: "smtp.zoho.in",
+  port: 465,
+  secure: true, // MUST be true for Zoho
   auth: {
-    user: process.env.EMAIL_USER, 
-    pass: process.env.EMAIL_PASS, 
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS, // MUST be Zoho App Password
   },
 });
 
-// Send Contact Form Email to Admin
-export const sendContactMail = async ({ name, email, phone, message }) => {
-  const mailOptions = {
-    from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_USER}>`,
-    to: process.env.ADMIN_EMAIL, // Admin email
-    subject: "New Contact Request - RaaziMarzi",
-    html: `
-      <h3>New Contact Form Submission</h3>
-      <p><strong>Name:</strong> ${name}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Phone:</strong> ${phone || "N/A"}</p>
-      <p><strong>Message:</strong></p>
-      <p>${message}</p>
-    `,
-  };
-
-  await transporter.sendMail(mailOptions);
+// ✅ Manual SMTP test (call explicitly)
+export const testSMTP = async () => {
+  try {
+    await transporter.verify();
+    console.log("✅ SMTP server is ready");
+    return true;
+  } catch (error) {
+    console.error("❌ SMTP verification failed:", error.message);
+    return false;
+  }
 };
 
-// Send Demo Request Email to Admin
+// ✅ Send OTP Email
+export const sendOtpMail = async ({ email, otp, type }) => {
+  const subject =
+    type === "signup"
+      ? "Your Signup OTP - RaaziMarzi"
+      : "Your Password Reset OTP - RaaziMarzi";
+
+  await transporter.sendMail({
+    from: `"${process.env.EMAIL_FROM_NAME || "RaaziMarzi"}" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject,
+    html: `
+      <h2>${subject}</h2>
+      <p>Your OTP:</p>
+      <h1>${otp}</h1>
+      <p>Valid for 5 minutes.</p>
+    `,
+  });
+};
+
+// Contact mail
+export const sendContactMail = async ({ name, email, phone, message }) => {
+  await transporter.sendMail({
+    from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_USER}>`,
+    to: process.env.ADMIN_EMAIL,
+    subject: "New Contact Request - RaaziMarzi",
+    html: `
+      <p><b>Name:</b> ${name}</p>
+      <p><b>Email:</b> ${email}</p>
+      <p><b>Phone:</b> ${phone || "N/A"}</p>
+      <p>${message}</p>
+    `,
+  });
+};
+
+// Demo mail
 export const sendDemoMail = async ({ name, email, phone, company, message }) => {
-  const mailOptions = {
+  await transporter.sendMail({
     from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_USER}>`,
     to: process.env.ADMIN_EMAIL,
     subject: "New Demo Request - RaaziMarzi",
     html: `
-      <h3>New Demo Request</h3>
-      <p><strong>Name:</strong> ${name}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Phone:</strong> ${phone || "N/A"}</p>
-      <p><strong>Company:</strong> ${company || "N/A"}</p>
-      <p><strong>Message:</strong> ${message || "N/A"}</p>
+      <p><b>Name:</b> ${name}</p>
+      <p><b>Email:</b> ${email}</p>
+      <p><b>Phone:</b> ${phone}</p>
+      <p><b>Company:</b> ${company}</p>
+      <p>${message}</p>
     `,
-  };
-
-  await transporter.sendMail(mailOptions);
-};
-
-// Optional: Test SMTP connection
-export const testSMTP = async () => {
-  try {
-    await transporter.verify();
-    console.log("✅ SMTP connection is working");
-  } catch (err) {
-    console.error("❌ SMTP connection failed:", err);
-  }
-};
-
-// Add this to mail.service.js
-export const sendOtpMail = async ({ email, otp, type }) => {
-  const subject = type === "signup" ? "Your Signup OTP - RaaziMarzi" : "Your Password Reset OTP - RaaziMarzi";
-  const html = `
-    <h3>${subject}</h3>
-    <p>Your OTP is:</p>
-    <h2>${otp}</h2>
-    <p>Valid for 5 minutes</p>
-  `;
-
-  await transporter.sendMail({
-    from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_USER}>`,
-    to: email,
-    subject,
-    html,
   });
 };
+
+export default transporter;

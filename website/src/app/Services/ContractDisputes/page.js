@@ -1,16 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useCallback } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import "@/styles/contractDisputes.css";
 import { APP_BASE_PATH } from "@/config/appConfig";
+import "@/styles/contractDisputes.css";
 
 export default function ContractDisputes() {
   const [activeTab, setActiveTab] = useState("Cases");
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
-  const router = useRouter();
 
   const tabs = [
     "Cases",
@@ -29,19 +27,58 @@ export default function ContractDisputes() {
     "What compensation can I claim?",
   ];
 
-  const goToLogin = (redirectPath = "") => {
-    const redirectQuery = redirectPath ? `?redirect=${redirectPath}` : "";
-    router.push(`${APP_BASE_PATH}/login${redirectQuery}`);
+  const contractDisputeTypes = [
+    "Breach of Contract",
+    "Payment Disputes",
+    "Non-performance",
+    "Delay in Delivery",
+  ];
+
+  /* NAVIGATE TO REACT APP */
+  const navigateToApp = useCallback((path = "/login", queryParams = {}) => {
+    try {
+      const searchParams = new URLSearchParams(queryParams);
+      const query = searchParams.toString() ? `?${searchParams.toString()}` : "";
+      const appUrl = `${APP_BASE_PATH}${path}${query}`;
+      window.location.href = appUrl;
+    } catch (error) {
+      console.error("Navigation error:", error);
+      window.location.href = `${APP_BASE_PATH}/login`;
+    }
+  }, []);
+
+  /* FAQ TOGGLE */
+  const toggleFaq = (index) => {
+    setOpenFaqIndex(openFaqIndex === index ? null : index);
   };
 
-  function AccordionItem({ title }) {
-    const [open, setOpen] = useState(false);
+  /* FAQ KEYBOARD HANDLER */
+  const handleFaqKeyDown = (e, index) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleFaq(index);
+    }
+  };
+
+  /* ACCORDION COMPONENT */
+  function AccordionItem({ title, index, open, onToggle }) {
+    const handleKeyDown = (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onToggle(index);
+      }
+    };
 
     return (
       <div className={`cd-accordion-item ${open ? "open" : ""}`}>
         <div
           className="cd-accordion-header"
-          onClick={() => setOpen(!open)}
+          onClick={() => onToggle(index)}
+          onKeyDown={handleKeyDown}
+          role="button"
+          tabIndex={0}
+          aria-expanded={open}
+          aria-label={title}
         >
           <div>
             <h4>{title}</h4>
@@ -50,11 +87,17 @@ export default function ContractDisputes() {
               obligations...
             </p>
           </div>
-          <span className="cd-accordion-arrow">{open ? "−" : "›"}</span>
+          <span className="cd-accordion-arrow" aria-hidden="true">
+            {open ? "−" : "›"}
+          </span>
         </div>
 
         {open && (
-          <div className="cd-accordion-body">
+          <div 
+            className="cd-accordion-body"
+            role="region"
+            aria-label="Dispute type details"
+          >
             Detailed explanation about{" "}
             {title.toLowerCase()} and how we help resolve such
             disputes efficiently.
@@ -64,15 +107,32 @@ export default function ContractDisputes() {
     );
   }
 
+  /* ACCORDION STATE MANAGEMENT */
+  const [openAccordionIndex, setOpenAccordionIndex] = useState(null);
+  
+  const toggleAccordion = (index) => {
+    setOpenAccordionIndex(openAccordionIndex === index ? null : index);
+  };
+
   return (
     <>
       <Header />
 
       {/* HERO */}
       <section className="cd-hero-exact">
-        <img src="/assets/icons/left-circle.png" alt="" className="figma-circle left" />
-        <img src="/assets/icons/right-circle.png" alt="" className="figma-circle right" />
-        <div className="hero-glow"></div>
+        <img 
+          src="/assets/icons/left-circle.png" 
+          alt="" 
+          className="figma-circle left"
+          aria-hidden="true"
+        />
+        <img 
+          src="/assets/icons/right-circle.png" 
+          alt="" 
+          className="figma-circle right"
+          aria-hidden="true"
+        />
+        <div className="hero-glow" aria-hidden="true"></div>
 
         <div className="cd-hero-content">
           <span className="cd-pill-exact">
@@ -97,18 +157,16 @@ export default function ContractDisputes() {
           <div className="hero-buttons">
             <button
               className="btn-primary-exact"
-              onClick={() =>
-                goToLogin("/user/file-new-case/step1")
-              }
+              onClick={() => navigateToApp("/user/file-new-case/step1")}
+              aria-label="File a new case"
             >
               File A Case
             </button>
 
             <button
               className="btn-dark-exact"
-              onClick={() =>
-                goToLogin("/user/chats")
-              }
+              onClick={() => navigateToApp("/user/chats")}
+              aria-label="Talk to a legal expert"
             >
               Talk To Expert
             </button>
@@ -120,9 +178,24 @@ export default function ContractDisputes() {
       <section className="cd-what-figma">
         <div className="cd-what-box">
           <div className="cd-what-circles">
-            <img src="/assets/icons/circle1.png" alt="" className="circle c1" />
-            <img src="/assets/icons/circle2.png" alt="" className="circle c2" />
-            <img src="/assets/icons/circle3.png" alt="" className="circle c3" />
+            <img 
+              src="/assets/icons/circle1.png" 
+              alt="" 
+              className="circle c1"
+              aria-hidden="true"
+            />
+            <img 
+              src="/assets/icons/circle2.png" 
+              alt="" 
+              className="circle c2"
+              aria-hidden="true"
+            />
+            <img 
+              src="/assets/icons/circle3.png" 
+              alt="" 
+              className="circle c3"
+              aria-hidden="true"
+            />
           </div>
 
           <div className="cd-what-content">
@@ -136,7 +209,7 @@ export default function ContractDisputes() {
               lead to financial losses.
             </p>
 
-            <div className="cd-divider"></div>
+            <div className="cd-divider" aria-hidden="true"></div>
 
             <div className="cd-what-points">
               <ul>
@@ -165,19 +238,32 @@ export default function ContractDisputes() {
       <section className="cd-list-figma">
         <div className="cd-list-container">
           <div className="cd-list-image">
-            <img src="/assets/images/CD.png" alt="Contract Disputes" />
+            <img 
+              src="/assets/images/CD.png" 
+              alt="Contract dispute resolution services illustration"
+            />
           </div>
 
           <div className="cd-list-content">
             <h2>Contract Disputes</h2>
 
             <div className="cd-accordion-figma">
-              {["Breach of Contract","Payment Disputes","Non-performance","Delay in Delivery"].map((title, index) => (
-                <AccordionItem key={index} title={title} />
+              {contractDisputeTypes.map((title, index) => (
+                <AccordionItem 
+                  key={index} 
+                  title={title}
+                  index={index}
+                  open={openAccordionIndex === index}
+                  onToggle={toggleAccordion}
+                />
               ))}
             </div>
 
-            <button className="cd-see-more">
+            <button 
+              className="cd-see-more"
+              onClick={() => navigateToApp("/user/file-new-case/step1")}
+              aria-label="See more dispute types and file a case"
+            >
               See More
             </button>
           </div>
@@ -189,43 +275,56 @@ export default function ContractDisputes() {
         <div className="pd-container">
           <h2 className="faq-title">Frequently Asked Questions</h2>
 
-          <div className="faq-tabs">
+          <div className="faq-tabs" role="tablist" aria-label="FAQ categories">
             {tabs.map((tab) => (
               <button
                 key={tab}
                 className={`faq-tab ${activeTab === tab ? "active" : ""}`}
                 onClick={() => setActiveTab(tab)}
+                role="tab"
+                aria-selected={activeTab === tab}
+                aria-controls={`faq-panel-${tab}`}
               >
                 {tab}
               </button>
             ))}
           </div>
 
-          <div className="faq-list">
+          <div 
+            className="faq-list"
+            role="tabpanel"
+            id={`faq-panel-${activeTab}`}
+          >
             {questions.map((q, i) => (
               <div key={i}>
                 <div
                   className="faq-item"
-                  onClick={() =>
-                    setOpenFaqIndex(openFaqIndex === i ? null : i)
-                  }
+                  onClick={() => toggleFaq(i)}
+                  onKeyDown={(e) => handleFaqKeyDown(e, i)}
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={openFaqIndex === i}
+                  aria-label={q}
                 >
                   <span>{q}</span>
-                  <span className="faq-arrow">
+                  <span className="faq-arrow" aria-hidden="true">
                     {openFaqIndex === i ? "−" : "›"}
                   </span>
                 </div>
 
                 {openFaqIndex === i && (
                   <div
+                    className="faq-answer"
                     style={{
                       padding: "12px 10px",
                       fontSize: "13px",
                       color: "#4b5563",
                       lineHeight: "1.6",
                     }}
+                    role="region"
+                    aria-label="Answer"
                   >
-                    This is the answer for <b>{q}</b>. Replace with actual FAQ answer.
+                    This is the answer for <strong>{q}</strong>. Replace with actual FAQ answer.
                   </div>
                 )}
               </div>
@@ -241,7 +340,7 @@ export default function ContractDisputes() {
             <h2>Resolve Contract Disputes Without Court Delays</h2>
 
             <p>
-              Whether it’s a breach of contract, unpaid dues,
+              Whether it's a breach of contract, unpaid dues,
               or service agreement issues, RaaziMarzi helps
               you resolve contract disputes online—securely,
               legally, and efficiently.
@@ -250,18 +349,16 @@ export default function ContractDisputes() {
             <div className="contract-cta-buttons">
               <button
                 className="cta-primary"
-                onClick={() =>
-                  goToLogin("/user/file-new-case/step1")
-                }
+                onClick={() => navigateToApp("/user/file-new-case/step1")}
+                aria-label="Start contract resolution process"
               >
                 Start Contract Resolution
               </button>
 
               <button
                 className="cta-secondary"
-                onClick={() =>
-                  goToLogin("/user/chats")
-                }
+                onClick={() => navigateToApp("/user/chats")}
+                aria-label="Consult with a legal expert"
               >
                 Consult a Legal Expert
               </button>
@@ -271,7 +368,7 @@ export default function ContractDisputes() {
           <div className="contract-cta-image">
             <img
               src="/assets/images/contract.png"
-              alt="Contract Resolution"
+              alt="Contract resolution services"
             />
           </div>
         </div>

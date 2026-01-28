@@ -1,14 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useCallback } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import "@/styles/consumerDisputes.css";
 import { APP_BASE_PATH } from "@/config/appConfig";
+import "@/styles/consumerDisputes.css";
 
 export default function ConsumerDisputePage() {
-  const router = useRouter();
+  const [activeTab, setActiveTab] = useState("Cases");
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
 
   const consumerTypes = [
@@ -19,8 +18,7 @@ export default function ConsumerDisputePage() {
     },
     {
       title: "Poor or Incomplete Services",
-      desc:
-        "Service not delivered as promised (e.g., repair, installation, travel service, etc.).",
+      desc: "Service not delivered as promised (e.g., repair, installation, travel service, etc.).",
       icon: "/assets/icons/services.png",
     },
     {
@@ -40,20 +38,17 @@ export default function ConsumerDisputePage() {
     },
     {
       title: "Warranty or Guarantee Issues",
-      desc:
-        "Company refusing repair or replacement even within warranty.",
+      desc: "Company refusing repair or replacement even within warranty.",
       icon: "/assets/icons/warranty.png",
     },
     {
       title: "Refund / Return Problems",
-      desc:
-        "Refund not given, return denied, or replacement delayed.",
+      desc: "Refund not given, return denied, or replacement delayed.",
       icon: "/assets/icons/refund.png",
     },
     {
       title: "Online Shopping Disputes",
-      desc:
-        "Fake products, damaged delivery, order cancellation issues.",
+      desc: "Fake products, damaged delivery, order cancellation issues.",
       icon: "/assets/icons/online.png",
     },
   ];
@@ -66,6 +61,23 @@ export default function ConsumerDisputePage() {
     "Right to Consumer Education",
   ];
 
+  const whoCanFile = [
+    "Individual consumers",
+    "Online shoppers",
+    "Service users (repair, installation etc.)",
+    "Buyers of electronics, home appliances, furniture etc.",
+    "Subscribers of telecom, OTT, internet, electricity etc.",
+  ];
+
+  const faqTabs = [
+    "Cases",
+    "Money",
+    "Policies",
+    "Resolve Cases",
+    "Victory %",
+    "Ordinary",
+  ];
+
   const faqQuestions = [
     "What steps should I take if a product is defective?",
     "How long does online dispute resolution take?",
@@ -74,9 +86,30 @@ export default function ConsumerDisputePage() {
     "Are the decisions legally binding?",
   ];
 
-  const goToLogin = (redirectPath = "") => {
-    const redirectQuery = redirectPath ? `?redirect=${redirectPath}` : "";
-    router.push(`${APP_BASE_PATH}/login${redirectQuery}`);
+  /* NAVIGATE TO REACT APP */
+  const navigateToApp = useCallback((path = "/login", queryParams = {}) => {
+    try {
+      const searchParams = new URLSearchParams(queryParams);
+      const query = searchParams.toString() ? `?${searchParams.toString()}` : "";
+      const appUrl = `${APP_BASE_PATH}${path}${query}`;
+      window.location.href = appUrl;
+    } catch (error) {
+      console.error("Navigation error:", error);
+      window.location.href = `${APP_BASE_PATH}/login`;
+    }
+  }, []);
+
+  /* FAQ TOGGLE */
+  const toggleFaq = (index) => {
+    setOpenFaqIndex(openFaqIndex === index ? null : index);
+  };
+
+  /* KEYBOARD HANDLER */
+  const handleFaqKeyDown = (e, index) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleFaq(index);
+    }
   };
 
   return (
@@ -85,9 +118,19 @@ export default function ConsumerDisputePage() {
 
       {/* HERO */}
       <section className="cd-hero-exact">
-        <img src="/assets/icons/left-circle.png" alt="" className="figma-circle left" />
-        <img src="/assets/icons/right-circle.png" alt="" className="figma-circle right" />
-        <div className="hero-glow"></div>
+        <img 
+          src="/assets/icons/left-circle.png" 
+          alt="" 
+          className="figma-circle left"
+          aria-hidden="true"
+        />
+        <img 
+          src="/assets/icons/right-circle.png" 
+          alt="" 
+          className="figma-circle right"
+          aria-hidden="true"
+        />
+        <div className="hero-glow" aria-hidden="true"></div>
 
         <div className="cd-hero-content">
           <span className="cd-pill-exact">Consumer Disputes</span>
@@ -106,14 +149,16 @@ export default function ConsumerDisputePage() {
           <div className="hero-buttons">
             <button
               className="btn-primary-exact"
-              onClick={() => goToLogin("/user/file-new-case/step1")}
+              onClick={() => navigateToApp("/user/file-new-case/step1")}
+              aria-label="File a consumer dispute case"
             >
               File A Case
             </button>
 
             <button
               className="btn-dark-exact"
-              onClick={() => goToLogin()}
+              onClick={() => navigateToApp("/user/chats")}
+              aria-label="Talk to a consumer rights expert"
             >
               Talk To Expert
             </button>
@@ -124,7 +169,10 @@ export default function ConsumerDisputePage() {
       {/* WHAT ARE CONSUMER DISPUTES */}
       <section className="info-section">
         <div className="info-grid">
-          <img src="/assets/images/consumer.png" alt="Consumer Dispute" />
+          <img 
+            src="/assets/images/consumer.png" 
+            alt="Consumer dispute resolution illustration"
+          />
           <div>
             <h2>What Are Consumer Disputes?</h2>
             <p>
@@ -149,7 +197,7 @@ export default function ConsumerDisputePage() {
           {consumerTypes.map((item, i) => (
             <div className="type-card" key={i}>
               <div className="type-icon">
-                <img src={item.icon} alt={item.title} />
+                <img src={item.icon} alt="" aria-hidden="true" />
               </div>
               <div className="type-content">
                 <h4>{item.title}</h4>
@@ -167,15 +215,9 @@ export default function ConsumerDisputePage() {
 
         <div className="flow-container">
           <div className="flow-items">
-            {[
-              "Individual consumers",
-              "Online shoppers",
-              "Service users (repair, installation etc.)",
-              "Buyers of electronics, home appliances, furniture etc.",
-              "Subscribers of telecom, OTT, internet, electricity etc.",
-            ].map((label, i) => (
+            {whoCanFile.map((label, i) => (
               <div key={i} className="flow-item">
-                <div className="circle"></div>
+                <div className="circle" aria-hidden="true"></div>
                 <p>{label}</p>
               </div>
             ))}
@@ -207,46 +249,59 @@ export default function ConsumerDisputePage() {
           </p>
 
           <div className="faq-box">
-            <div className="faq-tabs">
-              {[
-                "Cases",
-                "Money",
-                "Policies",
-                "Resolve Cases",
-                "Victory %",
-                "Ordinary",
-              ].map((tab) => (
-                <button key={tab} className="faq-tab">
+            <div className="faq-tabs" role="tablist" aria-label="FAQ categories">
+              {faqTabs.map((tab) => (
+                <button 
+                  key={tab} 
+                  className={`faq-tab ${activeTab === tab ? "active" : ""}`}
+                  onClick={() => {
+                    setActiveTab(tab);
+                    setOpenFaqIndex(null);
+                  }}
+                  role="tab"
+                  aria-selected={activeTab === tab}
+                  aria-controls={`faq-panel-${tab}`}
+                >
                   {tab}
                 </button>
               ))}
             </div>
 
-            <div className="faq-list">
+            <div 
+              className="faq-list"
+              role="tabpanel"
+              id={`faq-panel-${activeTab}`}
+            >
               {faqQuestions.map((q, i) => (
                 <div key={i}>
                   <div
                     className="faq-item"
-                    onClick={() =>
-                      setOpenFaqIndex(openFaqIndex === i ? null : i)
-                    }
+                    onClick={() => toggleFaq(i)}
+                    onKeyDown={(e) => handleFaqKeyDown(e, i)}
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={openFaqIndex === i}
+                    aria-label={q}
                   >
                     <span>{q}</span>
-                    <span className="faq-arrow">
+                    <span className="faq-arrow" aria-hidden="true">
                       {openFaqIndex === i ? "−" : "›"}
                     </span>
                   </div>
 
                   {openFaqIndex === i && (
                     <div
+                      className="faq-answer"
                       style={{
                         padding: "12px 10px",
                         fontSize: "13px",
                         color: "#4b5563",
                         lineHeight: "1.6",
                       }}
+                      role="region"
+                      aria-label="Answer"
                     >
-                      This is the answer for <b>{q}</b>. Replace this text with
+                      This is the answer for <strong>{q}</strong>. Replace this text with
                       the actual FAQ answer.
                     </div>
                   )}
@@ -264,21 +319,23 @@ export default function ConsumerDisputePage() {
             <h2>Resolve Consumer Complaints Without Court Stress</h2>
 
             <p>
-              Don’t let unresolved complaints go unheard. Resolve consumer
+              Don't let unresolved complaints go unheard. Resolve consumer
               disputes through a secure and legally compliant online process.
             </p>
 
             <div className="contract-cta-buttons">
               <button
                 className="cta-primary"
-                onClick={() => goToLogin("/user/file-new-case/step1")}
+                onClick={() => navigateToApp("/user/file-new-case/step1")}
+                aria-label="File a consumer dispute case"
               >
                 File A Case
               </button>
 
               <button
                 className="cta-secondary"
-                onClick={() => goToLogin()}
+                onClick={() => navigateToApp("/user/chats")}
+                aria-label="Consult with a consumer rights expert"
               >
                 Talk To Expert
               </button>
@@ -288,7 +345,7 @@ export default function ConsumerDisputePage() {
           <div className="contract-cta-image">
             <img
               src="/assets/images/consumer-ct.png"
-              alt="Consumer Resolution"
+              alt="Consumer dispute resolution services"
             />
           </div>
         </div>

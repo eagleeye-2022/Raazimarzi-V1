@@ -17,6 +17,9 @@ import LogoutIcon from "../assets/icons/logout.png";
 import "./FileNewCase.css";
 import { FaCog, FaBell } from "react-icons/fa";
 
+// ✅ Use environment variable for API URL
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 const FileNewCaseStep2 = () => {
   const navigate = useNavigate();
   const { caseData } = useContext(CaseContext);
@@ -35,6 +38,8 @@ const FileNewCaseStep2 = () => {
     digitalSignature: "",
     declaration: false,
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Pre-fill previous Step2 if available
   useEffect(() => {
@@ -69,19 +74,27 @@ const FileNewCaseStep2 = () => {
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
       const token = localStorage.getItem("token");
 
-      // Merge Step1 + Step2 data
+      // ✅ FIXED: Correct data structure matching backend expectations
       const finalData = {
-        ...effectiveCaseData,
-        step2: formData,
+        caseType: effectiveCaseData.caseType,
+        caseTitle: effectiveCaseData.caseTitle,
+        causeOfAction: effectiveCaseData.causeOfAction,
+        reliefSought: effectiveCaseData.reliefSought,
+        caseValue: effectiveCaseData.caseValue,
+        petitioner: effectiveCaseData.petitioner,
+        defendant: effectiveCaseData.defendant,
+        caseFacts: formData,  // ✅ Changed from step2 to caseFacts
       };
 
       console.log("📤 Sending case data:", finalData);
 
-      await axios.post(
-        "http://localhost:5000/api/cases/file",
+      const response = await axios.post(
+        `${API_URL}/api/cases/file`,
         finalData,
         {
           headers: {
@@ -98,7 +111,16 @@ const FileNewCaseStep2 = () => {
         "❌ Error submitting case:",
         error.response?.data || error.message
       );
-      alert(error.response?.data?.message || "Error submitting case");
+      
+      // ✅ Better error messages
+      const errorMessage = 
+        error.response?.data?.message || 
+        error.message || 
+        "Failed to submit case. Please try again.";
+      
+      alert(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -185,6 +207,7 @@ const FileNewCaseStep2 = () => {
             placeholder="Case Summary"
             value={formData.caseSummary}
             onChange={handleChange}
+            rows="5"
           />
 
           <div className="form-grid">
@@ -221,6 +244,7 @@ const FileNewCaseStep2 = () => {
               type="date"
               value={formData.date}
               onChange={handleChange}
+              max={new Date().toISOString().split("T")[0]}
             />
             <input
               name="digitalSignature"
@@ -236,19 +260,27 @@ const FileNewCaseStep2 = () => {
               name="declaration"
               checked={formData.declaration}
               onChange={handleChange}
+              id="declaration-checkbox"
             />
-            <label>I hereby declare that the above information is true.</label>
+            <label htmlFor="declaration-checkbox">
+              I hereby declare that the above information is true.
+            </label>
           </div>
 
           <div className="button-group">
             <button
               className="prev-btn"
               onClick={() => navigate("/user/file-new-case/step1")}
+              disabled={isSubmitting}
             >
               ← Back
             </button>
-            <button className="next-btn" onClick={handleSubmit}>
-              Submit Case
+            <button 
+              className="next-btn" 
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Submitting..." : "Submit Case"}
             </button>
           </div>
         </div>

@@ -1,17 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useCallback } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { APP_BASE_PATH } from "@/config/appConfig";
 import "@/styles/property&rentalDispute.css";
-
-const APP_BASE_PATH = "/app";
 
 export default function PropertyRentalDispute() {
   const [activeTab, setActiveTab] = useState("Cases");
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
-  const router = useRouter();
 
   const tabs = ["Cases", "Money", "Policies", "Resolve Cases", "Victory %", "Ordinary"];
 
@@ -23,9 +20,36 @@ export default function PropertyRentalDispute() {
     "How long does it take to resolve a property or rental dispute?",
   ];
 
-  const goToLogin = (redirectPath = "") => {
-    const query = redirectPath ? `?redirect=${redirectPath}` : "";
-    router.push(`${APP_BASE_PATH}/login${query}`);
+  /* NAVIGATE TO REACT APP - Fixed for cross-application navigation */
+  const navigateToApp = useCallback((path = "/login", queryParams = {}) => {
+    try {
+      // Build query string if params provided
+      const searchParams = new URLSearchParams(queryParams);
+      const query = searchParams.toString() ? `?${searchParams.toString()}` : "";
+      
+      // Construct full URL to React app
+      const appUrl = `${APP_BASE_PATH}${path}${query}`;
+      
+      // Navigate to React application (separate frontend)
+      window.location.href = appUrl;
+    } catch (error) {
+      console.error("Navigation error:", error);
+      // Fallback to login page
+      window.location.href = `${APP_BASE_PATH}/login`;
+    }
+  }, []);
+
+  /* FAQ TOGGLE */
+  const toggleFaq = (index) => {
+    setOpenFaqIndex(openFaqIndex === index ? null : index);
+  };
+
+  /* FAQ KEYBOARD HANDLER */
+  const handleFaqKeyDown = (e, index) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleFaq(index);
+    }
   };
 
   return (
@@ -34,9 +58,19 @@ export default function PropertyRentalDispute() {
 
       {/* HERO */}
       <section className="cd-hero-exact">
-        <img src="/assets/icons/left-circle.png" alt="" className="figma-circle left" />
-        <img src="/assets/icons/right-circle.png" alt="" className="figma-circle right" />
-        <div className="hero-glow"></div>
+        <img 
+          src="/assets/icons/left-circle.png" 
+          alt="" 
+          className="figma-circle left"
+          aria-hidden="true"
+        />
+        <img 
+          src="/assets/icons/right-circle.png" 
+          alt="" 
+          className="figma-circle right"
+          aria-hidden="true"
+        />
+        <div className="hero-glow" aria-hidden="true"></div>
 
         <div className="cd-hero-content">
           <span className="cd-pill-exact">
@@ -57,18 +91,16 @@ export default function PropertyRentalDispute() {
           <div className="hero-buttons">
             <button
               className="btn-primary-exact"
-              onClick={() =>
-                goToLogin("/user/file-new-case/step1")
-              }
+              onClick={() => navigateToApp("/user/file-new-case/step1")}
+              aria-label="File a new case"
             >
               File A Case
             </button>
 
             <button
               className="btn-dark-exact"
-              onClick={() =>
-                goToLogin("/user/chats")
-              }
+              onClick={() => navigateToApp("/user/chats")}
+              aria-label="Talk to a legal expert"
             >
               Talk To Expert
             </button>
@@ -80,7 +112,7 @@ export default function PropertyRentalDispute() {
       <section className="prd-diagonal">
         <div className="prd-container prd-diagonal-inner">
           <div className="prd-diagonal-img">
-            <img src="/assets/images/pd.png" alt="Property disputes" />
+            <img src="/assets/images/pd.png" alt="Property disputes illustration" />
           </div>
           <div className="prd-diagonal-text">
             <h2>What Are Property Disputes?</h2>
@@ -100,7 +132,7 @@ export default function PropertyRentalDispute() {
       <section className="prd-diagonal reverse">
         <div className="prd-container prd-diagonal-inner">
           <div className="prd-diagonal-img">
-            <img src="/assets/images/rd.png" alt="Rental disputes" />
+            <img src="/assets/images/rd.png" alt="Rental disputes illustration" />
           </div>
           <div className="prd-diagonal-text">
             <h2>What Are Rental Disputes?</h2>
@@ -132,7 +164,7 @@ export default function PropertyRentalDispute() {
             </div>
 
             <div className="prd-examples-icon">
-              <img src="/assets/icons/house.png" alt="Property Icon" />
+              <img src="/assets/icons/house.png" alt="" aria-hidden="true" />
             </div>
 
             <div className="prd-examples-col">
@@ -156,43 +188,52 @@ export default function PropertyRentalDispute() {
         <div className="pd-container">
           <h2 className="faq-title">Frequently Asked Questions</h2>
 
-          <div className="faq-tabs">
+          <div className="faq-tabs" role="tablist">
             {tabs.map((tab) => (
               <button
                 key={tab}
                 className={`faq-tab ${activeTab === tab ? "active" : ""}`}
                 onClick={() => setActiveTab(tab)}
+                role="tab"
+                aria-selected={activeTab === tab}
+                aria-controls={`faq-panel-${tab}`}
               >
                 {tab}
               </button>
             ))}
           </div>
 
-          <div className="faq-list">
+          <div className="faq-list" role="tabpanel" id={`faq-panel-${activeTab}`}>
             {questions.map((q, i) => (
               <div key={i}>
                 <div
                   className="faq-item"
-                  onClick={() =>
-                    setOpenFaqIndex(openFaqIndex === i ? null : i)
-                  }
+                  onClick={() => toggleFaq(i)}
+                  onKeyDown={(e) => handleFaqKeyDown(e, i)}
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={openFaqIndex === i}
+                  aria-label={q}
                 >
                   <span>{q}</span>
-                  <span className="faq-arrow">
+                  <span className="faq-arrow" aria-hidden="true">
                     {openFaqIndex === i ? "−" : "›"}
                   </span>
                 </div>
 
                 {openFaqIndex === i && (
                   <div
+                    className="faq-answer"
                     style={{
                       padding: "12px 10px",
                       fontSize: "13px",
                       color: "#4b5563",
                       lineHeight: "1.6",
                     }}
+                    role="region"
+                    aria-label="Answer"
                   >
-                    This is the answer for <b>{q}</b>. Replace with actual FAQ answer.
+                    This is the answer for <strong>{q}</strong>. Replace with actual FAQ answer.
                   </div>
                 )}
               </div>
@@ -214,18 +255,16 @@ export default function PropertyRentalDispute() {
             <div className="contract-cta-buttons">
               <button
                 className="cta-primary"
-                onClick={() =>
-                  goToLogin("/user/file-new-case/step1")
-                }
+                onClick={() => navigateToApp("/user/file-new-case/step1")}
+                aria-label="Start property resolution process"
               >
                 Start Property Resolution
               </button>
 
               <button
                 className="cta-secondary"
-                onClick={() =>
-                  goToLogin("/user/chats")
-                }
+                onClick={() => navigateToApp("/user/chats")}
+                aria-label="Consult with a legal expert"
               >
                 Consult a Legal Expert
               </button>
@@ -235,7 +274,7 @@ export default function PropertyRentalDispute() {
           <div className="contract-cta-image">
             <img
               src="/assets/images/property.png"
-              alt="Property Resolution"
+              alt="Property resolution services"
             />
           </div>
         </div>

@@ -7,80 +7,105 @@ import google from "../assets/icons/google.png";
 import linkdin from "../assets/icons/linkdin.png";
 import phone from "../assets/icons/phone.png";
 import fb from "../assets/icons/fb.png";
-import api from "../api/axios";
+import axios from "axios";
+
+// ✅ FIXED: Use correct API URL
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
 const Signup = () => {
   const [form, setForm] = useState({
     name: "",
     email: "",
     phone: "",
+    password: "",
     role: "user",
   });
 
-  const [password, setPassword] = useState(""); // UI only
   const [showPassword, setShowPassword] = useState(false);
-  const [otp, setOtp] = useState("");
-  const [step, setStep] = useState("form"); // form | otp
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 🔹 Read redirect query from website
+  // Read redirect query from website
   const redirectPath = new URLSearchParams(location.search).get("redirect");
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setError(""); // Clear error on input change
   };
 
-  // ✅ STEP 1: SEND OTP
-  const handleSendOtp = async (e) => {
+  /* ================= SIGNUP (DIRECT - NO OTP) ================= */
+  const handleSignup = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage("Sending OTP...");
-    try {
-      await api.post("/otp/send-otp", { ...form, type: "signup" });
-      setStep("otp");
-      setMessage("OTP sent to your email!");
-    } catch (err) {
-      setMessage(err.response?.data?.message || "Failed to send OTP");
-    } finally {
+    setError("");
+    setMessage("");
+
+    // Validation
+    if (!form.name || !form.email || !form.password) {
+      setError("All fields are required");
       setLoading(false);
+      return;
     }
-  };
 
-  // ✅ STEP 2: VERIFY OTP
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+    if (form.password.length < 6) {
+      setError("Password must be at least 6 characters");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await api.post("/otp/verify-otp", {
-        email: form.email,
-        otp,
-        type: "signup",
+      // ✅ FIXED: Changed to /auth/signup
+      const res = await axios.post(`${API_URL}/auth/signup`, {
         name: form.name,
+        email: form.email,
+        password: form.password,
         phone: form.phone,
         role: form.role,
       });
 
-      // Store token and role if backend sends it
-      if (res.data.token) {
+      if (res.data.success && res.data.token) {
+        // Store token and user info
         localStorage.setItem("token", res.data.token);
-        localStorage.setItem("role", res.data.role);
-        localStorage.setItem("email", res.data.email);
-      }
+        localStorage.setItem("role", res.data.user.role);
+        localStorage.setItem("email", res.data.user.email);
+        localStorage.setItem("userId", res.data.user.id);
+        localStorage.setItem("userName", res.data.user.name);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
 
-      alert("Signup successful!");
+        setMessage("Signup successful! Redirecting...");
 
-      // 🔹 Redirect
-      if (redirectPath) {
-        navigate(redirectPath, { replace: true });
+        // Redirect after 1 second
+        setTimeout(() => {
+          if (redirectPath) {
+            navigate(redirectPath, { replace: true });
+          } else {
+            // Redirect based on role
+            switch (res.data.user.role) {
+              case "admin":
+                navigate("/admin/dashboard", { replace: true });
+                break;
+              case "mediator":
+                navigate("/mediator/dashboard", { replace: true });
+                break;
+              case "case-manager":
+                navigate("/case-manager/dashboard", { replace: true });
+                break;
+              default:
+                navigate("/user/dashboard", { replace: true });
+            }
+          }
+        }, 1000);
       } else {
-        navigate("/login", { replace: true });
+        setError(res.data.message || "Signup failed");
       }
     } catch (err) {
-      setMessage(err.response?.data?.message || "OTP verification failed");
+      console.error("Signup error:", err);
+      const errorMessage = err.response?.data?.message || "Signup failed. Please try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -104,116 +129,120 @@ const Signup = () => {
           <h2>Welcome to Raazimarzi</h2>
           <p className="subtitle">Register your account with us!</p>
 
-          {step === "form" && (
-            <form onSubmit={handleSendOtp}>
-              <div className="input-group">
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Full Name"
-                  value={form.name}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="input-group">
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={form.email}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="input-group password-group">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <span onClick={() => setShowPassword(!showPassword)}>
-                  {showPassword ? "🙈" : "👁️"}
-                </span>
-              </div>
-
-              <div className="input-group">
-                <input
-                  type="text"
-                  name="phone"
-                  placeholder="Phone Number"
-                  value={form.phone}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="input-group">
-                <select name="role" value={form.role} onChange={handleChange}>
-                  <option value="user">User</option>
-                  <option value="mediator">Mediator</option>
-                  <option value="case-manager">Case Manager</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-
-              <button type="submit" disabled={loading}>
-                {loading ? "Sending..." : "Register Now"}
-              </button>
-
-              <p className="bottom-text">
-                Already have an account?{" "}
-                <Link to={`/login${redirectPath ? `?redirect=${redirectPath}` : ""}`}>
-                  Sign in
-                </Link>
-              </p>
-            </form>
+          {/* Error Message */}
+          {error && (
+            <div className="error-message" style={{
+              backgroundColor: '#fee',
+              color: '#c33',
+              padding: '12px',
+              borderRadius: '6px',
+              marginBottom: '16px',
+              border: '1px solid #fcc'
+            }}>
+              {error}
+            </div>
           )}
 
-          {step === "otp" && (
-            <form onSubmit={handleVerifyOtp}>
-              <p className="subtitle">
-                OTP sent to <b>{form.email}</b>
-              </p>
+          {/* Success Message */}
+          {message && (
+            <div className="success-message" style={{
+              backgroundColor: '#efe',
+              color: '#393',
+              padding: '12px',
+              borderRadius: '6px',
+              marginBottom: '16px',
+              border: '1px solid #cfc'
+            }}>
+              {message}
+            </div>
+          )}
 
+          <form onSubmit={handleSignup}>
+            <div className="input-group">
               <input
                 type="text"
-                placeholder="Enter OTP"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
+                name="name"
+                placeholder="Full Name"
+                value={form.name}
+                onChange={handleChange}
                 required
+                disabled={loading}
               />
+            </div>
 
-              <button type="submit" disabled={loading}>
-                {loading ? "Verifying..." : "Verify & Continue"}
-              </button>
+            <div className="input-group">
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={form.email}
+                onChange={handleChange}
+                required
+                disabled={loading}
+              />
+            </div>
 
-              <p className="back-link" onClick={() => setStep("form")}>
-                ← Change details
-              </p>
-            </form>
-          )}
+            <div className="input-group password-group">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Password (min 6 characters)"
+                value={form.password}
+                onChange={handleChange}
+                required
+                disabled={loading}
+                minLength={6}
+              />
+              <span 
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ cursor: 'pointer' }}
+              >
+                {showPassword ? "🙈" : "👁️"}
+              </span>
+            </div>
 
-          {message && <p className="message">{message}</p>}
+            <div className="input-group">
+              <input
+                type="text"
+                name="phone"
+                placeholder="Phone Number (optional)"
+                value={form.phone}
+                onChange={handleChange}
+                disabled={loading}
+              />
+            </div>
 
-          <div className="social-row">
-            <span>
-              <img src={google} alt="Google" />
-            </span>
-            <span>
-              <img src={linkdin} alt="LinkedIn" />
-            </span>
-            <span>
-              <img src={phone} alt="Phone" />
-            </span>
-            <span>
-              <img src={fb} alt="Facebook" />
-            </span>
-          </div>
+            <div className="input-group">
+              <select 
+                name="role" 
+                value={form.role} 
+                onChange={handleChange}
+                disabled={loading}
+              >
+                <option value="user">User</option>
+                <option value="mediator">Mediator</option>
+                <option value="case-manager">Case Manager</option>
+              </select>
+            </div>
+
+            <button type="submit" disabled={loading}>
+              {loading ? "Creating Account..." : "Register Now"}
+            </button>
+
+            <p className="bottom-text">
+              Already have an account?{" "}
+              <Link to={`/login${redirectPath ? `?redirect=${redirectPath}` : ""}`}>
+                Sign in
+              </Link>
+            </p>
+
+            <div className="social-row">
+              <span><img src={google} alt="Google" /></span>
+              <span><img src={linkdin} alt="LinkedIn" /></span>
+              <span><img src={phone} alt="Phone" /></span>
+              <span><img src={fb} alt="Facebook" /></span>
+            </div>
+          </form>
         </div>
       </div>
     </div>

@@ -51,6 +51,8 @@ const FileNewCaseStep1 = () => {
     },
   });
 
+  const [errors, setErrors] = useState({});
+
   // ✅ Pre-fill Step1 if data exists in context/localStorage
   useEffect(() => {
     const storedData = JSON.parse(localStorage.getItem("caseData"));
@@ -59,31 +61,99 @@ const FileNewCaseStep1 = () => {
   }, [caseData]);
 
   const handleChange = (e, section, field) => {
+    // Clear error for this field when user starts typing
     if (section) {
+      setErrors({ ...errors, [`${section}.${field}`]: "" });
       setFormData({
         ...formData,
         [section]: { ...formData[section], [field]: e.target.value },
       });
     } else {
+      setErrors({ ...errors, [e.target.name]: "" });
       setFormData({ ...formData, [e.target.name]: e.target.value });
     }
   };
 
+  // ✅ Email validation
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // ✅ Phone validation (10 digits)
+  const validatePhone = (phone) => {
+    const phoneRegex = /^[0-9]{10}$/;
+    return phoneRegex.test(phone);
+  };
+
+  // ✅ Date validation (not future date)
+  const validateDate = (dateString) => {
+    if (!dateString) return false;
+    const date = new Date(dateString);
+    const today = new Date();
+    return date <= today;
+  };
+
   const handleNext = () => {
+    const newErrors = {};
+
     // Mandatory field validation
-    if (
-      !formData.caseType.trim() ||
-      !formData.caseTitle.trim() ||
-      !formData.petitioner.fullName.trim() ||
-      !formData.petitioner.gender.trim() ||
-      !formData.petitioner.dob ||
-      !formData.petitioner.mobile.trim() ||
-      !formData.petitioner.email.trim() ||
-      !formData.defendant.fullName.trim() ||
-      !formData.defendant.mobile.trim() ||
-      !formData.defendant.email.trim()
-    ) {
-      alert("Please fill all mandatory (*) fields");
+    if (!formData.caseType.trim()) {
+      newErrors.caseType = "Case type is required";
+    }
+
+    if (!formData.caseTitle.trim()) {
+      newErrors.caseTitle = "Case title is required";
+    }
+
+    // Petitioner validations
+    if (!formData.petitioner.fullName.trim()) {
+      newErrors["petitioner.fullName"] = "Petitioner full name is required";
+    }
+
+    if (!formData.petitioner.gender.trim()) {
+      newErrors["petitioner.gender"] = "Gender is required";
+    }
+
+    if (!formData.petitioner.dob) {
+      newErrors["petitioner.dob"] = "Date of birth is required";
+    } else if (!validateDate(formData.petitioner.dob)) {
+      newErrors["petitioner.dob"] = "Invalid date of birth";
+    }
+
+    if (!formData.petitioner.mobile.trim()) {
+      newErrors["petitioner.mobile"] = "Mobile number is required";
+    } else if (!validatePhone(formData.petitioner.mobile)) {
+      newErrors["petitioner.mobile"] = "Mobile number must be 10 digits";
+    }
+
+    if (!formData.petitioner.email.trim()) {
+      newErrors["petitioner.email"] = "Email is required";
+    } else if (!validateEmail(formData.petitioner.email)) {
+      newErrors["petitioner.email"] = "Invalid email format";
+    }
+
+    // Defendant validations
+    if (!formData.defendant.fullName.trim()) {
+      newErrors["defendant.fullName"] = "Defendant full name is required";
+    }
+
+    if (!formData.defendant.mobile.trim()) {
+      newErrors["defendant.mobile"] = "Mobile number is required";
+    } else if (!validatePhone(formData.defendant.mobile)) {
+      newErrors["defendant.mobile"] = "Mobile number must be 10 digits";
+    }
+
+    if (!formData.defendant.email.trim()) {
+      newErrors["defendant.email"] = "Email is required";
+    } else if (!validateEmail(formData.defendant.email)) {
+      newErrors["defendant.email"] = "Invalid email format";
+    }
+
+    // If there are errors, show them and stop
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      alert("Please fix all validation errors before proceeding");
       return;
     }
 
@@ -185,15 +255,23 @@ const FileNewCaseStep1 = () => {
                 value={formData.caseType}
                 onChange={handleChange}
                 placeholder="Case Type"
+                className={errors.caseType ? "error-input" : ""}
               />
+              {errors.caseType && <span className="error-text">{errors.caseType}</span>}
             </div>
 
-            <input
-              name="caseTitle"
-              value={formData.caseTitle}
-              onChange={handleChange}
-              placeholder="Case Title"
-            />
+            <div>
+              <span>Case Title<Required /></span>
+              <input
+                name="caseTitle"
+                value={formData.caseTitle}
+                onChange={handleChange}
+                placeholder="Case Title"
+                className={errors.caseTitle ? "error-input" : ""}
+              />
+              {errors.caseTitle && <span className="error-text">{errors.caseTitle}</span>}
+            </div>
+
             <input
               name="causeOfAction"
               value={formData.causeOfAction}
@@ -222,7 +300,11 @@ const FileNewCaseStep1 = () => {
                 value={formData.petitioner.fullName}
                 onChange={(e) => handleChange(e, "petitioner", "fullName")}
                 placeholder="Full Name"
+                className={errors["petitioner.fullName"] ? "error-input" : ""}
               />
+              {errors["petitioner.fullName"] && (
+                <span className="error-text">{errors["petitioner.fullName"]}</span>
+              )}
             </div>
 
             <input
@@ -233,11 +315,19 @@ const FileNewCaseStep1 = () => {
 
             <div>
               <span>Gender<Required /></span>
-              <input
+              <select
                 value={formData.petitioner.gender}
                 onChange={(e) => handleChange(e, "petitioner", "gender")}
-                placeholder="Gender"
-              />
+                className={errors["petitioner.gender"] ? "error-input" : ""}
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+              {errors["petitioner.gender"] && (
+                <span className="error-text">{errors["petitioner.gender"]}</span>
+              )}
             </div>
 
             <div>
@@ -246,7 +336,12 @@ const FileNewCaseStep1 = () => {
                 type="date"
                 value={formData.petitioner.dob}
                 onChange={(e) => handleChange(e, "petitioner", "dob")}
+                max={new Date().toISOString().split("T")[0]}
+                className={errors["petitioner.dob"] ? "error-input" : ""}
               />
+              {errors["petitioner.dob"] && (
+                <span className="error-text">{errors["petitioner.dob"]}</span>
+              )}
             </div>
 
             <div>
@@ -254,17 +349,27 @@ const FileNewCaseStep1 = () => {
               <input
                 value={formData.petitioner.mobile}
                 onChange={(e) => handleChange(e, "petitioner", "mobile")}
-                placeholder="Mobile Number"
+                placeholder="10-digit mobile number"
+                maxLength="10"
+                className={errors["petitioner.mobile"] ? "error-input" : ""}
               />
+              {errors["petitioner.mobile"] && (
+                <span className="error-text">{errors["petitioner.mobile"]}</span>
+              )}
             </div>
 
             <div>
               <span>Email ID<Required /></span>
               <input
+                type="email"
                 value={formData.petitioner.email}
                 onChange={(e) => handleChange(e, "petitioner", "email")}
                 placeholder="Email ID"
+                className={errors["petitioner.email"] ? "error-input" : ""}
               />
+              {errors["petitioner.email"] && (
+                <span className="error-text">{errors["petitioner.email"]}</span>
+              )}
             </div>
 
             <input
@@ -293,7 +398,11 @@ const FileNewCaseStep1 = () => {
                 value={formData.defendant.fullName}
                 onChange={(e) => handleChange(e, "defendant", "fullName")}
                 placeholder="Full Name"
+                className={errors["defendant.fullName"] ? "error-input" : ""}
               />
+              {errors["defendant.fullName"] && (
+                <span className="error-text">{errors["defendant.fullName"]}</span>
+              )}
             </div>
 
             <input
@@ -302,16 +411,21 @@ const FileNewCaseStep1 = () => {
               placeholder="Father/Spouse Name"
             />
 
-            <input
+            <select
               value={formData.defendant.gender}
               onChange={(e) => handleChange(e, "defendant", "gender")}
-              placeholder="Gender"
-            />
+            >
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
 
             <input
               type="date"
               value={formData.defendant.dob}
               onChange={(e) => handleChange(e, "defendant", "dob")}
+              max={new Date().toISOString().split("T")[0]}
             />
 
             <div>
@@ -319,17 +433,27 @@ const FileNewCaseStep1 = () => {
               <input
                 value={formData.defendant.mobile}
                 onChange={(e) => handleChange(e, "defendant", "mobile")}
-                placeholder="Mobile Number"
+                placeholder="10-digit mobile number"
+                maxLength="10"
+                className={errors["defendant.mobile"] ? "error-input" : ""}
               />
+              {errors["defendant.mobile"] && (
+                <span className="error-text">{errors["defendant.mobile"]}</span>
+              )}
             </div>
 
             <div>
               <span>Email ID<Required /></span>
               <input
+                type="email"
                 value={formData.defendant.email}
                 onChange={(e) => handleChange(e, "defendant", "email")}
                 placeholder="Email ID"
+                className={errors["defendant.email"] ? "error-input" : ""}
               />
+              {errors["defendant.email"] && (
+                <span className="error-text">{errors["defendant.email"]}</span>
+              )}
             </div>
 
             <input
