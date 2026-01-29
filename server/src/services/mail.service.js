@@ -19,17 +19,23 @@ const getTransporter = () => {
 
     console.log("📧 Initializing Zoho SMTP transporter...");
 
+    // ✅ Use .env configuration instead of hardcoded values
+    const port = parseInt(process.env.EMAIL_PORT) || 587;
+    const secure = process.env.EMAIL_SECURE === "true" || port === 465;
+
     transporter = nodemailer.createTransport({
-      host: "smtp.zoho.in",
-      port: 465,
-      secure: true, // SSL
+      host: process.env.EMAIL_HOST || "smtp.zoho.in",
+      port: port,
+      secure: secure, // true for 465, false for 587
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS, // Zoho App Password
+        pass: process.env.EMAIL_PASS,
       },
       logger: true,
       debug: true,
     });
+
+    console.log(`   Using port ${port} (secure: ${secure})`);
   }
 
   return transporter;
