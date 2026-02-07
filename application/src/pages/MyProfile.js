@@ -16,7 +16,7 @@ import PaymentIcon from "../assets/icons/payment.png";
 import SupportIcon from "../assets/icons/support.png";
 import LogoutIcon from "../assets/icons/logout.png";
 
-import { FaCog, FaBell } from "react-icons/fa";
+import { FaCog, FaBell, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 const MyProfile = () => {
   const navigate = useNavigate();
@@ -24,6 +24,7 @@ const MyProfile = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Fetch profile data
   useEffect(() => {
@@ -47,6 +48,10 @@ const MyProfile = () => {
     navigate("/login");
   };
 
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   if (loading) {
     return <div style={{ padding: 40 }}>Loading profile...</div>;
   }
@@ -58,13 +63,17 @@ const MyProfile = () => {
   return (
     <div className="dashboard-container">
       {/* Sidebar */}
-      <aside className="sidebar">
-        <h2 className="sidebar-title">Dashboard</h2>
+      <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+        <div className="sidebar-header">
+          <div className="sidebar-toggle" onClick={toggleSidebar}>
+            {sidebarCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
+          </div>
+        </div>
 
         <nav className="menu">
           <div className="menu-item" onClick={() => navigate("/user/dashboard")}>
             <img src={HomeIcon} alt="Home" />
-            <span>Home</span>
+            {!sidebarCollapsed && <span>Home</span>}
           </div>
 
           <div
@@ -72,7 +81,7 @@ const MyProfile = () => {
             onClick={() => navigate("/user/my-profile")}
           >
             <img src={Vector} alt="Profile" />
-            <span>My Profile</span>
+            {!sidebarCollapsed && <span>My Profile</span>}
           </div>
 
           <div
@@ -80,12 +89,12 @@ const MyProfile = () => {
             onClick={() => navigate("/user/file-new-case/step1")}
           >
             <img src={FileIcon} alt="File New Case" />
-            <span>File New Case</span>
+            {!sidebarCollapsed && <span>File New Case</span>}
           </div>
 
           <div className="menu-item" onClick={() => navigate("/user/my-cases")}>
             <img src={CaseIcon} alt="My Cases" />
-            <span>My Cases</span>
+            {!sidebarCollapsed && <span>My Cases</span>}
           </div>
 
           <div
@@ -93,40 +102,40 @@ const MyProfile = () => {
             onClick={() => navigate("/user/case-meetings")}
           >
             <img src={MeetingIcon} alt="Case Meetings" />
-            <span>Case Meetings</span>
+            {!sidebarCollapsed && <span>Case Meetings</span>}
           </div>
 
           <div className="menu-item" onClick={() => navigate("/user/documents")}>
             <img src={DocsIcon} alt="Documents" />
-            <span>Documents</span>
+            {!sidebarCollapsed && <span>Documents</span>}
           </div>
 
           <div className="menu-item" onClick={() => navigate("/user/chats")}>
             <img src={ChatIcon} alt="Chats" />
-            <span>Chats</span>
+            {!sidebarCollapsed && <span>Chats</span>}
           </div>
 
           <div className="menu-item" onClick={() => navigate("/user/payments")}>
             <img src={PaymentIcon} alt="Payment" />
-            <span>Payment</span>
+            {!sidebarCollapsed && <span>Payment</span>}
           </div>
 
           <div className="menu-item" onClick={() => navigate("/user/support")}>
             <img src={SupportIcon} alt="Support" />
-            <span>Support</span>
+            {!sidebarCollapsed && <span>Support</span>}
           </div>
         </nav>
 
         <div className="logout">
           <div className="menu-item" onClick={handleLogout}>
             <img src={LogoutIcon} alt="Logout" />
-            <span>Log out</span>
+            {!sidebarCollapsed && <span>Log out</span>}
           </div>
         </div>
       </aside>
 
       {/* Main Section */}
-      <main className="main-content">
+      <main className={`main-content ${sidebarCollapsed ? 'expanded' : ''}`}>
         {/* Navbar */}
         <header className="navbar">
           <div />

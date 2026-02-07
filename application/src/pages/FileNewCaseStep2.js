@@ -5,6 +5,7 @@ import axios from "axios";
 import { CaseContext } from "../context/caseContext";
 
 import HomeIcon from "../assets/icons/home.png";
+import Vector from "../assets/icons/Vector.png";
 import FileIcon from "../assets/icons/file.png";
 import MeetingIcon from "../assets/icons/meeting.png";
 import CaseIcon from "../assets/icons/newcase.png";
@@ -15,7 +16,7 @@ import SupportIcon from "../assets/icons/support.png";
 import LogoutIcon from "../assets/icons/logout.png";
 
 import "./FileNewCase.css";
-import { FaCog, FaBell } from "react-icons/fa";
+import { FaCog, FaBell, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 // ✅ Use environment variable for API URL
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -28,6 +29,7 @@ const FileNewCaseStep2 = () => {
   const effectiveCaseData =
     caseData && Object.keys(caseData).length ? caseData : storedCaseData;
 
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [formData, setFormData] = useState({
     caseSummary: "",
     documentTitle: "",
@@ -124,63 +126,77 @@ const FileNewCaseStep2 = () => {
     }
   };
 
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   return (
     <div className="dashboard-container">
       {/* Sidebar */}
-      <aside className="sidebar">
-        <h2 className="sidebar-title">Dashboard</h2>
+      <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+        <div className="sidebar-header">
+          <div className="sidebar-toggle" onClick={toggleSidebar}>
+            {sidebarCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
+          </div>
+        </div>
+
         <nav className="menu">
           <div className="menu-item" onClick={() => navigate("/user/dashboard")}>
             <img src={HomeIcon} alt="Home" />
-            <span>Home</span>
+            {!sidebarCollapsed && <span>Home</span>}
+          </div>
+
+          <div className="menu-item" onClick={() => navigate("/user/my-profile")}>
+            <img src={Vector} alt="Profile" />
+            {!sidebarCollapsed && <span>My Profile</span>}
           </div>
 
           <div className="menu-item active">
             <img src={FileIcon} alt="File New Case" />
-            <span>File New Case</span>
+            {!sidebarCollapsed && <span>File New Case</span>}
           </div>
 
           <div className="menu-item" onClick={() => navigate("/user/my-cases")}>
             <img src={CaseIcon} alt="My Cases" />
-            <span>My Cases</span>
+            {!sidebarCollapsed && <span>My Cases</span>}
           </div>
 
           <div className="menu-item" onClick={() => navigate("/user/case-meetings")}>
             <img src={MeetingIcon} alt="Case Meetings" />
-            <span>Case Meetings</span>
+            {!sidebarCollapsed && <span>Case Meetings</span>}
           </div>
 
           <div className="menu-item">
             <img src={DocsIcon} alt="Documents" />
-            <span>Documents</span>
+            {!sidebarCollapsed && <span>Documents</span>}
           </div>
 
           <div className="menu-item">
             <img src={ChatIcon} alt="Chats" />
-            <span>Chats</span>
+            {!sidebarCollapsed && <span>Chats</span>}
           </div>
 
           <div className="menu-item">
             <img src={PaymentIcon} alt="Payment" />
-            <span>Payment</span>
+            {!sidebarCollapsed && <span>Payment</span>}
           </div>
 
           <div className="menu-item">
             <img src={SupportIcon} alt="Support" />
-            <span>Support</span>
+            {!sidebarCollapsed && <span>Support</span>}
           </div>
         </nav>
 
         <div className="logout">
           <div className="menu-item">
             <img src={LogoutIcon} alt="Logout" />
-            <span>Log out</span>
+            {!sidebarCollapsed && <span>Log out</span>}
           </div>
         </div>
       </aside>
 
       {/* Main Section */}
-      <section className="main-section">
+      <section className={`main-section ${sidebarCollapsed ? 'expanded' : ''}`}>
         <header className="navbar">
           <div></div>
           <div className="nav-icons">

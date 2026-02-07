@@ -13,12 +13,13 @@ import PaymentIcon from "../assets/icons/payment.png";
 import SupportIcon from "../assets/icons/support.png";
 import LogoutIcon from "../assets/icons/logout.png";
 import "./UserCaseMeetingsNextPage.css";
-import { FaCog, FaBell, FaVideo, FaPhoneSlash, FaMicrophone, FaDesktop } from "react-icons/fa";
+import { FaCog, FaBell, FaVideo, FaPhoneSlash, FaMicrophone, FaDesktop, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 
 const CaseMeetings = () => {
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [chat, setChat] = useState([
     {
       sender: "Abhishek Singh",
@@ -50,60 +51,69 @@ const CaseMeetings = () => {
     setMessage("");
   };
 
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   return (
     <div className="dashboard-container">
       {/* Sidebar */}
-      <aside className="sidebar">
-        <h2 className="sidebar-title">Dashboard</h2>
+      <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+        <div className="sidebar-header">
+          <div className="sidebar-toggle" onClick={toggleSidebar}>
+            {sidebarCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
+          </div>
+        </div>
+
         <nav className="menu">
           <div className="menu-item" onClick={() => navigate("/user/dashboard")}>
             <img src={HomeIcon} alt="Home" />
-            <span>Home</span>
+            {!sidebarCollapsed && <span>Home</span>}
           </div>
           <div className="menu-item" onClick={() => navigate("/user/my-profile")}>
             <img src={Vector} alt="Profile" />
-            <span>My Profile</span>
+            {!sidebarCollapsed && <span>My Profile</span>}
           </div>
           <div className="menu-item" onClick={() => navigate("/user/file-new-case/step1")}>
             <img src={FileIcon} alt="File New Case" />
-            <span>File New Case</span>
+            {!sidebarCollapsed && <span>File New Case</span>}
           </div>
           <div className="menu-item" onClick={() => navigate("/user/my-cases")}>
             <img src={CaseIcon} alt="My Cases" />
-            <span>My Cases</span>
+            {!sidebarCollapsed && <span>My Cases</span>}
           </div>
           <div className="menu-item active" onClick={() => navigate("/user/case-meetings/call")}>
             <img src={MeetingIcon} alt="Case Meetings" />
-            <span>Case Meetings</span>
+            {!sidebarCollapsed && <span>Case Meetings</span>}
           </div>
           <div className="menu-item" onClick={() => navigate("/user/documents")}>
             <img src={DocsIcon} alt="Documents" />
-            <span>Documents</span>
+            {!sidebarCollapsed && <span>Documents</span>}
           </div>
           <div className="menu-item" onClick={() => navigate("/user/chats")}>
             <img src={ChatIcon} alt="Chats" />
-            <span>Chats</span>
+            {!sidebarCollapsed && <span>Chats</span>}
           </div>
           <div className="menu-item" onClick={() => navigate("/user/payment")}>
             <img src={PaymentIcon} alt="Payment" />
-            <span>Payment</span>
+            {!sidebarCollapsed && <span>Payment</span>}
           </div>
           <div className="menu-item" onClick={() => navigate("/user/support")}>
             <img src={SupportIcon} alt="Support" />
-            <span>Support</span>
+            {!sidebarCollapsed && <span>Support</span>}
           </div>
         </nav>
 
         <div className="logout">
           <div className="menu-item">
             <img src={LogoutIcon} alt="Logout" />
-            <span>Log out</span>
+            {!sidebarCollapsed && <span>Log out</span>}
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <section className="main-section">
+      <section className={`main-section ${sidebarCollapsed ? 'expanded' : ''}`}>
         {/* Navbar */}
         <header className="navbar">
           <div></div>
