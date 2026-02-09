@@ -1,8 +1,8 @@
 // src/pages/MyProfile.js
-import React, { useEffect, useState } from "react";
+import React, { useState, createContext, useContext } from "react";
 import "./MyProfile.css";
 import { useNavigate } from "react-router-dom";
-import api from "../api/axios";
+import { useAuth } from "../context/authContext";
 
 // Icons
 import Vector from "../assets/icons/Vector.png";
@@ -18,34 +18,60 @@ import LogoutIcon from "../assets/icons/logout.png";
 
 import { FaCog, FaBell, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
-const MyProfile = () => {
+// Create UserContext locally
+const UserContext = createContext();
+
+const useUser = () => {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useUser must be used within a UserProvider');
+  }
+  return context;
+};
+
+const UserProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+
+  const clearUser = () => {
+    setUser(null);
+    localStorage.removeItem('userData');
+  };
+
+  const updateUser = (userData) => {
+    setUser(userData);
+  };
+
+  return (
+    <UserContext.Provider value={{ user, clearUser, updateUser }}>
+      {children}
+    </UserContext.Provider>
+  );
+};
+
+const MyProfileContent = () => {
   const navigate = useNavigate();
-
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { user, loading, logoutUser } = useAuth();
+  const { clearUser } = useUser();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  // Fetch profile data
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await api.get("/api/users/me");
-        setProfile(res.data);
-      } catch (err) {
-        console.error("Profile fetch error:", err);
-        setError("Failed to load profile");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleLogout = async () => {
+    const confirmLogout = window.confirm("Are you sure you want to logout?");
+    if (!confirmLogout) return;
 
-    fetchProfile();
-  }, []);
+    setIsLoggingOut(true);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
+    try {
+      logoutUser();
+      clearUser();
+      alert("✅ Logged out successfully!");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      alert("Failed to logout. Please try again.");
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const toggleSidebar = () => {
@@ -56,14 +82,10 @@ const MyProfile = () => {
     return <div style={{ padding: 40 }}>Loading profile...</div>;
   }
 
-  if (error) {
-    return <div style={{ padding: 40, color: "red" }}>{error}</div>;
-  }
-
   return (
     <div className="dashboard-container">
       {/* Sidebar */}
-      <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+      <aside className={`sidebar ${sidebarCollapsed ? "collapsed" : ""}`}>
         <div className="sidebar-header">
           <div className="sidebar-toggle" onClick={toggleSidebar}>
             {sidebarCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
@@ -127,15 +149,22 @@ const MyProfile = () => {
         </nav>
 
         <div className="logout">
-          <div className="menu-item" onClick={handleLogout}>
+          <div 
+            className="menu-item" 
+            onClick={handleLogout}
+            style={{ 
+              cursor: isLoggingOut ? "not-allowed" : "pointer", 
+              opacity: isLoggingOut ? 0.6 : 1 
+            }}
+          >
             <img src={LogoutIcon} alt="Logout" />
-            {!sidebarCollapsed && <span>Log out</span>}
+            {!sidebarCollapsed && <span>{isLoggingOut ? "Logging out..." : "Log out"}</span>}
           </div>
         </div>
       </aside>
 
       {/* Main Section */}
-      <main className={`main-content ${sidebarCollapsed ? 'expanded' : ''}`}>
+      <main className={`main-content ${sidebarCollapsed ? "expanded" : ""}`}>
         {/* Navbar */}
         <header className="navbar">
           <div />
@@ -144,11 +173,11 @@ const MyProfile = () => {
             <FaBell className="icon" />
             <div className="profile">
               <img
-                src={profile.avatar || "https://i.pravatar.cc/40"}
+                src={user.avatar || "https://i.pravatar.cc/40"}
                 alt="profile"
                 className="profile-img"
               />
-              <span>{profile.name}</span>
+              <span>{user.name}</span>
             </div>
           </div>
         </header>
@@ -157,15 +186,18 @@ const MyProfile = () => {
         <section className="profile-section">
           <div className="profile-left-card">
             <img
-              src={profile.avatar || "https://i.pravatar.cc/150"}
+              src={user.avatar || "https://i.pravatar.cc/150"}
               alt="User"
               className="profile-avatar"
             />
-            <h3>{profile.name}</h3>
-            <p className="email">{profile.email}</p>
-            <p className="phone">{profile.phone || "—"}</p>
+            <h3>{user.name}</h3>
+            <p className="email">{user.email}</p>
+            <p className="phone">{user.phone || "—"}</p>
 
-            <button className="save-btn">
+            <button
+              className="save-btn"
+              onClick={() => navigate("/user/edit-profile")}
+            >
               <span>✏️</span> Edit Profile
             </button>
           </div>
@@ -176,38 +208,47 @@ const MyProfile = () => {
             <div className="info-grid">
               <div>
                 <p>Date of Birth</p>
-                <h4>{profile.dob || "—"}</h4>
+                <h4>{user.dob ? new Date(user.dob).toLocaleDateString() : "—"}</h4>
               </div>
               <div>
                 <p>Gender</p>
-                <h4>{profile.gender || "—"}</h4>
+                <h4>{user.gender || "—"}</h4>
               </div>
               <div>
                 <p>City</p>
-                <h4>{profile.city || "—"}</h4>
+                <h4>{user.city || "—"}</h4>
               </div>
               <div>
                 <p>Country</p>
-                <h4>{profile.country || "India"}</h4>
+                <h4>{user.country || "—"}</h4>
               </div>
               <div>
                 <p>State</p>
-                <h4>{profile.state || "—"}</h4>
+                <h4>{user.state || "—"}</h4>
               </div>
               <div>
                 <p>Pin Code</p>
-                <h4>{profile.pincode || "—"}</h4>
+                <h4>{user.pincode || "—"}</h4>
               </div>
             </div>
 
             <div className="address-section">
               <p>Address</p>
-              <h4>{profile.address || "—"}</h4>
+              <h4>{user.address || "—"}</h4>
             </div>
           </div>
         </section>
       </main>
     </div>
+  );
+};
+
+// Wrap with UserProvider before exporting
+const MyProfile = () => {
+  return (
+    <UserProvider>
+      <MyProfileContent />
+    </UserProvider>
   );
 };
 

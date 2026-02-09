@@ -29,9 +29,10 @@ import MediatorCaseMeetings from "./pages/MediatorCaseMeetings";
 import MediatorChats from "./pages/MediatorChats";
 import ForgotPassword from "./pages/ForgotPassword";
 
+
 // 🟢 Import CaseContext provider
 import { CaseProvider } from "./context/caseContext";
-
+import { UserProvider } from "./context/userContext";
 function App() {
   return (
     // ✅ Add basename="/app" to handle /app subdirectory
@@ -56,6 +57,7 @@ function App() {
           <Route path="/user/case-meetings" element={<UserCaseMeetings />} />
           <Route path="/user/case-meetings/call" element={<UserCaseMeetingsNextPage />} />
           <Route path="/user/chats" element={<UserChats />} />
+          <Route path="/user/my-profile" element={<MyProfile />} />
 
           {/* Mediator Routes */}
           <Route path="/mediator/dashboard" element={<MediatorDashboard />} />

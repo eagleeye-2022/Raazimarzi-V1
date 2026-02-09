@@ -1,7 +1,9 @@
+// src/pages/UserCaseMeetingsNextPage.js
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, createContext, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/authContext";
 import HomeIcon from "../assets/icons/home.png";
 import Vector from "../assets/icons/Vector.png";
 import FileIcon from "../assets/icons/file.png";
@@ -15,11 +17,44 @@ import LogoutIcon from "../assets/icons/logout.png";
 import "./UserCaseMeetingsNextPage.css";
 import { FaCog, FaBell, FaVideo, FaPhoneSlash, FaMicrophone, FaDesktop, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
+// Create UserContext locally
+const UserContext = createContext();
 
-const CaseMeetings = () => {
+const useUser = () => {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useUser must be used within a UserProvider');
+  }
+  return context;
+};
+
+const UserProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+
+  const clearUser = () => {
+    setUser(null);
+    localStorage.removeItem('userData');
+  };
+
+  const updateUser = (userData) => {
+    setUser(userData);
+  };
+
+  return (
+    <UserContext.Provider value={{ user, clearUser, updateUser }}>
+      {children}
+    </UserContext.Provider>
+  );
+};
+
+const CaseMeetingsContent = () => {
   const navigate = useNavigate();
+  const { logoutUser } = useAuth();
+  const { clearUser } = useUser();
+
   const [message, setMessage] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [chat, setChat] = useState([
     {
       sender: "Abhishek Singh",
@@ -49,6 +84,25 @@ const CaseMeetings = () => {
     ]);
 
     setMessage("");
+  };
+
+  const handleLogout = async () => {
+    const confirmLogout = window.confirm("Are you sure you want to logout?");
+    if (!confirmLogout) return;
+
+    setIsLoggingOut(true);
+
+    try {
+      logoutUser();
+      clearUser();
+      alert("✅ Logged out successfully!");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      alert("Failed to logout. Please try again.");
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const toggleSidebar = () => {
@@ -105,9 +159,16 @@ const CaseMeetings = () => {
         </nav>
 
         <div className="logout">
-          <div className="menu-item">
+          <div 
+            className="menu-item"
+            onClick={handleLogout}
+            style={{ 
+              cursor: isLoggingOut ? "not-allowed" : "pointer", 
+              opacity: isLoggingOut ? 0.6 : 1 
+            }}
+          >
             <img src={LogoutIcon} alt="Logout" />
-            {!sidebarCollapsed && <span>Log out</span>}
+            {!sidebarCollapsed && <span>{isLoggingOut ? "Logging out..." : "Log out"}</span>}
           </div>
         </div>
       </aside>
@@ -207,6 +268,15 @@ const CaseMeetings = () => {
         </div>
       </section>
     </div>
+  );
+};
+
+// Wrap with UserProvider before exporting
+const CaseMeetings = () => {
+  return (
+    <UserProvider>
+      <CaseMeetingsContent />
+    </UserProvider>
   );
 };
 

@@ -1,7 +1,7 @@
 // src/pages/FileNewCaseStep1.js
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, createContext, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { CaseContext } from "../context/caseContext";
+import { useAuth } from "../context/authContext";
 
 import HomeIcon from "../assets/icons/home.png";
 import Vector from "../assets/icons/Vector.png";
@@ -17,13 +17,67 @@ import LogoutIcon from "../assets/icons/logout.png";
 import "./FileNewCase.css";
 import { FaCog, FaBell, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
-const FileNewCaseStep1 = () => {
+// Create CaseContext locally
+const CaseContext = createContext();
+
+const useCaseContext = () => {
+  const context = useContext(CaseContext);
+  if (!context) {
+    throw new Error('useCaseContext must be used within a CaseProvider');
+  }
+  return context;
+};
+
+const CaseProvider = ({ children }) => {
+  const [caseData, setCaseData] = useState({});
+
+  return (
+    <CaseContext.Provider value={{ caseData, setCaseData }}>
+      {children}
+    </CaseContext.Provider>
+  );
+};
+
+// Create UserContext locally
+const UserContext = createContext();
+
+const useUser = () => {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useUser must be used within a UserProvider');
+  }
+  return context;
+};
+
+const UserProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+
+  const clearUser = () => {
+    setUser(null);
+    localStorage.removeItem('userData');
+  };
+
+  const updateUser = (userData) => {
+    setUser(userData);
+  };
+
+  return (
+    <UserContext.Provider value={{ user, clearUser, updateUser }}>
+      {children}
+    </UserContext.Provider>
+  );
+};
+
+const FileNewCaseStep1Content = () => {
   const navigate = useNavigate();
-  const { caseData, setCaseData } = useContext(CaseContext);
+  const { logoutUser } = useAuth();
+  const { clearUser } = useUser();
+  const { caseData, setCaseData } = useCaseContext();
 
   const Required = () => <span style={{ color: "red" }}> *</span>;
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [formData, setFormData] = useState({
     caseType: "",
     caseTitle: "",
@@ -93,6 +147,25 @@ const FileNewCaseStep1 = () => {
     const date = new Date(dateString);
     const today = new Date();
     return date <= today;
+  };
+
+  const handleLogout = async () => {
+    const confirmLogout = window.confirm("Are you sure you want to logout?");
+    if (!confirmLogout) return;
+
+    setIsLoggingOut(true);
+
+    try {
+      logoutUser();
+      clearUser();
+      alert("✅ Logged out successfully!");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      alert("Failed to logout. Please try again.");
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const handleNext = () => {
@@ -211,7 +284,7 @@ const FileNewCaseStep1 = () => {
             {!sidebarCollapsed && <span>Documents</span>}
           </div>
 
-          <div className="menu-item">
+          <div className="menu-item" onClick={() => navigate("/user/chats")}>
             <img src={ChatIcon} alt="Chats" />
             {!sidebarCollapsed && <span>Chats</span>}
           </div>
@@ -228,9 +301,16 @@ const FileNewCaseStep1 = () => {
         </nav>
 
         <div className="logout">
-          <div className="menu-item">
+          <div 
+            className="menu-item"
+            onClick={handleLogout}
+            style={{ 
+              cursor: isLoggingOut ? "not-allowed" : "pointer", 
+              opacity: isLoggingOut ? 0.6 : 1 
+            }}
+          >
             <img src={LogoutIcon} alt="Logout" />
-            {!sidebarCollapsed && <span>Log out</span>}
+            {!sidebarCollapsed && <span>{isLoggingOut ? "Logging out..." : "Log out"}</span>}
           </div>
         </div>
       </aside>
@@ -479,6 +559,17 @@ const FileNewCaseStep1 = () => {
         </div>
       </section>
     </div>
+  );
+};
+
+// Wrap with both providers before exporting
+const FileNewCaseStep1 = () => {
+  return (
+    <UserProvider>
+      <CaseProvider>
+        <FileNewCaseStep1Content />
+      </CaseProvider>
+    </UserProvider>
   );
 };
 

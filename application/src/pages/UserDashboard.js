@@ -1,6 +1,8 @@
 // src/pages/UserDashboard.js
-import React, { useState } from "react";
+import React, { useState, createContext, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/authContext";
+
 import ActiveIcon from "../assets/icons/active.png";
 import CurrentIcon from "../assets/icons/current.png";
 import TotalIcon from "../assets/icons/total.png";
@@ -20,10 +22,44 @@ import { PieChart, Pie, Cell } from "recharts";
 
 import "./UserDashboard.css";
 
+// Create UserContext locally in this file
+const UserContext = createContext();
+
+const useUser = () => {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useUser must be used within a UserProvider');
+  }
+  return context;
+};
+
+const UserProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+
+  const clearUser = () => {
+    setUser(null);
+    // Clear any user data from localStorage if needed
+    localStorage.removeItem('userData');
+  };
+
+  const updateUser = (userData) => {
+    setUser(userData);
+  };
+
+  return (
+    <UserContext.Provider value={{ user, clearUser, updateUser }}>
+      {children}
+    </UserContext.Provider>
+  );
+};
+
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { logoutUser } = useAuth();
+  const { clearUser } = useUser();
   const [showAllCases, setShowAllCases] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const pieData = [
     { name: "Completed", value: 66 },
@@ -63,6 +99,33 @@ const Dashboard = () => {
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
+  };
+
+  const handleLogout = async () => {
+    // Confirm logout
+    const confirmLogout = window.confirm("Are you sure you want to logout?");
+    if (!confirmLogout) return;
+
+    setIsLoggingOut(true);
+
+    try {
+      // Call logout from AuthContext (this calls logoutService and clears auth state)
+      logoutUser();
+      
+      // Clear user profile data from UserContext
+      clearUser();
+
+      // Show success message
+      alert("✅ Logged out successfully!");
+
+      // Redirect to login page
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      alert("Failed to logout. Please try again.");
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -123,9 +186,16 @@ const Dashboard = () => {
         </nav>
 
         <div className="logout">
-          <div className="menu-item">
+          <div 
+            className="menu-item" 
+            onClick={handleLogout}
+            style={{ 
+              cursor: isLoggingOut ? "not-allowed" : "pointer", 
+              opacity: isLoggingOut ? 0.6 : 1 
+            }}
+          >
             <img src={LogoutIcon} alt="Logout" />
-            {!sidebarCollapsed && <span>Log out</span>}
+            {!sidebarCollapsed && <span>{isLoggingOut ? "Logging out..." : "Log out"}</span>}
           </div>
         </div>
       </aside>
@@ -313,4 +383,13 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+// Wrap Dashboard with UserProvider before exporting
+const UserDashboard = () => {
+  return (
+    <UserProvider>
+      <Dashboard />
+    </UserProvider>
+  );
+};
+
+export default UserDashboard;

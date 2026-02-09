@@ -1,7 +1,9 @@
+// src/pages/UserMyCases.js
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, createContext, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/authContext";
 import api from "../api/axios";
 
 import HomeIcon from "../assets/icons/home.png";
@@ -18,8 +20,40 @@ import LogoutIcon from "../assets/icons/logout.png";
 import "./UserMyCases.css";
 import { FaCog, FaBell, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
-const UserMyCases = () => {
+// Create UserContext locally
+const UserContext = createContext();
+
+const useUser = () => {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useUser must be used within a UserProvider');
+  }
+  return context;
+};
+
+const UserProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+
+  const clearUser = () => {
+    setUser(null);
+    localStorage.removeItem('userData');
+  };
+
+  const updateUser = (userData) => {
+    setUser(userData);
+  };
+
+  return (
+    <UserContext.Provider value={{ user, clearUser, updateUser }}>
+      {children}
+    </UserContext.Provider>
+  );
+};
+
+const UserMyCasesContent = () => {
   const navigate = useNavigate();
+  const { logoutUser } = useAuth();
+  const { clearUser } = useUser();
 
   const [search, setSearch] = useState("");
   const [raisedCases, setRaisedCases] = useState([]);
@@ -27,6 +61,7 @@ const UserMyCases = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState({ fullName: "", avatar: "" });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // 🔹 Check login and fetch user info
   useEffect(() => {
@@ -70,9 +105,24 @@ const UserMyCases = () => {
     c.caseId?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/login");
+  const handleLogout = async () => {
+    const confirmLogout = window.confirm("Are you sure you want to logout?");
+    if (!confirmLogout) return;
+
+    setIsLoggingOut(true);
+
+    try {
+      logoutUser();
+      clearUser();
+      localStorage.clear();
+      alert("✅ Logged out successfully!");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      alert("Failed to logout. Please try again.");
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const toggleSidebar = () => {
@@ -130,10 +180,17 @@ const UserMyCases = () => {
           </div>
         </nav>
 
-        <div className="logout" onClick={handleLogout}>
-          <div className="menu-item">
+        <div className="logout">
+          <div 
+            className="menu-item"
+            onClick={handleLogout}
+            style={{ 
+              cursor: isLoggingOut ? "not-allowed" : "pointer", 
+              opacity: isLoggingOut ? 0.6 : 1 
+            }}
+          >
             <img src={LogoutIcon} alt="Logout" />
-            {!sidebarCollapsed && <span>Log out</span>}
+            {!sidebarCollapsed && <span>{isLoggingOut ? "Logging out..." : "Log out"}</span>}
           </div>
         </div>
       </aside>
@@ -240,6 +297,15 @@ const UserMyCases = () => {
         </div>
       </section>
     </div>
+  );
+};
+
+// Wrap with UserProvider before exporting
+const UserMyCases = () => {
+  return (
+    <UserProvider>
+      <UserMyCasesContent />
+    </UserProvider>
   );
 };
 

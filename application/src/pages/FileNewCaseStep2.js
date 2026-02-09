@@ -1,8 +1,8 @@
 // src/pages/FileNewCaseStep2.js
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, createContext, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { CaseContext } from "../context/caseContext";
+import { useAuth } from "../context/authContext";
 
 import HomeIcon from "../assets/icons/home.png";
 import Vector from "../assets/icons/Vector.png";
@@ -21,15 +21,69 @@ import { FaCog, FaBell, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 // ✅ Use environment variable for API URL
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-const FileNewCaseStep2 = () => {
+// Create CaseContext locally
+const CaseContext = createContext();
+
+const useCaseContext = () => {
+  const context = useContext(CaseContext);
+  if (!context) {
+    throw new Error('useCaseContext must be used within a CaseProvider');
+  }
+  return context;
+};
+
+const CaseProvider = ({ children }) => {
+  const [caseData, setCaseData] = useState({});
+
+  return (
+    <CaseContext.Provider value={{ caseData, setCaseData }}>
+      {children}
+    </CaseContext.Provider>
+  );
+};
+
+// Create UserContext locally
+const UserContext = createContext();
+
+const useUser = () => {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useUser must be used within a UserProvider');
+  }
+  return context;
+};
+
+const UserProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+
+  const clearUser = () => {
+    setUser(null);
+    localStorage.removeItem('userData');
+  };
+
+  const updateUser = (userData) => {
+    setUser(userData);
+  };
+
+  return (
+    <UserContext.Provider value={{ user, clearUser, updateUser }}>
+      {children}
+    </UserContext.Provider>
+  );
+};
+
+const FileNewCaseStep2Content = () => {
   const navigate = useNavigate();
-  const { caseData } = useContext(CaseContext);
+  const { logoutUser } = useAuth();
+  const { clearUser } = useUser();
+  const { caseData } = useCaseContext();
 
   const storedCaseData = JSON.parse(localStorage.getItem("caseData"));
   const effectiveCaseData =
     caseData && Object.keys(caseData).length ? caseData : storedCaseData;
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [formData, setFormData] = useState({
     caseSummary: "",
     documentTitle: "",
@@ -56,6 +110,25 @@ const FileNewCaseStep2 = () => {
       ...formData,
       [name]: type === "checkbox" ? checked : value,
     });
+  };
+
+  const handleLogout = async () => {
+    const confirmLogout = window.confirm("Are you sure you want to logout?");
+    if (!confirmLogout) return;
+
+    setIsLoggingOut(true);
+
+    try {
+      logoutUser();
+      clearUser();
+      alert("✅ Logged out successfully!");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      alert("Failed to logout. Please try again.");
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -171,7 +244,7 @@ const FileNewCaseStep2 = () => {
             {!sidebarCollapsed && <span>Documents</span>}
           </div>
 
-          <div className="menu-item">
+          <div className="menu-item" onClick={() => navigate("/user/chats")}>
             <img src={ChatIcon} alt="Chats" />
             {!sidebarCollapsed && <span>Chats</span>}
           </div>
@@ -188,9 +261,16 @@ const FileNewCaseStep2 = () => {
         </nav>
 
         <div className="logout">
-          <div className="menu-item">
+          <div 
+            className="menu-item"
+            onClick={handleLogout}
+            style={{ 
+              cursor: isLoggingOut ? "not-allowed" : "pointer", 
+              opacity: isLoggingOut ? 0.6 : 1 
+            }}
+          >
             <img src={LogoutIcon} alt="Logout" />
-            {!sidebarCollapsed && <span>Log out</span>}
+            {!sidebarCollapsed && <span>{isLoggingOut ? "Logging out..." : "Log out"}</span>}
           </div>
         </div>
       </aside>
@@ -302,6 +382,17 @@ const FileNewCaseStep2 = () => {
         </div>
       </section>
     </div>
+  );
+};
+
+// Wrap with both providers before exporting
+const FileNewCaseStep2 = () => {
+  return (
+    <UserProvider>
+      <CaseProvider>
+        <FileNewCaseStep2Content />
+      </CaseProvider>
+    </UserProvider>
   );
 };
 
