@@ -26,6 +26,11 @@ const UserCaseMeetingsNextPage = () => {
     },
   ]);
 
+  // Helper function to get avatar URL with fallback
+  const getAvatarUrl = (name, index) => {
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff&size=200`;
+  };
+
   const handleSend = () => {
     if (message.trim() === "") return;
 
@@ -61,15 +66,36 @@ const UserCaseMeetingsNextPage = () => {
 
           <div className="video-section">
             <div className="video-card opponent">
-              <img src="https://i.pravatar.cc/500?img=12" alt="Opponent" className="video-frame" />
+              <img 
+                src={getAvatarUrl("Opponent", 12)} 
+                alt="Opponent" 
+                className="video-frame"
+                onError={(e) => {
+                  e.target.src = "https://ui-avatars.com/api/?name=Opponent&background=6366f1&color=fff&size=500";
+                }}
+              />
               <span className="label">Opponent</span>
             </div>
             <div className="video-card mediator">
-              <img src="https://i.pravatar.cc/500?img=32" alt="Mediator" className="video-frame" />
+              <img 
+                src={getAvatarUrl("Mediator", 32)} 
+                alt="Mediator" 
+                className="video-frame"
+                onError={(e) => {
+                  e.target.src = "https://ui-avatars.com/api/?name=Mediator&background=10b981&color=fff&size=500";
+                }}
+              />
               <span className="label">Mediator</span>
             </div>
             <div className="video-small">
-              <img src="https://i.pravatar.cc/150?img=56" alt="You" className="video-frame-small" />
+              <img 
+                src={getAvatarUrl("You", 56)} 
+                alt="You" 
+                className="video-frame-small"
+                onError={(e) => {
+                  e.target.src = "https://ui-avatars.com/api/?name=You&background=4F46E5&color=fff&size=150";
+                }}
+              />
             </div>
           </div>
 
@@ -86,14 +112,26 @@ const UserCaseMeetingsNextPage = () => {
             <div className="chat-users">
               <h4>Chat Box</h4>
               <div className="chat-user">
-                <img src="https://i.pravatar.cc/40?img=12" alt="Opponent" />
+                <img 
+                  src={getAvatarUrl("Abhishek Singh", 12)} 
+                  alt="Opponent"
+                  onError={(e) => {
+                    e.target.src = "https://ui-avatars.com/api/?name=Abhishek+Singh&background=6366f1&color=fff&size=40";
+                  }}
+                />
                 <div>
                   <p className="name">Abhishek Singh</p>
                   <p className="role">Opponent</p>
                 </div>
               </div>
               <div className="chat-user">
-                <img src="https://i.pravatar.cc/40?img=32" alt="Mediator" />
+                <img 
+                  src={getAvatarUrl("Rohan Singh", 32)} 
+                  alt="Mediator"
+                  onError={(e) => {
+                    e.target.src = "https://ui-avatars.com/api/?name=Rohan+Singh&background=10b981&color=fff&size=40";
+                  }}
+                />
                 <div>
                   <p className="name">Rohan Singh</p>
                   <p className="role">Mediator</p>

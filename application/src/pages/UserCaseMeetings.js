@@ -59,6 +59,14 @@ const UserCaseMeetings = () => {
     m.caseTitle?.toLowerCase().includes(search.toLowerCase())
   );
 
+  // Helper function to get avatar URL with fallback
+  const getAvatarUrl = (avatarUrl, name) => {
+    if (avatarUrl && avatarUrl !== "") {
+      return avatarUrl;
+    }
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || "User")}&background=random&color=fff&size=100`;
+  };
+
   if (loading) return <p style={{ padding: 20 }}>Loading meetings...</p>;
 
   return (
@@ -126,13 +134,25 @@ const UserCaseMeetings = () => {
                   </div>
                   <div className="user-section">
                     <div className="user">
-                      <img src={m.opponentAvatar || "https://i.pravatar.cc/40"} alt="Opponent" />
+                      <img 
+                        src={getAvatarUrl(m.opponentAvatar, m.opponentName)} 
+                        alt="Opponent"
+                        onError={(e) => {
+                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(m.opponentName || "Opponent")}&background=random&color=fff&size=100`;
+                        }}
+                      />
                       <p>
                         {m.opponentName} <span>Opponent</span>
                       </p>
                     </div>
                     <div className="user">
-                      <img src={m.mediatorAvatar || "https://i.pravatar.cc/40"} alt="Mediator" />
+                      <img 
+                        src={getAvatarUrl(m.mediatorAvatar, m.mediatorName)} 
+                        alt="Mediator"
+                        onError={(e) => {
+                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(m.mediatorName || "Mediator")}&background=random&color=fff&size=100`;
+                        }}
+                      />
                       <p>
                         {m.mediatorName} <span>Mediator</span>
                       </p>

@@ -1,5 +1,5 @@
 // src/context/userContext.js
-import React, { createContext, useState, useEffect, useContext } from "react";
+import React, { createContext, useState, useContext, useEffect, useCallback } from "react";
 import api from "../api/axios";
 
 const UserContext = createContext();
@@ -13,80 +13,62 @@ export const useUser = () => {
 };
 
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    avatar: "",
-    dob: "",
-    gender: "",
-    city: "",
-    state: "",
-    country: "",
-    pincode: "",
-    address: "",
-  });
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch user profile
-  const fetchUserProfile = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setLoading(false);
-        return;
-      }
+  // ✅ Fetch user data
+  const fetchUser = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    
+    if (!token) {
+      setLoading(false);
+      return;
+    }
 
-      const res = await api.get("/api/users/me");
-      setUser({
-        name: res.data.name || "",
-        email: res.data.email || "",
-        phone: res.data.phone || "",
-        avatar: res.data.avatar || "",
-        dob: res.data.dob || "",
-        gender: res.data.gender || "",
-        city: res.data.city || "",
-        state: res.data.state || "",
-        country: res.data.country || "India",
-        pincode: res.data.pincode || "",
-        address: res.data.address || "",
-      });
+    try {
+      setLoading(true);
+      // ✅ Updated to use /auth/me endpoint
+      const response = await api.get("/auth/me");
+      setUser(response.data);
       setError(null);
     } catch (err) {
-      console.error("Failed to fetch user profile:", err);
-      setError(err.response?.data?.message || "Failed to load user profile");
+      console.error("Failed to fetch user:", err);
+      setError(err.response?.data?.message || "Failed to fetch user data");
+      
+      // If unauthorized, clear token
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Update user profile
+  // ✅ Refresh user data
+  const refreshUser = useCallback(() => {
+    return fetchUser();
+  }, [fetchUser]);
+
+  // ✅ Update user profile with file upload
   const updateUserProfile = async (formData) => {
     try {
-      const res = await api.put("/api/users/update-profile", formData, {
+      // ✅ Updated to use /auth/profile endpoint
+      const response = await api.put("/auth/profile", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      setUser({
-        name: res.data.name || "",
-        email: res.data.email || "",
-        phone: res.data.phone || "",
-        avatar: res.data.avatar || "",
-        dob: res.data.dob || "",
-        gender: res.data.gender || "",
-        city: res.data.city || "",
-        state: res.data.state || "",
-        country: res.data.country || "India",
-        pincode: res.data.pincode || "",
-        address: res.data.address || "",
-      });
-
-      return { success: true, message: "Profile updated successfully" };
+      if (response.data.success) {
+        setUser(response.data.user);
+        return { success: true, user: response.data.user };
+      }
+      
+      return { success: false, message: response.data.message };
     } catch (err) {
-      console.error("Failed to update user profile:", err);
+      console.error("Profile update error:", err);
       return {
         success: false,
         message: err.response?.data?.message || "Failed to update profile",
@@ -94,31 +76,28 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  // Refresh user data
-  const refreshUser = () => {
-    fetchUserProfile();
-  };
-
-  // Clear user data (for logout)
+  // ✅ Clear user data (for logout)
   const clearUser = () => {
-    setUser({
-      name: "",
-      email: "",
-      phone: "",
-      avatar: "",
-      dob: "",
-      gender: "",
-      city: "",
-      state: "",
-      country: "",
-      pincode: "",
-      address: "",
-    });
+    setUser(null);
+    localStorage.removeItem("token");
   };
 
+  // ✅ Helper to get avatar URL with fallback
+  const getAvatarUrl = useCallback((avatarUrl) => {
+    // If user has uploaded avatar, use it
+    if (avatarUrl && avatarUrl !== "") {
+      return avatarUrl;
+    }
+    
+    // Otherwise, generate a nice placeholder with user's initials
+    const userName = user?.name || "User";
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=4F46E5&color=fff&size=200`;
+  }, [user?.name]);
+
+  // ✅ Load user on mount
   useEffect(() => {
-    fetchUserProfile();
-  }, []);
+    fetchUser();
+  }, [fetchUser]);
 
   const value = {
     user,
@@ -127,9 +106,8 @@ export const UserProvider = ({ children }) => {
     updateUserProfile,
     refreshUser,
     clearUser,
+    getAvatarUrl,
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };
-
-export default UserContext;

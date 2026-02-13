@@ -18,6 +18,11 @@ const UserChats = () => {
   // ✅ Admin email for chat
   const adminEmail = "expert@yourapp.com";
 
+  // Helper function to get avatar URL with fallback
+  const getAdminAvatar = () => {
+    return "https://ui-avatars.com/api/?name=Expert+Support&background=4F46E5&color=fff&size=100";
+  };
+
   // 🔹 Fetch chat history with admin
   useEffect(() => {
     const fetchMessages = async () => {
@@ -70,7 +75,13 @@ const UserChats = () => {
         {/* Chat Box */}
         <div className="chat-container-single">
           <div className="chat-header">
-            <img src="https://i.pravatar.cc/40" alt="Admin" />
+            <img 
+              src={getAdminAvatar()} 
+              alt="Admin"
+              onError={(e) => {
+                e.target.src = "https://ui-avatars.com/api/?name=Support&background=4F46E5&color=fff&size=40";
+              }}
+            />
             <h3>Expert Support</h3>
           </div>
 

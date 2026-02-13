@@ -10,7 +10,7 @@ import "./EditProfile.css";
 
 const EditProfile = () => {
   const navigate = useNavigate();
-  const { user, loading, updateUserProfile, refreshUser } = useUser();
+  const { user, loading, updateUserProfile, refreshUser, getAvatarUrl } = useUser();
 
   const [saving, setSaving] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
@@ -47,11 +47,12 @@ const EditProfile = () => {
         address: user.address || "",
       });
 
+      // Set initial image preview
       if (user.avatar) {
-        setImagePreview(user.avatar);
+        setImagePreview(getAvatarUrl(user.avatar));
       }
     }
-  }, [user]);
+  }, [user, getAvatarUrl]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -140,7 +141,7 @@ const EditProfile = () => {
 
       if (result.success) {
         alert("✅ Profile updated successfully!");
-        refreshUser(); // Refresh user data in context
+        await refreshUser(); // Refresh user data in context
         navigate("/user/my-profile");
       } else {
         alert(result.message || "Failed to update profile");
@@ -185,8 +186,11 @@ const EditProfile = () => {
               <div className="image-upload-container">
                 <div className="image-preview">
                   <img
-                    src={imagePreview || user.avatar || "https://i.pravatar.cc/150"}
+                    src={imagePreview || getAvatarUrl(user?.avatar)}
                     alt="Profile"
+                    onError={(e) => {
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || "User")}&background=4F46E5&color=fff&size=200`;
+                    }}
                   />
                   <label htmlFor="avatar-upload" className="camera-icon">
                     <FaCamera />
@@ -203,6 +207,9 @@ const EditProfile = () => {
                   <h4>Profile Picture</h4>
                   <p>Click the camera icon to upload a new photo</p>
                   <p className="upload-hint">Max size: 5MB | Formats: JPG, PNG, GIF</p>
+                  {imageFile && (
+                    <p className="upload-success">✅ New image selected</p>
+                  )}
                 </div>
               </div>
             </div>

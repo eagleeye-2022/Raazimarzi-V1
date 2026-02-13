@@ -75,14 +75,14 @@ const UserMyCasesContent = () => {
       setLoading(true);
       try {
         // Fetch user info
-        const userRes = await api.get("/api/user/me");
+        const userRes = await api.get("/user/me");
         setUser({
           fullName: userRes.data.fullName,
           avatar: userRes.data.avatar || "https://i.pravatar.cc/40",
         });
 
         // Fetch user cases
-        const res = await api.get("/api/cases/my-cases");
+        const res = await api.get("/cases/my-cases");
         setRaisedCases(res.data.raisedCases || []);
         setOpponentCases(res.data.opponentCases || []);
       } catch (err) {

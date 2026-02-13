@@ -81,7 +81,7 @@ const FileNewCaseStep2 = () => {
       console.log("📤 Sending case data:", finalData);
 
       const response = await axios.post(
-        `${API_URL}/api/cases/file`,
+        `${API_URL}/cases/file`,
         finalData,
         {
           headers: {
