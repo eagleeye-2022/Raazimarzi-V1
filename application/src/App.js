@@ -10,7 +10,6 @@ import CaseManagerDashboard from "./pages/CaseManagerDashboard";
 import CreateCase from "./pages/CreateCase";
 import UploadEvidence from "./pages/UploadEvidence";
 import MyProfile from "./pages/MyProfile";
-import EditProfile from "./pages/EditProfile";
 import FileNewCaseStep1 from "./pages/FileNewCaseStep1";
 import FileNewCaseStep2 from "./pages/FileNewCaseStep2";
 import FileNewCaseStep3 from "./pages/FileNewCaseStep3";
@@ -30,57 +29,53 @@ import MediatorCaseMeetings from "./pages/MediatorCaseMeetings";
 import MediatorChats from "./pages/MediatorChats";
 import ForgotPassword from "./pages/ForgotPassword";
 
-// 🟢 Import Context providers
+// 🟢 Import CaseContext provider
 import { CaseProvider } from "./context/caseContext";
-import { UserProvider } from "./context/userContext";
 
 function App() {
   return (
     // ✅ Add basename="/app" to handle /app subdirectory
     <Router basename="/app">
-      {/* ✅ Wrap all routes inside UserProvider and CaseProvider */}
-      <UserProvider>
-        <CaseProvider>
-          <Routes>
-            {/* Root path now maps to /app/login */}
-            <Route path="/" element={<Login />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/forgotpassword" element={<ForgotPassword />} />
+      {/* Wrap all routes inside CaseProvider */}
+      <CaseProvider>
+        <Routes>
+          {/* Root path now maps to /app/login */}
+          <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/forgotpassword" element={<ForgotPassword />} />
 
-            {/* User Routes */}
-            <Route path="/user/dashboard" element={<UserDashboard />} />
-            <Route path="/user/create-case" element={<CreateCase />} />
-            <Route path="/user/my-profile" element={<MyProfile />} />
-            <Route path="/user/edit-profile" element={<EditProfile />} />
-            <Route path="/user/file-new-case/step1" element={<FileNewCaseStep1 />} />
-            <Route path="/user/file-new-case/step2" element={<FileNewCaseStep2 />} />
-            <Route path="/user/file-new-case/step3" element={<FileNewCaseStep3 />} />
-            <Route path="/user/my-cases" element={<UserMyCases />} />
-            <Route path="/user/case-meetings" element={<UserCaseMeetings />} />
-            <Route path="/user/case-meetings/call" element={<UserCaseMeetingsNextPage />} />
-            <Route path="/user/chats" element={<UserChats />} />
+          {/* User Routes */}
+          <Route path="/user/dashboard" element={<UserDashboard />} />
+          <Route path="/user/create-case" element={<CreateCase />} />
+          <Route path="/user/my-profile" element={<MyProfile />} />
+          <Route path="/user/file-new-case/step1" element={<FileNewCaseStep1 />} />
+          <Route path="/user/file-new-case/step2" element={<FileNewCaseStep2 />} />
+          <Route path="/user/file-new-case/step3" element={<FileNewCaseStep3 />} />
+          <Route path="/user/my-cases" element={<UserMyCases />} />
+          <Route path="/user/case-meetings" element={<UserCaseMeetings />} />
+          <Route path="/user/case-meetings/call" element={<UserCaseMeetingsNextPage />} />
+          <Route path="/user/chats" element={<UserChats />} />
 
-            {/* Mediator Routes */}
-            <Route path="/mediator/dashboard" element={<MediatorDashboard />} />
-            <Route path="/mediator/case-meetings" element={<MediatorCaseMeetings />} />
-            <Route path="/mediator/chats" element={<MediatorChats />} />
-            <Route path="/mediator/my-cases" element={<MediatorMyCases />} />
+          {/* Mediator Routes */}
+          <Route path="/mediator/dashboard" element={<MediatorDashboard />} />
+          <Route path="/mediator/case-meetings" element={<MediatorCaseMeetings />} />
+          <Route path="/mediator/chats" element={<MediatorChats />} />
+          <Route path="/mediator/my-cases" element={<MediatorMyCases />} />
 
-            {/* Case Manager Routes */}
-            <Route path="/cm/dashboard" element={<CaseManagerDashboard />} />
-            <Route path="/cm/new-cases" element={<CaseManagerNewCases />} />
-            <Route path="/cm/case-meetings" element={<CaseManagerCaseMeetings />} />
-            <Route path="/cm/chats" element={<CaseManagerChats />} />
+          {/* Case Manager Routes */}
+          <Route path="/cm/dashboard" element={<CaseManagerDashboard />} />
+          <Route path="/cm/new-cases" element={<CaseManagerNewCases />} />
+          <Route path="/cm/case-meetings" element={<CaseManagerCaseMeetings />} />
+          <Route path="/cm/chats" element={<CaseManagerChats />} />
 
-            {/* Admin Routes */}
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/new-cases" element={<AdminNewCases />} />
-            <Route path="/admin/new-cases-next-page" element={<AdminNewCasesNextPage />} />
-            <Route path="/admin/case-meetings" element={<AdminCaseMeetings />} />   
-          </Routes>
-        </CaseProvider>
-      </UserProvider>
+          {/* Admin Routes */}
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/new-cases" element={<AdminNewCases />} />
+          <Route path="/admin/new-cases-next-page" element={<AdminNewCasesNextPage />} />
+          <Route path="/admin/case-meetings" element={<AdminCaseMeetings />} />   
+        </Routes>
+      </CaseProvider>
     </Router>
   );
 }

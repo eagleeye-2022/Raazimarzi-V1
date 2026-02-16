@@ -1,48 +1,162 @@
 // src/pages/MyProfile.js
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./MyProfile.css";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "../context/userContext";
-import UserSidebar from "../components/UserSidebar";
-import UserNavbar from "../components/Navbar";
+import api from "../api/axios";
+
+// Icons
+import Vector from "../assets/icons/Vector.png";
+import HomeIcon from "../assets/icons/home.png";
+import FileIcon from "../assets/icons/file.png";
+import MeetingIcon from "../assets/icons/meeting.png";
+import CaseIcon from "../assets/icons/newcase.png";
+import DocsIcon from "../assets/icons/document.png";
+import ChatIcon from "../assets/icons/chat.png";
+import PaymentIcon from "../assets/icons/payment.png";
+import SupportIcon from "../assets/icons/support.png";
+import LogoutIcon from "../assets/icons/logout.png";
+
+import { FaCog, FaBell } from "react-icons/fa";
 
 const MyProfile = () => {
   const navigate = useNavigate();
-  const { user, loading, getAvatarUrl } = useUser();
+
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Fetch profile data
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get("/api/users/me");
+        setProfile(res.data);
+      } catch (err) {
+        console.error("Profile fetch error:", err);
+        setError("Failed to load profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
 
   if (loading) {
     return <div style={{ padding: 40 }}>Loading profile...</div>;
   }
 
+  if (error) {
+    return <div style={{ padding: 40, color: "red" }}>{error}</div>;
+  }
+
   return (
     <div className="dashboard-container">
-      {/* Reusable Sidebar */}
-      <UserSidebar activePage="profile" />
+      {/* Sidebar */}
+      <aside className="sidebar">
+        <h2 className="sidebar-title">Dashboard</h2>
+
+        <nav className="menu">
+          <div className="menu-item" onClick={() => navigate("/user/dashboard")}>
+            <img src={HomeIcon} alt="Home" />
+            <span>Home</span>
+          </div>
+
+          <div
+            className="menu-item active"
+            onClick={() => navigate("/user/my-profile")}
+          >
+            <img src={Vector} alt="Profile" />
+            <span>My Profile</span>
+          </div>
+
+          <div
+            className="menu-item"
+            onClick={() => navigate("/user/file-new-case/step1")}
+          >
+            <img src={FileIcon} alt="File New Case" />
+            <span>File New Case</span>
+          </div>
+
+          <div className="menu-item" onClick={() => navigate("/user/my-cases")}>
+            <img src={CaseIcon} alt="My Cases" />
+            <span>My Cases</span>
+          </div>
+
+          <div
+            className="menu-item"
+            onClick={() => navigate("/user/case-meetings")}
+          >
+            <img src={MeetingIcon} alt="Case Meetings" />
+            <span>Case Meetings</span>
+          </div>
+
+          <div className="menu-item" onClick={() => navigate("/user/documents")}>
+            <img src={DocsIcon} alt="Documents" />
+            <span>Documents</span>
+          </div>
+
+          <div className="menu-item" onClick={() => navigate("/user/chats")}>
+            <img src={ChatIcon} alt="Chats" />
+            <span>Chats</span>
+          </div>
+
+          <div className="menu-item" onClick={() => navigate("/user/payments")}>
+            <img src={PaymentIcon} alt="Payment" />
+            <span>Payment</span>
+          </div>
+
+          <div className="menu-item" onClick={() => navigate("/user/support")}>
+            <img src={SupportIcon} alt="Support" />
+            <span>Support</span>
+          </div>
+        </nav>
+
+        <div className="logout">
+          <div className="menu-item" onClick={handleLogout}>
+            <img src={LogoutIcon} alt="Logout" />
+            <span>Log out</span>
+          </div>
+        </div>
+      </aside>
 
       {/* Main Section */}
       <main className="main-content">
-        {/* Reusable Navbar */}
-        <UserNavbar />
+        {/* Navbar */}
+        <header className="navbar">
+          <div />
+          <div className="nav-icons">
+            <FaCog className="icon" />
+            <FaBell className="icon" />
+            <div className="profile">
+              <img
+                src={profile.avatar || "https://i.pravatar.cc/40"}
+                alt="profile"
+                className="profile-img"
+              />
+              <span>{profile.name}</span>
+            </div>
+          </div>
+        </header>
 
         {/* Profile Content */}
         <section className="profile-section">
           <div className="profile-left-card">
             <img
-              src={getAvatarUrl(user?.avatar)}
+              src={profile.avatar || "https://i.pravatar.cc/150"}
               alt="User"
               className="profile-avatar"
-              onError={(e) => {
-                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || "User")}&background=4F46E5&color=fff&size=200`;
-              }}
             />
-            <h3>{user?.name}</h3>
-            <p className="email">{user?.email}</p>
-            <p className="phone">{user?.phone || "—"}</p>
+            <h3>{profile.name}</h3>
+            <p className="email">{profile.email}</p>
+            <p className="phone">{profile.phone || "—"}</p>
 
-            <button
-              className="save-btn"
-              onClick={() => navigate("/user/edit-profile")}
-            >
+            <button className="save-btn">
               <span>✏️</span> Edit Profile
             </button>
           </div>
@@ -53,33 +167,33 @@ const MyProfile = () => {
             <div className="info-grid">
               <div>
                 <p>Date of Birth</p>
-                <h4>{user?.dob ? new Date(user.dob).toLocaleDateString() : "—"}</h4>
+                <h4>{profile.dob || "—"}</h4>
               </div>
               <div>
                 <p>Gender</p>
-                <h4>{user?.gender || "—"}</h4>
+                <h4>{profile.gender || "—"}</h4>
               </div>
               <div>
                 <p>City</p>
-                <h4>{user?.city || "—"}</h4>
+                <h4>{profile.city || "—"}</h4>
               </div>
               <div>
                 <p>Country</p>
-                <h4>{user?.country || "—"}</h4>
+                <h4>{profile.country || "India"}</h4>
               </div>
               <div>
                 <p>State</p>
-                <h4>{user?.state || "—"}</h4>
+                <h4>{profile.state || "—"}</h4>
               </div>
               <div>
                 <p>Pin Code</p>
-                <h4>{user?.pincode || "—"}</h4>
+                <h4>{profile.pincode || "—"}</h4>
               </div>
             </div>
 
             <div className="address-section">
               <p>Address</p>
-              <h4>{user?.address || "—"}</h4>
+              <h4>{profile.address || "—"}</h4>
             </div>
           </div>
         </section>

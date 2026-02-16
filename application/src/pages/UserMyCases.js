@@ -1,9 +1,7 @@
-// src/pages/UserMyCases.js
 "use client";
 
-import React, { useState, useEffect, createContext, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/authContext";
 import api from "../api/axios";
 
 import HomeIcon from "../assets/icons/home.png";
@@ -18,50 +16,16 @@ import SupportIcon from "../assets/icons/support.png";
 import LogoutIcon from "../assets/icons/logout.png";
 
 import "./UserMyCases.css";
-import { FaCog, FaBell, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaCog, FaBell } from "react-icons/fa";
 
-// Create UserContext locally
-const UserContext = createContext();
-
-const useUser = () => {
-  const context = useContext(UserContext);
-  if (!context) {
-    throw new Error('useUser must be used within a UserProvider');
-  }
-  return context;
-};
-
-const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-
-  const clearUser = () => {
-    setUser(null);
-    localStorage.removeItem('userData');
-  };
-
-  const updateUser = (userData) => {
-    setUser(userData);
-  };
-
-  return (
-    <UserContext.Provider value={{ user, clearUser, updateUser }}>
-      {children}
-    </UserContext.Provider>
-  );
-};
-
-const UserMyCasesContent = () => {
+const UserMyCases = () => {
   const navigate = useNavigate();
-  const { logoutUser } = useAuth();
-  const { clearUser } = useUser();
 
   const [search, setSearch] = useState("");
   const [raisedCases, setRaisedCases] = useState([]);
   const [opponentCases, setOpponentCases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState({ fullName: "", avatar: "" });
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // 🔹 Check login and fetch user info
   useEffect(() => {
@@ -75,14 +39,14 @@ const UserMyCasesContent = () => {
       setLoading(true);
       try {
         // Fetch user info
-        const userRes = await api.get("/user/me");
+        const userRes = await api.get("/api/user/me");
         setUser({
           fullName: userRes.data.fullName,
           avatar: userRes.data.avatar || "https://i.pravatar.cc/40",
         });
 
         // Fetch user cases
-        const res = await api.get("/cases/my-cases");
+        const res = await api.get("/api/cases/my-cases");
         setRaisedCases(res.data.raisedCases || []);
         setOpponentCases(res.data.opponentCases || []);
       } catch (err) {
@@ -105,28 +69,9 @@ const UserMyCasesContent = () => {
     c.caseId?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleLogout = async () => {
-    const confirmLogout = window.confirm("Are you sure you want to logout?");
-    if (!confirmLogout) return;
-
-    setIsLoggingOut(true);
-
-    try {
-      logoutUser();
-      clearUser();
-      localStorage.clear();
-      alert("✅ Logged out successfully!");
-      navigate("/login");
-    } catch (error) {
-      console.error("Logout error:", error);
-      alert("Failed to logout. Please try again.");
-    } finally {
-      setIsLoggingOut(false);
-    }
-  };
-
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/login");
   };
 
   if (loading) return <p style={{ padding: 20 }}>Loading cases...</p>;
@@ -134,69 +79,57 @@ const UserMyCasesContent = () => {
   return (
     <div className="dashboard-container">
       {/* Sidebar */}
-      <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-header">
-          <div className="sidebar-toggle" onClick={toggleSidebar}>
-            {sidebarCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
-          </div>
-        </div>
-    
+      <aside className="sidebar">
+        <h2 className="sidebar-title">Dashboard</h2>
         <nav className="menu">
           <div className="menu-item" onClick={() => navigate("/user/dashboard")}>
             <img src={HomeIcon} alt="Home" />
-            {!sidebarCollapsed && <span>Home</span>}
+            <span>Home</span>
           </div>
           <div className="menu-item" onClick={() => navigate("/user/my-profile")}>
             <img src={Vector} alt="Profile" />
-            {!sidebarCollapsed && <span>My Profile</span>}
+            <span>My Profile</span>
           </div>
           <div className="menu-item" onClick={() => navigate("/user/file-new-case/step1")}>
             <img src={FileIcon} alt="File New Case" />
-            {!sidebarCollapsed && <span>File New Case</span>}
+            <span>File New Case</span>
           </div>
           <div className="menu-item active" onClick={() => navigate("/user/my-cases")}>
             <img src={CaseIcon} alt="My Cases" />
-            {!sidebarCollapsed && <span>My Cases</span>}
+            <span>My Cases</span>
           </div>
           <div className="menu-item" onClick={() => navigate("/user/case-meetings")}>
             <img src={MeetingIcon} alt="Case Meetings" />
-            {!sidebarCollapsed && <span>Case Meetings</span>}
+            <span>Case Meetings</span>
           </div>
           <div className="menu-item" onClick={() => navigate("/user/documents")}>
             <img src={DocsIcon} alt="Documents" />
-            {!sidebarCollapsed && <span>Documents</span>}
+            <span>Documents</span>
           </div>
           <div className="menu-item" onClick={() => navigate("/user/chats")}>
             <img src={ChatIcon} alt="Chats" />
-            {!sidebarCollapsed && <span>Chats</span>}
+            <span>Chats</span>
           </div>
           <div className="menu-item" onClick={() => navigate("/user/payment")}>
             <img src={PaymentIcon} alt="Payment" />
-            {!sidebarCollapsed && <span>Payment</span>}
+            <span>Payment</span>
           </div>
           <div className="menu-item" onClick={() => navigate("/user/support")}>
             <img src={SupportIcon} alt="Support" />
-            {!sidebarCollapsed && <span>Support</span>}
+            <span>Support</span>
           </div>
         </nav>
 
-        <div className="logout">
-          <div 
-            className="menu-item"
-            onClick={handleLogout}
-            style={{ 
-              cursor: isLoggingOut ? "not-allowed" : "pointer", 
-              opacity: isLoggingOut ? 0.6 : 1 
-            }}
-          >
+        <div className="logout" onClick={handleLogout}>
+          <div className="menu-item">
             <img src={LogoutIcon} alt="Logout" />
-            {!sidebarCollapsed && <span>{isLoggingOut ? "Logging out..." : "Log out"}</span>}
+            <span>Log out</span>
           </div>
         </div>
       </aside>
 
       {/* Main Section */}
-      <section className={`main-section ${sidebarCollapsed ? 'expanded' : ''}`}>
+      <section className="main-section">
         <header className="navbar">
           <div></div>
           <div className="nav-icons">
@@ -297,15 +230,6 @@ const UserMyCasesContent = () => {
         </div>
       </section>
     </div>
-  );
-};
-
-// Wrap with UserProvider before exporting
-const UserMyCases = () => {
-  return (
-    <UserProvider>
-      <UserMyCasesContent />
-    </UserProvider>
   );
 };
 
