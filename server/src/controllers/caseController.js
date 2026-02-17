@@ -326,20 +326,68 @@ export const updateCaseStatus = async (req, res) => {
   }
 };
 
+/* ================= GET LOGGED-IN USER INFO ================= */
+export const getMe = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: "Not authorized" });
+    }
+
+    // req.user is already fully populated by protect middleware
+    // (User.findById(decoded.id).select("-password"))
+    const baseUrl = process.env.API_URL || `${req.protocol}://${req.get("host")}`;
+    const avatarUrl = req.user.avatar
+      ? `${baseUrl}/uploads/avatars/${req.user.avatar}`
+      : "";
+
+    res.status(200).json({
+      success: true,
+      _id:      req.user._id,
+      name:     req.user.name,
+      fullName: req.user.name,   // alias so frontend works with either field
+      email:    req.user.email,
+      role:     req.user.role,
+      avatar:   avatarUrl,
+    });
+  } catch (error) {
+    console.error("❌ getMe error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 /* ================= GET LOGGED-IN USER CASES ================= */
 export const getUserCases = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const userEmail = req.user.email;
+    const userId = req.user?.id;
+    const userEmail = req.user?.email;
 
-    // ✅ Cases raised by logged-in user
+    // ✅ Guard: userId is required
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    console.log(`📋 Fetching cases for userId: ${userId}, email: ${userEmail}`);
+
+    // ✅ Cases raised by this user (by their DB userId)
     const raisedCases = await Case.find({ createdBy: userId })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    // ✅ Cases where logged-in user is defendant
-    const opponentCases = await Case.find({
-      "defendantDetails.email": userEmail,
-    }).sort({ createdAt: -1 });
+    // ✅ Cases where this user appears as defendant (matched by email)
+    // Only run this query if we actually have an email to match against
+    let opponentCases = [];
+    if (userEmail) {
+      opponentCases = await Case.find({
+        "defendantDetails.email": userEmail,
+        createdBy: { $ne: userId }, // exclude cases they also raised
+      })
+        .sort({ createdAt: -1 })
+        .lean();
+    }
+
+    console.log(
+      `✅ Found ${raisedCases.length} raised cases, ${opponentCases.length} opponent cases`
+    );
 
     res.status(200).json({
       success: true,
@@ -348,9 +396,6 @@ export const getUserCases = async (req, res) => {
     });
   } catch (error) {
     console.error("❌ getUserCases error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error fetching user cases",
-    });
+    res.status(500).json({ success: false, message: "Error fetching user cases" });
   }
 };

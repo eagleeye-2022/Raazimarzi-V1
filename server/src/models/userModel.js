@@ -31,6 +31,31 @@ const userSchema = new mongoose.Schema(
       default: true,
     },
 
+    // ✅ UPDATED: Store avatar filename only
+    avatar: {
+      type: String,
+      default: "", // Empty string means no avatar uploaded
+    },
+
+    dob: { type: String },
+
+    gender: {
+      type: String,
+      enum: ["Male", "Female", "Other", ""],
+      default: "",
+    },
+
+    address: { type: String },
+    city: { type: String },
+    state: { type: String },
+    country: { type: String, default: "India" },
+    pincode: { type: String },
+
+    profileCompleted: {
+      type: Boolean,
+      default: false,
+    },
+
     /* 🔐 Forgot Password */
     passwordResetOTP: String,
     passwordResetOTPExpiry: Date,

@@ -1,32 +1,19 @@
 // src/pages/FileNewCaseStep2.js
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { CaseContext } from "../context/caseContext";
-
-import HomeIcon from "../assets/icons/home.png";
-import FileIcon from "../assets/icons/file.png";
-import MeetingIcon from "../assets/icons/meeting.png";
-import CaseIcon from "../assets/icons/newcase.png";
-import DocsIcon from "../assets/icons/document.png";
-import ChatIcon from "../assets/icons/chat.png";
-import PaymentIcon from "../assets/icons/payment.png";
-import SupportIcon from "../assets/icons/support.png";
-import LogoutIcon from "../assets/icons/logout.png";
+import UserSidebar from "../components/UserSidebar";
+import UserNavbar from "../components/Navbar";
 
 import "./FileNewCase.css";
-import { FaCog, FaBell } from "react-icons/fa";
 
 // ✅ Use environment variable for API URL
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const FileNewCaseStep2 = () => {
   const navigate = useNavigate();
-  const { caseData } = useContext(CaseContext);
 
   const storedCaseData = JSON.parse(localStorage.getItem("caseData"));
-  const effectiveCaseData =
-    caseData && Object.keys(caseData).length ? caseData : storedCaseData;
 
   const [formData, setFormData] = useState({
     caseSummary: "",
@@ -43,10 +30,10 @@ const FileNewCaseStep2 = () => {
 
   // Pre-fill previous Step2 if available
   useEffect(() => {
-    if (effectiveCaseData?.step2) {
-      setFormData(effectiveCaseData.step2);
+    if (storedCaseData?.step2) {
+      setFormData(storedCaseData.step2);
     }
-  }, [effectiveCaseData]);
+  }, [storedCaseData]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -59,9 +46,9 @@ const FileNewCaseStep2 = () => {
   const handleSubmit = async () => {
     // Step1 validation
     if (
-      !effectiveCaseData ||
-      !effectiveCaseData.caseTitle?.trim() ||
-      !effectiveCaseData.petitioner?.fullName?.trim()
+      !storedCaseData ||
+      !storedCaseData.caseTitle?.trim() ||
+      !storedCaseData.petitioner?.fullName?.trim()
     ) {
       alert("Please complete Step 1 first");
       navigate("/user/file-new-case/step1");
@@ -81,20 +68,20 @@ const FileNewCaseStep2 = () => {
 
       // ✅ FIXED: Correct data structure matching backend expectations
       const finalData = {
-        caseType: effectiveCaseData.caseType,
-        caseTitle: effectiveCaseData.caseTitle,
-        causeOfAction: effectiveCaseData.causeOfAction,
-        reliefSought: effectiveCaseData.reliefSought,
-        caseValue: effectiveCaseData.caseValue,
-        petitioner: effectiveCaseData.petitioner,
-        defendant: effectiveCaseData.defendant,
+        caseType: storedCaseData.caseType,
+        caseTitle: storedCaseData.caseTitle,
+        causeOfAction: storedCaseData.causeOfAction,
+        reliefSought: storedCaseData.reliefSought,
+        caseValue: storedCaseData.caseValue,
+        petitioner: storedCaseData.petitioner,
+        defendant: storedCaseData.defendant,
         caseFacts: formData,  // ✅ Changed from step2 to caseFacts
       };
 
       console.log("📤 Sending case data:", finalData);
 
       const response = await axios.post(
-        `${API_URL}/api/cases/file`,
+        `${API_URL}/cases/file`,
         finalData,
         {
           headers: {
@@ -126,72 +113,13 @@ const FileNewCaseStep2 = () => {
 
   return (
     <div className="dashboard-container">
-      {/* Sidebar */}
-      <aside className="sidebar">
-        <h2 className="sidebar-title">Dashboard</h2>
-        <nav className="menu">
-          <div className="menu-item" onClick={() => navigate("/user/dashboard")}>
-            <img src={HomeIcon} alt="Home" />
-            <span>Home</span>
-          </div>
-
-          <div className="menu-item active">
-            <img src={FileIcon} alt="File New Case" />
-            <span>File New Case</span>
-          </div>
-
-          <div className="menu-item" onClick={() => navigate("/user/my-cases")}>
-            <img src={CaseIcon} alt="My Cases" />
-            <span>My Cases</span>
-          </div>
-
-          <div className="menu-item" onClick={() => navigate("/user/case-meetings")}>
-            <img src={MeetingIcon} alt="Case Meetings" />
-            <span>Case Meetings</span>
-          </div>
-
-          <div className="menu-item">
-            <img src={DocsIcon} alt="Documents" />
-            <span>Documents</span>
-          </div>
-
-          <div className="menu-item">
-            <img src={ChatIcon} alt="Chats" />
-            <span>Chats</span>
-          </div>
-
-          <div className="menu-item">
-            <img src={PaymentIcon} alt="Payment" />
-            <span>Payment</span>
-          </div>
-
-          <div className="menu-item">
-            <img src={SupportIcon} alt="Support" />
-            <span>Support</span>
-          </div>
-        </nav>
-
-        <div className="logout">
-          <div className="menu-item">
-            <img src={LogoutIcon} alt="Logout" />
-            <span>Log out</span>
-          </div>
-        </div>
-      </aside>
+      {/* Reusable Sidebar */}
+      <UserSidebar activePage="file-case" />
 
       {/* Main Section */}
       <section className="main-section">
-        <header className="navbar">
-          <div></div>
-          <div className="nav-icons">
-            <FaCog className="icon" />
-            <FaBell className="icon" />
-            <div className="profile">
-              <img src="https://i.pravatar.cc/40" alt="profile" />
-              <span>Rohan Singhania</span>
-            </div>
-          </div>
-        </header>
+        {/* Reusable Navbar */}
+        <UserNavbar />
 
         <div className="step-bar">
           <span>Step 1</span>

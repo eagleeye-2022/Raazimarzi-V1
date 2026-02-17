@@ -1,23 +1,15 @@
-"use client";
-
+// src/pages/UserCaseMeetingsNextPage.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import HomeIcon from "../assets/icons/home.png";
-import Vector from "../assets/icons/Vector.png";
-import FileIcon from "../assets/icons/file.png";
-import MeetingIcon from "../assets/icons/meeting.png";
-import CaseIcon from "../assets/icons/newcase.png";
-import DocsIcon from "../assets/icons/document.png";
-import ChatIcon from "../assets/icons/chat.png";
-import PaymentIcon from "../assets/icons/payment.png";
-import SupportIcon from "../assets/icons/support.png";
-import LogoutIcon from "../assets/icons/logout.png";
+import UserSidebar from "../components/UserSidebar";
+import UserNavbar from "../components/Navbar";
+
 import "./UserCaseMeetingsNextPage.css";
-import { FaCog, FaBell, FaVideo, FaPhoneSlash, FaMicrophone, FaDesktop } from "react-icons/fa";
+import { FaVideo, FaPhoneSlash, FaMicrophone, FaDesktop, FaCog } from "react-icons/fa";
 
-
-const CaseMeetings = () => {
+const UserCaseMeetingsNextPage = () => {
   const navigate = useNavigate();
+
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([
     {
@@ -33,6 +25,11 @@ const CaseMeetings = () => {
       type: "mediator",
     },
   ]);
+
+  // Helper function to get avatar URL with fallback
+  const getAvatarUrl = (name, index) => {
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff&size=200`;
+  };
 
   const handleSend = () => {
     if (message.trim() === "") return;
@@ -52,70 +49,13 @@ const CaseMeetings = () => {
 
   return (
     <div className="dashboard-container">
-      {/* Sidebar */}
-      <aside className="sidebar">
-        <h2 className="sidebar-title">Dashboard</h2>
-        <nav className="menu">
-          <div className="menu-item" onClick={() => navigate("/user/dashboard")}>
-            <img src={HomeIcon} alt="Home" />
-            <span>Home</span>
-          </div>
-          <div className="menu-item" onClick={() => navigate("/user/my-profile")}>
-            <img src={Vector} alt="Profile" />
-            <span>My Profile</span>
-          </div>
-          <div className="menu-item" onClick={() => navigate("/user/file-new-case/step1")}>
-            <img src={FileIcon} alt="File New Case" />
-            <span>File New Case</span>
-          </div>
-          <div className="menu-item" onClick={() => navigate("/user/my-cases")}>
-            <img src={CaseIcon} alt="My Cases" />
-            <span>My Cases</span>
-          </div>
-          <div className="menu-item active" onClick={() => navigate("/user/case-meetings/call")}>
-            <img src={MeetingIcon} alt="Case Meetings" />
-            <span>Case Meetings</span>
-          </div>
-          <div className="menu-item" onClick={() => navigate("/user/documents")}>
-            <img src={DocsIcon} alt="Documents" />
-            <span>Documents</span>
-          </div>
-          <div className="menu-item" onClick={() => navigate("/user/chats")}>
-            <img src={ChatIcon} alt="Chats" />
-            <span>Chats</span>
-          </div>
-          <div className="menu-item" onClick={() => navigate("/user/payment")}>
-            <img src={PaymentIcon} alt="Payment" />
-            <span>Payment</span>
-          </div>
-          <div className="menu-item" onClick={() => navigate("/user/support")}>
-            <img src={SupportIcon} alt="Support" />
-            <span>Support</span>
-          </div>
-        </nav>
-
-        <div className="logout">
-          <div className="menu-item">
-            <img src={LogoutIcon} alt="Logout" />
-            <span>Log out</span>
-          </div>
-        </div>
-      </aside>
+      {/* Reusable Sidebar */}
+      <UserSidebar activePage="meetings" />
 
       {/* Main Content */}
       <section className="main-section">
-        {/* Navbar */}
-        <header className="navbar">
-          <div></div>
-          <div className="nav-icons">
-            <FaCog className="icon" />
-            <FaBell className="icon" />
-            <div className="profile">
-              <img src="https://i.pravatar.cc/40" alt="profile" className="profile-img" />
-              <span>Rohan Singhania</span>
-            </div>
-          </div>
-        </header>
+        {/* Reusable Navbar */}
+        <UserNavbar />
 
         {/* Meeting Section */}
         <div className="meeting-container">
@@ -126,15 +66,36 @@ const CaseMeetings = () => {
 
           <div className="video-section">
             <div className="video-card opponent">
-              <img src="https://i.pravatar.cc/500?img=12" alt="Opponent" className="video-frame" />
+              <img 
+                src={getAvatarUrl("Opponent", 12)} 
+                alt="Opponent" 
+                className="video-frame"
+                onError={(e) => {
+                  e.target.src = "https://ui-avatars.com/api/?name=Opponent&background=6366f1&color=fff&size=500";
+                }}
+              />
               <span className="label">Opponent</span>
             </div>
             <div className="video-card mediator">
-              <img src="https://i.pravatar.cc/500?img=32" alt="Mediator" className="video-frame" />
+              <img 
+                src={getAvatarUrl("Mediator", 32)} 
+                alt="Mediator" 
+                className="video-frame"
+                onError={(e) => {
+                  e.target.src = "https://ui-avatars.com/api/?name=Mediator&background=10b981&color=fff&size=500";
+                }}
+              />
               <span className="label">Mediator</span>
             </div>
             <div className="video-small">
-              <img src="https://i.pravatar.cc/150?img=56" alt="You" className="video-frame-small" />
+              <img 
+                src={getAvatarUrl("You", 56)} 
+                alt="You" 
+                className="video-frame-small"
+                onError={(e) => {
+                  e.target.src = "https://ui-avatars.com/api/?name=You&background=4F46E5&color=fff&size=150";
+                }}
+              />
             </div>
           </div>
 
@@ -151,14 +112,26 @@ const CaseMeetings = () => {
             <div className="chat-users">
               <h4>Chat Box</h4>
               <div className="chat-user">
-                <img src="https://i.pravatar.cc/40?img=12" alt="Opponent" />
+                <img 
+                  src={getAvatarUrl("Abhishek Singh", 12)} 
+                  alt="Opponent"
+                  onError={(e) => {
+                    e.target.src = "https://ui-avatars.com/api/?name=Abhishek+Singh&background=6366f1&color=fff&size=40";
+                  }}
+                />
                 <div>
                   <p className="name">Abhishek Singh</p>
                   <p className="role">Opponent</p>
                 </div>
               </div>
               <div className="chat-user">
-                <img src="https://i.pravatar.cc/40?img=32" alt="Mediator" />
+                <img 
+                  src={getAvatarUrl("Rohan Singh", 32)} 
+                  alt="Mediator"
+                  onError={(e) => {
+                    e.target.src = "https://ui-avatars.com/api/?name=Rohan+Singh&background=10b981&color=fff&size=40";
+                  }}
+                />
                 <div>
                   <p className="name">Rohan Singh</p>
                   <p className="role">Mediator</p>
@@ -200,4 +173,4 @@ const CaseMeetings = () => {
   );
 };
 
-export default CaseMeetings;
+export default UserCaseMeetingsNextPage;

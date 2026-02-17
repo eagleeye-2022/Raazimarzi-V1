@@ -1,24 +1,14 @@
-"use client";
-
+// src/pages/UserChats.js
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api/axios"; // Axios instance for API requests
-
-import HomeIcon from "../assets/icons/home.png";
-import Vector from "../assets/icons/Vector.png";
-import FileIcon from "../assets/icons/file.png";
-import MeetingIcon from "../assets/icons/meeting.png";
-import CaseIcon from "../assets/icons/newcase.png";
-import DocsIcon from "../assets/icons/document.png";
-import ChatIcon from "../assets/icons/chat.png";
-import PaymentIcon from "../assets/icons/payment.png";
-import SupportIcon from "../assets/icons/support.png";
-import LogoutIcon from "../assets/icons/logout.png";
+import api from "../api/axios";
+import UserSidebar from "../components/UserSidebar";
+import UserNavbar from "../components/Navbar";
 
 import "./UserChats.css";
-import { FaCog, FaBell, FaPaperPlane } from "react-icons/fa";
+import { FaPaperPlane } from "react-icons/fa";
 
-const Chats = () => {
+const UserChats = () => {
   const navigate = useNavigate();
 
   const [message, setMessage] = useState("");
@@ -27,6 +17,11 @@ const Chats = () => {
 
   // ✅ Admin email for chat
   const adminEmail = "expert@yourapp.com";
+
+  // Helper function to get avatar URL with fallback
+  const getAdminAvatar = () => {
+    return "https://ui-avatars.com/api/?name=Expert+Support&background=4F46E5&color=fff&size=100";
+  };
 
   // 🔹 Fetch chat history with admin
   useEffect(() => {
@@ -69,74 +64,24 @@ const Chats = () => {
 
   return (
     <div className="dashboard-container">
-      {/* Sidebar */}
-      <aside className="sidebar">
-        <h2 className="sidebar-title">Dashboard</h2>
-        <nav className="menu">
-          <div className="menu-item" onClick={() => navigate("/user/dashboard")}>
-            <img src={HomeIcon} alt="Home" />
-            <span>Home</span>
-          </div>
-          <div className="menu-item" onClick={() => navigate("/user/my-profile")}>
-            <img src={Vector} alt="Profile" />
-            <span>My Profile</span>
-          </div>
-          <div className="menu-item" onClick={() => navigate("/user/file-new-case/step1")}>
-            <img src={FileIcon} alt="File New Case" />
-            <span>File New Case</span>
-          </div>
-          <div className="menu-item" onClick={() => navigate("/user/my-cases")}>
-            <img src={CaseIcon} alt="My Cases" />
-            <span>My Cases</span>
-          </div>
-          <div className="menu-item" onClick={() => navigate("/user/case-meetings")}>
-            <img src={MeetingIcon} alt="Case Meetings" />
-            <span>Case Meetings</span>
-          </div>
-          <div className="menu-item">
-            <img src={DocsIcon} alt="Documents" />
-            <span>Documents</span>
-          </div>
-          <div className="menu-item active">
-            <img src={ChatIcon} alt="Chats" />
-            <span>Chats</span>
-          </div>
-          <div className="menu-item" onClick={() => navigate("/user/payment")}>
-            <img src={PaymentIcon} alt="Payment" />
-            <span>Payment</span>
-          </div>
-          <div className="menu-item" onClick={() => navigate("/user/support")}>
-            <img src={SupportIcon} alt="Support" />
-            <span>Support</span>
-          </div>
-        </nav>
-
-        <div className="logout">
-          <div className="menu-item">
-            <img src={LogoutIcon} alt="Logout" />
-            <span>Log out</span>
-          </div>
-        </div>
-      </aside>
+      {/* Reusable Sidebar */}
+      <UserSidebar activePage="chats" />
 
       {/* Main Section */}
       <section className="main-section">
-        <header className="navbar">
-          <div></div>
-          <div className="nav-icons">
-            <FaCog className="icon" />
-            <FaBell className="icon" />
-            <div className="profile">
-              <img src="https://i.pravatar.cc/40" alt="profile" className="profile-img" />
-              <span>Rohan Singhania</span>
-            </div>
-          </div>
-        </header>
+        {/* Reusable Navbar */}
+        <UserNavbar />
 
         {/* Chat Box */}
         <div className="chat-container-single">
           <div className="chat-header">
-            <img src="https://i.pravatar.cc/40" alt="Admin" />
+            <img 
+              src={getAdminAvatar()} 
+              alt="Admin"
+              onError={(e) => {
+                e.target.src = "https://ui-avatars.com/api/?name=Support&background=4F46E5&color=fff&size=40";
+              }}
+            />
             <h3>Expert Support</h3>
           </div>
 
@@ -167,4 +112,4 @@ const Chats = () => {
   );
 };
 
-export default Chats;
+export default UserChats;

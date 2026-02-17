@@ -8,6 +8,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { testSMTP } from "./services/mail.service.js"; 
 
+
 // Import routes
 import authRoutes from "./routes/authRoutes.js";
 import mediatorRoutes from "./routes/mediatorRoutes.js";
@@ -54,10 +55,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ===== Routes =====
-// Auth routes (NEW - This was missing!)
-app.use("/api/auth", authRoutes);
 
-// Existing routes
+app.use("/api/auth", authRoutes);
 app.use("/api/mediator", mediatorRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/admin", adminRoutes);
@@ -83,7 +82,7 @@ app.get("/api/health", (req, res) => {
     status: "OK",
     database: mongoose.connection.readyState === 1 ? "Connected" : "Disconnected",
     uptime: process.uptime(),
-    emailConfigured: !!(process.env.EMAIL_USER && process.env.EMAIL_PASS) // ✅ Add this
+    emailConfigured: !!(process.env.EMAIL_USER && process.env.EMAIL_PASS) 
   });
 });
 

@@ -20,7 +20,7 @@ export default function UploadEvidence({ caseId }) {
 
     try {
       const token = localStorage.getItem("token");
-      const role = localStorage.getItem("role"); // dynamically party1 or party2
+      const role = localStorage.getItem("role"); 
 
       const res = await api.put(
         `/${role}/cases/${caseId}/evidence`,

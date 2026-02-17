@@ -1,27 +1,18 @@
 // src/pages/UserDashboard.js
 import React, { useState } from "react";
-import { useNavigate, } from "react-router-dom";
+import UserSidebar from "../components/UserSidebar";
+import UserNavbar from "../components/Navbar";
+
 import ActiveIcon from "../assets/icons/active.png";
 import CurrentIcon from "../assets/icons/current.png";
 import TotalIcon from "../assets/icons/total.png";
 import Vector from "../assets/icons/Vector.png";
-import HomeIcon from "../assets/icons/home.png";
-import FileIcon from "../assets/icons/file.png";
-import MeetingIcon from "../assets/icons/meeting.png";
-import CaseIcon from "../assets/icons/newcase.png";
-import DocsIcon from "../assets/icons/document.png";
-import ChatIcon from "../assets/icons/chat.png";
-import PaymentIcon from "../assets/icons/payment.png";
-import SupportIcon from "../assets/icons/support.png";
-import LogoutIcon from "../assets/icons/logout.png";
 
-import { FaCog, FaBell } from "react-icons/fa";
 import { PieChart, Pie, Cell } from "recharts";
 
 import "./UserDashboard.css";
 
-const Dashboard = () => {
-  const navigate = useNavigate();
+const UserDashboard = () => {
   const [showAllCases, setShowAllCases] = useState(false);
 
   const pieData = [
@@ -62,79 +53,13 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
-      {/* Sidebar */}
-      <aside className="sidebar">
-        <h2 className="sidebar-title">Dashboard</h2>
-        <nav className="menu">
-          <div className="menu-item active" onClick={() => navigate("/user/dashboard")}>
-            <img src={HomeIcon} alt="Home" />
-            <span>Home</span>
-          </div>
-
-          <div className="menu-item" onClick={() => navigate("/user/my-profile")}>
-            <img src={Vector} alt="Profile" />
-            <span>My Profile</span>
-          </div>
-
-          <div className="menu-item" onClick={() => navigate("/user/file-new-case/step1")}>
-            <img src={FileIcon} alt="File New Case" />
-            <span>File New Case</span>
-          </div>
-
-          <div className="menu-item" onClick={() => navigate("/user/my-cases")}>
-            <img src={CaseIcon} alt="My Cases" />
-            <span>My Cases</span>
-          </div>
-
-          <div className="menu-item" onClick={() => navigate("/user/case-meetings")}>
-            <img src={MeetingIcon} alt="Case Meetings" />
-            <span>Case Meetings</span>
-          </div>
-
-          <div className="menu-item">
-            <img src={DocsIcon} alt="Documents" />
-            <span>Documents</span>
-          </div>
-
-          <div className="menu-item" onClick={() => navigate("/user/chats")}>
-            <img src={ChatIcon} alt="Chats" />
-            <span>Chats</span>
-          </div>
-
-          <div className="menu-item">
-            <img src={PaymentIcon} alt="Payment" />
-            <span>Payment</span>
-          </div>
-
-          <div className="menu-item">
-            <img src={SupportIcon} alt="Support" />
-            <span>Support</span>
-          </div>
-        </nav>
-
-
-        <div className="logout">
-          <div className="menu-item">
-            <img src={LogoutIcon} alt="Logout" />
-            <span>Log out</span>
-          </div>
-        </div>
-      </aside>
+      {/* Reusable Sidebar */}
+      <UserSidebar activePage="dashboard" />
 
       {/* Main Content */}
       <main className="main-content">
-        {/* Navbar */}
-        <header className="navbar">
-          <div></div>
-          <div className="nav-icons">
-            <FaCog className="icon" />
-            <FaBell className="icon" />
-            <div className="profile">
-              <img src="https://i.pravatar.cc/40" alt="profile" className="profile-img" />
-              <span>Rohan Singhania</span>
-            </div>
-          </div>
-        </header>
+        {/* Reusable Navbar */}
+        <UserNavbar />
 
         {/* Stats */}
         <section className="stats">
@@ -219,6 +144,7 @@ const Dashboard = () => {
             </tbody>
           </table>
         </section>
+
         <section className="user-meetings-section">
           {/* Left side - Upcoming Meetings */}
           <div className="user-upcoming-meetings">
@@ -267,7 +193,6 @@ const Dashboard = () => {
           </div>
         </section>
 
-
         {/* Documents & Payments */}
         <section className="documents-payments">
           <div className="documents">
@@ -304,4 +229,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default UserDashboard;

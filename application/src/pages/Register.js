@@ -1,135 +1,217 @@
-// src/pages/Register.js
+// src/pages/MyProfile.js
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import api from "../api/axios"; // production-ready axios instance
+import "./MyProfile.css";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/authContext";
+import { useUser } from "../context/userContext";
 
-const Register = () => {
+// Icons
+import Vector from "../assets/icons/Vector.png";
+import HomeIcon from "../assets/icons/home.png";
+import FileIcon from "../assets/icons/file.png";
+import MeetingIcon from "../assets/icons/meeting.png";
+import CaseIcon from "../assets/icons/newcase.png";
+import DocsIcon from "../assets/icons/document.png";
+import ChatIcon from "../assets/icons/chat.png";
+import PaymentIcon from "../assets/icons/payment.png";
+import SupportIcon from "../assets/icons/support.png";
+import LogoutIcon from "../assets/icons/logout.png";
+
+import { FaCog, FaBell, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+
+const MyProfile = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { logoutUser } = useAuth();
+  const { user, loading, clearUser } = useUser();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    phone: "",
-    role: "user", // default role
-  });
+  const handleLogout = async () => {
+    const confirmLogout = window.confirm("Are you sure you want to logout?");
+    if (!confirmLogout) return;
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  // 🔹 Check for redirect query
-  const redirectPath = new URLSearchParams(location.search).get("redirect");
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-
-    // Basic validation
-    if (!form.name || !form.email || !form.password) {
-      setError("All fields are required");
-      return;
-    }
-
-    if (form.password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
+    setIsLoggingOut(true);
 
     try {
-      setLoading(true);
-
-      // 🔹 POST to backend register route
-      const res = await api.post("/user/register", {
-        name: form.name,
-        email: form.email,
-        password: form.password,
-        phone: form.phone,
-        role: form.role,
-      });
-
-      alert(res.data.message || "Registered successfully. Please login.");
-
-      // 🔹 Redirect after registration
-      if (redirectPath) {
-        navigate(redirectPath, { replace: true });
-      } else {
-        navigate("/login", { replace: true });
-      }
-    } catch (err) {
-      console.error("Registration error:", err);
-      setError(err.response?.data?.message || "Registration failed. Try again.");
+      logoutUser();
+      clearUser();
+      alert("✅ Logged out successfully!");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      alert("Failed to logout. Please try again.");
     } finally {
-      setLoading(false);
+      setIsLoggingOut(false);
     }
   };
 
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
+  if (loading) {
+    return <div style={{ padding: 40 }}>Loading profile...</div>;
+  }
+
   return (
-    <div className="auth-container">
-      <form onSubmit={handleSubmit} className="auth-form">
-        <h2>Create Account</h2>
+    <div className="dashboard-container">
+      {/* Sidebar */}
+      <aside className={`sidebar ${sidebarCollapsed ? "collapsed" : ""}`}>
+        <div className="sidebar-header">
+          <div className="sidebar-toggle" onClick={toggleSidebar}>
+            {sidebarCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
+          </div>
+        </div>
 
-        {error && <p className="error-text">{error}</p>}
+        <nav className="menu">
+          <div className="menu-item" onClick={() => navigate("/user/dashboard")}>
+            <img src={HomeIcon} alt="Home" />
+            {!sidebarCollapsed && <span>Home</span>}
+          </div>
 
-        <input
-          type="text"
-          name="name"
-          placeholder="Full Name"
-          value={form.name}
-          onChange={handleChange}
-          required
-        />
+          <div
+            className="menu-item active"
+            onClick={() => navigate("/user/my-profile")}
+          >
+            <img src={Vector} alt="Profile" />
+            {!sidebarCollapsed && <span>My Profile</span>}
+          </div>
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Email Address"
-          value={form.email}
-          onChange={handleChange}
-          required
-        />
+          <div
+            className="menu-item"
+            onClick={() => navigate("/user/file-new-case/step1")}
+          >
+            <img src={FileIcon} alt="File New Case" />
+            {!sidebarCollapsed && <span>File New Case</span>}
+          </div>
 
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={handleChange}
-          required
-        />
+          <div className="menu-item" onClick={() => navigate("/user/my-cases")}>
+            <img src={CaseIcon} alt="My Cases" />
+            {!sidebarCollapsed && <span>My Cases</span>}
+          </div>
 
-        <input
-          type="text"
-          name="phone"
-          placeholder="Phone Number"
-          value={form.phone}
-          onChange={handleChange}
-        />
+          <div
+            className="menu-item"
+            onClick={() => navigate("/user/case-meetings")}
+          >
+            <img src={MeetingIcon} alt="Case Meetings" />
+            {!sidebarCollapsed && <span>Case Meetings</span>}
+          </div>
 
-        <select name="role" value={form.role} onChange={handleChange}>
-          <option value="user">User</option>
-          <option value="mediator">Mediator</option>
-          <option value="case-manager">Case Manager</option>
-          <option value="admin">Admin</option>
-        </select>
+          <div className="menu-item" onClick={() => navigate("/user/documents")}>
+            <img src={DocsIcon} alt="Documents" />
+            {!sidebarCollapsed && <span>Documents</span>}
+          </div>
 
-        <button type="submit" disabled={loading}>
-          {loading ? "Registering..." : "Register"}
-        </button>
+          <div className="menu-item" onClick={() => navigate("/user/chats")}>
+            <img src={ChatIcon} alt="Chats" />
+            {!sidebarCollapsed && <span>Chats</span>}
+          </div>
 
-        <p className="auth-switch">
-          Already have an account?{" "}
-          <span onClick={() => navigate(`/login${redirectPath ? `?redirect=${redirectPath}` : ""}`)}>
-            Login
-          </span>
-        </p>
-      </form>
+          <div className="menu-item" onClick={() => navigate("/user/payments")}>
+            <img src={PaymentIcon} alt="Payment" />
+            {!sidebarCollapsed && <span>Payment</span>}
+          </div>
+
+          <div className="menu-item" onClick={() => navigate("/user/support")}>
+            <img src={SupportIcon} alt="Support" />
+            {!sidebarCollapsed && <span>Support</span>}
+          </div>
+        </nav>
+
+        <div className="logout">
+          <div 
+            className="menu-item" 
+            onClick={handleLogout}
+            style={{ 
+              cursor: isLoggingOut ? "not-allowed" : "pointer", 
+              opacity: isLoggingOut ? 0.6 : 1 
+            }}
+          >
+            <img src={LogoutIcon} alt="Logout" />
+            {!sidebarCollapsed && <span>{isLoggingOut ? "Logging out..." : "Log out"}</span>}
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Section */}
+      <main className={`main-content ${sidebarCollapsed ? "expanded" : ""}`}>
+        {/* Navbar */}
+        <header className="navbar">
+          <div />
+          <div className="nav-icons">
+            <FaCog className="icon" />
+            <FaBell className="icon" />
+            <div className="profile">
+              <img
+                src={user.avatar || "https://i.pravatar.cc/40"}
+                alt="profile"
+                className="profile-img"
+              />
+              <span>{user.name}</span>
+            </div>
+          </div>
+        </header>
+
+        {/* Profile Content */}
+        <section className="profile-section">
+          <div className="profile-left-card">
+            <img
+              src={user.avatar || "https://i.pravatar.cc/150"}
+              alt="User"
+              className="profile-avatar"
+            />
+            <h3>{user.name}</h3>
+            <p className="email">{user.email}</p>
+            <p className="phone">{user.phone || "—"}</p>
+
+            <button
+              className="save-btn"
+              onClick={() => navigate("/user/edit-profile")}
+            >
+              <span>✏️</span> Edit Profile
+            </button>
+          </div>
+
+          <div className="profile-right-card">
+            <h3>Personal Information</h3>
+
+            <div className="info-grid">
+              <div>
+                <p>Date of Birth</p>
+                <h4>{user.dob ? new Date(user.dob).toLocaleDateString() : "—"}</h4>
+              </div>
+              <div>
+                <p>Gender</p>
+                <h4>{user.gender || "—"}</h4>
+              </div>
+              <div>
+                <p>City</p>
+                <h4>{user.city || "—"}</h4>
+              </div>
+              <div>
+                <p>Country</p>
+                <h4>{user.country || "—"}</h4>
+              </div>
+              <div>
+                <p>State</p>
+                <h4>{user.state || "—"}</h4>
+              </div>
+              <div>
+                <p>Pin Code</p>
+                <h4>{user.pincode || "—"}</h4>
+              </div>
+            </div>
+
+            <div className="address-section">
+              <p>Address</p>
+              <h4>{user.address || "—"}</h4>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 };
 
-export default Register;
+export default MyProfile;
