@@ -7,7 +7,7 @@ import google from "../assets/icons/google.png";
 import linkdin from "../assets/icons/linkdin.png";
 import phone from "../assets/icons/phone.png";
 import fb from "../assets/icons/fb.png";
-import api from "../api/axios"; // ✅ ONLY THIS
+import api from "../api/axios";
 
 const Signup = () => {
   const [form, setForm] = useState({
@@ -18,8 +18,7 @@ const Signup = () => {
     role: "user",
   });
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // ✅ removed unused showPassword state
 
   // OTP states
   const [otpSent, setOtpSent] = useState(false);

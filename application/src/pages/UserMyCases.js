@@ -1,7 +1,7 @@
 // src/pages/UserMyCases.js
 "use client";
 
-import React, { useState, useEffect, createContext, useContext } from "react";
+import React, { useState, useEffect, useCallback, createContext, useContext } from "react"; // ✅ added useCallback
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 import api from "../api/axios";
@@ -41,7 +41,6 @@ const UserProvider = ({ children }) => {
 };
 
 // ─── Status badge helper ──────────────────────────────────────────────────────
-
 const statusClass = (status = "") => status.toLowerCase().replace(/\s+/g, "-");
 
 // ─── CasesTable sub-component ─────────────────────────────────────────────────
@@ -111,7 +110,8 @@ const UserMyCasesContent = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // ─── Fetch user info + cases ────────────────────────────────────────────────
-  const fetchData = async () => {
+  // ✅ Wrapped in useCallback to fix react-hooks/exhaustive-deps warning
+  const fetchData = useCallback(async () => {
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
@@ -122,22 +122,17 @@ const UserMyCasesContent = () => {
     setError(null);
 
     try {
-      // 1️⃣ User info
       const userRes = await api.get("/cases/me");
-      // getMe returns both `name` and `fullName` as aliases
       setUser({
         fullName: userRes.data.name || userRes.data.fullName || "User",
         avatar: userRes.data.avatar || "https://i.pravatar.cc/40",
       });
 
-      // 2️⃣ Cases
       const casesRes = await api.get("/cases/my-cases");
-
-      // ── Debug: log raw response so you can inspect it in DevTools ──
       console.log("✅ /cases/my-cases response:", casesRes.data);
 
-      const raised   = casesRes.data?.raisedCases   ?? [];
-      const opponent = casesRes.data?.opponentCases  ?? [];
+      const raised   = casesRes.data?.raisedCases  ?? [];
+      const opponent = casesRes.data?.opponentCases ?? [];
 
       if (!Array.isArray(raised) || !Array.isArray(opponent)) {
         throw new Error("Unexpected response shape from /cases/my-cases");
@@ -161,11 +156,11 @@ const UserMyCasesContent = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]); // ✅ navigate is the only real external dependency
 
   useEffect(() => {
     fetchData();
-  }, [navigate]); 
+  }, [fetchData]); // ✅ no more ESLint warning
 
   // ─── Search filter ──────────────────────────────────────────────────────────
   const filterCases = (list) =>
@@ -180,7 +175,7 @@ const UserMyCasesContent = () => {
   const filteredRaised   = filterCases(raisedCases);
   const filteredOpponent = filterCases(opponentCases);
 
-  // ─── Logout ───
+  // ─── Logout ──────────────────────────────────────────────────────────────────
   const handleLogout = async () => {
     if (!window.confirm("Are you sure you want to logout?")) return;
     setIsLoggingOut(true);
@@ -197,7 +192,7 @@ const UserMyCasesContent = () => {
     }
   };
 
-  // ─── Render guards ───────────────────────────────────────────────────────────
+  // ─── Render guards ────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", flexDirection: "column", gap: 12 }}>
@@ -221,7 +216,7 @@ const UserMyCasesContent = () => {
     );
   }
 
-  // ─── Full render ─────────────────────────────────────────────────────────────
+  // ─── Full render ──────────────────────────────────────────────────────────────
   return (
     <div className="dashboard-container">
       {/* ── Sidebar ── */}
@@ -234,15 +229,15 @@ const UserMyCasesContent = () => {
 
         <nav className="menu">
           {[
-            { icon: HomeIcon,    label: "Home",         path: "/user/dashboard" },
-            { icon: Vector,      label: "My Profile",   path: "/user/my-profile" },
+            { icon: HomeIcon,    label: "Home",          path: "/user/dashboard" },
+            { icon: Vector,      label: "My Profile",    path: "/user/my-profile" },
             { icon: FileIcon,    label: "File New Case", path: "/user/file-new-case/step1" },
-            { icon: CaseIcon,    label: "My Cases",     path: "/user/my-cases",    active: true },
+            { icon: CaseIcon,    label: "My Cases",      path: "/user/my-cases",      active: true },
             { icon: MeetingIcon, label: "Case Meetings", path: "/user/case-meetings" },
-            { icon: DocsIcon,    label: "Documents",    path: "/user/documents" },
-            { icon: ChatIcon,    label: "Chats",        path: "/user/chats" },
-            { icon: PaymentIcon, label: "Payment",      path: "/user/payment" },
-            { icon: SupportIcon, label: "Support",      path: "/user/support" },
+            { icon: DocsIcon,    label: "Documents",     path: "/user/documents" },
+            { icon: ChatIcon,    label: "Chats",         path: "/user/chats" },
+            { icon: PaymentIcon, label: "Payment",       path: "/user/payment" },
+            { icon: SupportIcon, label: "Support",       path: "/user/support" },
           ].map(({ icon, label, path, active }) => (
             <div key={label} className={`menu-item ${active ? "active" : ""}`} onClick={() => navigate(path)}>
               <img src={icon} alt={label} />
@@ -319,7 +314,7 @@ const UserMyCasesContent = () => {
   );
 };
 
-// ─── Export wrapped with UserProvider ────────────────────────────────────────
+// ─── Export wrapped with UserProvider ─────────────────────────────────────────
 const UserMyCases = () => (
   <UserProvider>
     <UserMyCasesContent />

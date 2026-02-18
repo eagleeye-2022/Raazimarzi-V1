@@ -1,14 +1,11 @@
 // src/pages/FileNewCaseStep2.js
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axios"; 
 import UserSidebar from "../components/UserSidebar";
 import UserNavbar from "../components/Navbar";
 
 import "./FileNewCase.css";
-
-// ✅ Use environment variable for API URL
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const FileNewCaseStep2 = () => {
   const navigate = useNavigate();
@@ -33,7 +30,7 @@ const FileNewCaseStep2 = () => {
     if (storedCaseData?.step2) {
       setFormData(storedCaseData.step2);
     }
-  }, [storedCaseData]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -64,9 +61,6 @@ const FileNewCaseStep2 = () => {
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem("token");
-
-      // ✅ FIXED: Correct data structure matching backend expectations
       const finalData = {
         caseType: storedCaseData.caseType,
         caseTitle: storedCaseData.caseTitle,
@@ -75,36 +69,22 @@ const FileNewCaseStep2 = () => {
         caseValue: storedCaseData.caseValue,
         petitioner: storedCaseData.petitioner,
         defendant: storedCaseData.defendant,
-        caseFacts: formData,  // ✅ Changed from step2 to caseFacts
+        caseFacts: formData,
       };
 
-      console.log("📤 Sending case data:", finalData);
-
-      const response = await axios.post(
-        `${API_URL}/cases/file`,
-        finalData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await api.post("/cases/file", finalData); // ✅ removed unused `response` variable
 
       alert("✅ Case filed successfully!");
       localStorage.removeItem("caseData");
       navigate("/user/my-cases");
     } catch (error) {
-      console.error(
-        "❌ Error submitting case:",
-        error.response?.data || error.message
-      );
-      
-      // ✅ Better error messages
-      const errorMessage = 
-        error.response?.data?.message || 
-        error.message || 
+      console.error("❌ Error submitting case:", error.response?.data || error.message);
+
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
         "Failed to submit case. Please try again.";
-      
+
       alert(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -113,12 +93,9 @@ const FileNewCaseStep2 = () => {
 
   return (
     <div className="dashboard-container">
-      {/* Reusable Sidebar */}
       <UserSidebar activePage="file-case" />
 
-      {/* Main Section */}
       <section className="main-section">
-        {/* Reusable Navbar */}
         <UserNavbar />
 
         <div className="step-bar">
@@ -203,8 +180,8 @@ const FileNewCaseStep2 = () => {
             >
               ← Back
             </button>
-            <button 
-              className="next-btn" 
+            <button
+              className="next-btn"
               onClick={handleSubmit}
               disabled={isSubmitting}
             >
