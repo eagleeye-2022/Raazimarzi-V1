@@ -34,6 +34,9 @@ import ForgotPassword from "./pages/ForgotPassword";
 import { CaseProvider } from "./context/caseContext";
 import { UserProvider } from "./context/userContext";
 
+// 🟢 Import Vercel Speed Insights
+import { SpeedInsights } from "@vercel/speed-insights/react";
+
 function App() {
   return (
     // ✅ Add basename="/app" to handle /app subdirectory
@@ -81,6 +84,7 @@ function App() {
           </Routes>
         </CaseProvider>
       </UserProvider>
+      <SpeedInsights />
     </Router>
   );
 }
