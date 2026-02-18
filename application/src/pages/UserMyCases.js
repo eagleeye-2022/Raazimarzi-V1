@@ -41,7 +41,7 @@ const UserProvider = ({ children }) => {
 };
 
 // ─── Status badge helper ──────────────────────────────────────────────────────
-// Safely converts any status string to a CSS-safe lowercase class name.
+
 const statusClass = (status = "") => status.toLowerCase().replace(/\s+/g, "-");
 
 // ─── CasesTable sub-component ─────────────────────────────────────────────────

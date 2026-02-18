@@ -1,14 +1,12 @@
 // src/App.js
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import PrivateRoute from "./routes/PrivateRoute";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import UserDashboard from "./pages/UserDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import CaseManagerDashboard from "./pages/CaseManagerDashboard";
 import CreateCase from "./pages/CreateCase";
-import UploadEvidence from "./pages/UploadEvidence";
 import MyProfile from "./pages/MyProfile";
 import EditProfile from "./pages/EditProfile";
 import FileNewCaseStep1 from "./pages/FileNewCaseStep1";
