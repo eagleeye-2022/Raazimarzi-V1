@@ -1,12 +1,24 @@
-const express = require("express");
-const { getAllCases, assignMediator } = require("../controllers/caseManagerController");
-const { protect } = require("../middleware/authMiddleware");
+import express from "express";
+import protect, { authorizeRoles } from "../middleware/authMiddleware.js";
+
+import {
+  getMyCases,
+  getMyCaseById,
+  updateMyCaseStatus,
+  scheduleMyCaseHearing,
+  addMyCaseNote,
+  getMyCaseStats,
+} from "../controllers/caseManagerController.js";
 
 const router = express.Router();
 
-router.get("/test", (req, res) => res.json({ message: "Case Manager routes working ✅" }));
+const isManager = [protect, authorizeRoles(["case-manager", "admin"])];
 
-router.get("/cases", protect, getAllCases);
-router.put("/cases/:id/assign", protect, assignMediator);
+router.get("/stats", ...isManager, getMyCaseStats);
+router.get("/cases", ...isManager, getMyCases);
+router.get("/cases/:id", ...isManager, getMyCaseById);
+router.patch("/cases/:id/status", ...isManager, updateMyCaseStatus);
+router.patch("/cases/:id/hearing", ...isManager, scheduleMyCaseHearing);
+router.post("/cases/:id/note", ...isManager, addMyCaseNote);
 
-module.exports = router;
+export default router;

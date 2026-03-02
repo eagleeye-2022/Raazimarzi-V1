@@ -1,5 +1,5 @@
 import express from "express";
-import protect from "../middleware/authMiddleware.js";
+import protect, { authorizeRoles } from "../middleware/authMiddleware.js";
 import {
   fileNewCase,
   getMe,
@@ -17,11 +17,14 @@ router.post("/file", protect, fileNewCase);
 // ⚠️ Specific string routes MUST come before wildcard /:id
 router.get("/me", protect, getMe);            
 router.get("/my-cases", protect, getUserCases); 
-router.get("/all", protect, getAllCases);       
+
+// ✅ ADMIN-ONLY: Get all cases
+router.get("/all", protect, authorizeRoles(["admin"]), getAllCases);
 
 router.get("/:id", protect, getCaseById);       
 
 // ==================== ADMIN ROUTES ====================
-router.patch("/:id/status", protect, updateCaseStatus);
+// ✅ ADMIN-ONLY: Update case status
+router.patch("/:id/status", protect, authorizeRoles(["admin"]), updateCaseStatus);
 
 export default router;

@@ -38,7 +38,7 @@ export const sendOtp = async (req, res) => {
       email,
       otpHash,
       type,
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000), 
     });
 
     // Send OTP email using centralized mail service

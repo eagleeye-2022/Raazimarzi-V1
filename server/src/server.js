@@ -6,8 +6,12 @@ import express from "express";
 import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import path from "path";
+import { fileURLToPath } from "url";
 import { testSMTP } from "./services/mail.service.js"; 
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Import routes
 import authRoutes from "./routes/authRoutes.js";
@@ -17,11 +21,13 @@ import adminRoutes from "./routes/adminRoutes.js";
 import otpRoutes from "./routes/otpRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import caseRoutes from "./routes/caseRoutes.js";
+import documentRoutes from "./routes/documentRoutes.js";  // ✅ NEW
 import chatRoutes from "./routes/chatRoutes.js";
 import passwordRoutes from "./routes/passwordRoutes.js";
 import contactRoutes from "./routes/contact.routes.js";
 import demoRoutes from "./routes/demo.routes.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
+import meetingRoutes from "./routes/meetingRoutes.js";
 
 const app = express();
 
@@ -32,7 +38,6 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001"
 ];
-
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -54,8 +59,10 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ===== Routes =====
+// ===== Static Files - Serve uploaded documents =====
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// ===== Routes =====
 app.use("/api/auth", authRoutes);
 app.use("/api/mediator", mediatorRoutes);
 app.use("/api/user", userRoutes);
@@ -63,10 +70,12 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/otp", otpRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/cases", caseRoutes);
+app.use("/api/documents", documentRoutes);  // ✅ NEW - Document management
 app.use("/api/chats", chatRoutes);
 app.use("/api/password", passwordRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/demo", demoRoutes);
+app.use("/api/meetings", meetingRoutes);
 
 // ===== Health check =====
 app.get("/", (req, res) => {
@@ -190,6 +199,8 @@ server.listen(PORT, async () => {
   console.log(`   POST /api/otp/send-otp - Send OTP`);
   console.log(`   POST /api/otp/verify-otp - Verify OTP`);
   console.log(`   POST /api/password/reset - Reset password`);
+  console.log(`   POST /api/documents/upload - Upload document`);
+  console.log(`   GET  /api/documents/case/:caseId - Get case documents`);
   console.log(`\n✨ Ready to accept connections!\n`);
 });
 
