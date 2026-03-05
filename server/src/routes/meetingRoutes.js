@@ -2,6 +2,8 @@ import express from "express";
 import protect, { authorizeRoles } from "../middleware/authMiddleware.js";
 import {
   createMeeting,
+  getMyMeetings,
+  getAllMeetings,
   getMeetingsByCase,
   getMeetingById,
   updateMeeting,
@@ -9,53 +11,26 @@ import {
   cancelMeeting,
   completeMeeting,
   getMediatorAvailability,
-  getAllMeetings,
-  getMyMeetings,
 } from "../controllers/meetingController.js";
 
 const router = express.Router();
 
-/* ═══════════════════════════════════════════════════════════════
-   USER ROUTES
-═══════════════════════════════════════════════════════════════ */
+const adminOnly = [protect, authorizeRoles(["admin"])];
+const adminOrManager = [protect, authorizeRoles(["admin", "case-manager"])];
+const adminManagerOrMediator = [protect, authorizeRoles(["admin", "case-manager", "mediator"])];
 
-// Get my meetings (upcoming + past)
-router.get("/my-meetings", protect, getMyMeetings);
-
-// Create a new meeting
-router.post("/", protect, createMeeting);
-
-// Get all meetings for a case
+/* ─ Specific string routes FIRST ─ */
+router.get("/my", protect, getMyMeetings);
+router.get("/all", ...adminOnly, getAllMeetings);
+router.get("/availability", ...adminOrManager, getMediatorAvailability);
 router.get("/case/:caseId", protect, getMeetingsByCase);
+router.post("/", ...adminOrManager, createMeeting);
 
-// Get single meeting details
+/* ─ Param routes LAST ─ */
 router.get("/:id", protect, getMeetingById);
-
-// Update meeting (organizer/mediator/admin only)
-router.put("/:id", protect, updateMeeting);
-
-// Reschedule meeting
-router.patch("/:id/reschedule", protect, rescheduleMeeting);
-
-// Cancel meeting
-router.patch("/:id/cancel", protect, cancelMeeting);
-
-// Mark meeting as completed
-router.patch("/:id/complete", protect, completeMeeting);
-
-// Check mediator availability
-router.get("/availability/check", protect, getMediatorAvailability);
-
-/* ═══════════════════════════════════════════════════════════════
-   ADMIN ROUTES
-═══════════════════════════════════════════════════════════════ */
-
-// Get all meetings across all cases (admin only)
-router.get(
-  "/",
-  protect,
-  authorizeRoles(["admin"]),
-  getAllMeetings
-);
+router.put("/:id", ...adminOrManager, updateMeeting);
+router.patch("/:id/reschedule", ...adminOrManager, rescheduleMeeting);
+router.patch("/:id/cancel", ...adminOrManager, cancelMeeting);
+router.patch("/:id/complete", ...adminManagerOrMediator, completeMeeting);
 
 export default router;

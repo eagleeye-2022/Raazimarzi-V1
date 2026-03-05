@@ -3,6 +3,7 @@ import protect, { authorizeRoles } from "../middleware/authMiddleware.js";
 import upload from "../middleware/documentUpload.js";
 import {
   uploadDocument,
+  getAllDocuments,
   getDocumentsByCase,
   getDocumentById,
   downloadDocument,
@@ -10,64 +11,24 @@ import {
   deleteDocument,
   approveDocument,
   rejectDocument,
-  getAllDocuments,
 } from "../controllers/documentController.js";
 
 const router = express.Router();
 
-/* ═══════════════════════════════════════════════════════════════
-   USER ROUTES (Petitioner, Defendant)
-═══════════════════════════════════════════════════════════════ */
+const adminOnly = [protect, authorizeRoles(["admin"])];
+const adminOrManager = [protect, authorizeRoles(["admin", "case-manager"])];
 
-// Upload a document to a case
-router.post(
-  "/upload",
-  protect,
-  upload.single("document"), // field name in form-data
-  uploadDocument
-);
-
-// Get all documents for a specific case (user must have access to case)
+/* ─ Specific string routes FIRST (prevent /:id from swallowing them) ─ */
+router.post("/upload", protect, upload.single("document"), uploadDocument);
+router.get("/all", ...adminOnly, getAllDocuments);
 router.get("/case/:caseId", protect, getDocumentsByCase);
 
-// Get single document details
+/* ─ Param routes LAST ─ */
 router.get("/:id", protect, getDocumentById);
-
-// Download a document
 router.get("/:id/download", protect, downloadDocument);
-
-// Update document metadata (uploader or admin only)
 router.put("/:id", protect, updateDocument);
-
-// Delete document (uploader or admin only)
 router.delete("/:id", protect, deleteDocument);
-
-/* ═══════════════════════════════════════════════════════════════
-   ADMIN ROUTES
-═══════════════════════════════════════════════════════════════ */
-
-// Get all documents across all cases (admin only)
-router.get(
-  "/",
-  protect,
-  authorizeRoles(["admin"]),
-  getAllDocuments
-);
-
-// Approve a document (admin only)
-router.patch(
-  "/:id/approve",
-  protect,
-  authorizeRoles(["admin"]),
-  approveDocument
-);
-
-// Reject a document (admin only)
-router.patch(
-  "/:id/reject",
-  protect,
-  authorizeRoles(["admin"]),
-  rejectDocument
-);
+router.patch("/:id/approve", ...adminOrManager, approveDocument);
+router.patch("/:id/reject", ...adminOrManager, rejectDocument);
 
 export default router;

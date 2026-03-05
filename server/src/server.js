@@ -28,6 +28,7 @@ import contactRoutes from "./routes/contact.routes.js";
 import demoRoutes from "./routes/demo.routes.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 import meetingRoutes from "./routes/meetingRoutes.js";
+import arbitratorRoutes from "./routes/arbitratorRoutes.js";
 
 const app = express();
 
@@ -76,6 +77,7 @@ app.use("/api/password", passwordRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/demo", demoRoutes);
 app.use("/api/meetings", meetingRoutes);
+app.use("/api/arbitrator", arbitratorRoutes);
 
 // ===== Health check =====
 app.get("/", (req, res) => {

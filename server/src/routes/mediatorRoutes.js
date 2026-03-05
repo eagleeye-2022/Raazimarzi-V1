@@ -1,10 +1,15 @@
 import express from "express";
-import  protect  from "../middleware/authMiddleware.js";
-import { getMediatorProfile } from "../controllers/mediatorController.js";
+import protect, { authorizeRoles } from "../middleware/authMiddleware.js";
+import { getMyStats, getMyCases, getMyCaseById, resolveCase, addNote, getMyMeetings } from "../controllers/mediatorController.js";
 
 const router = express.Router();
+const isMediatorOrAdmin = [protect, authorizeRoles(["mediator", "admin"])];
 
-// Protected route example
-router.get("/profile", protect, getMediatorProfile);
+router.get("/stats",            ...isMediatorOrAdmin, getMyStats);
+router.get("/cases",            ...isMediatorOrAdmin, getMyCases);
+router.get("/meetings",         ...isMediatorOrAdmin, getMyMeetings);
+router.get("/cases/:id",        ...isMediatorOrAdmin, getMyCaseById);
+router.patch("/cases/:id/resolve", ...isMediatorOrAdmin, resolveCase);
+router.post("/cases/:id/note",  ...isMediatorOrAdmin, addNote);
 
 export default router;
