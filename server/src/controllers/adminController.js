@@ -1,5 +1,6 @@
 import Case from "../models/caseModel.js";
 import User from "../models/userModel.js";
+import Meeting from "../models/meetingModel.js";
 import nodemailer from "nodemailer";
 
 const getTransporter = () =>
@@ -9,7 +10,199 @@ const getTransporter = () =>
   });
 
 /* ════════════════════════════════════════
-   DASHBOARD STATS
+   ADMIN DASHBOARD — single endpoint for frontend
+   Returns everything AdminDashboard.jsx needs:
+   - Admin profile
+   - Stats (active, current, total, progress)
+   - Recent cases table
+   - Today's meeting
+   - Case progress (latest active case)
+════════════════════════════════════════ */
+export const getAdminDashboard = async (req, res) => {
+  try {
+    const now = new Date();
+
+    /* ── 1. Admin profile ── */
+    const admin = await User.findById(req.user.id).select("name email avatar");
+
+    /* ── 2. Case stats ── */
+    const [
+      totalCases, activeCases, pendingReview,
+      resolvedCases, awardedCases, rejectedCases,
+      exParteCases, noticeSentCases,
+    ] = await Promise.all([
+      Case.countDocuments(),
+      Case.countDocuments({ status: { $in: ["in-progress","Assigned","Hearing","hearing","mediation","arbitration","In Review","notice-sent"] } }),
+      Case.countDocuments({ adminStatus: "pending-review" }),
+      Case.countDocuments({ status: { $in: ["Resolved","resolved"] } }),
+      Case.countDocuments({ status: "awarded" }),
+      Case.countDocuments({ status: { $in: ["Rejected","rejected"] } }),
+      Case.countDocuments({ isExParte: true }),
+      Case.countDocuments({ status: "notice-sent" }),
+    ]);
+
+    // Current = cases in active hearing/mediation/arbitration phase
+    const currentCases = await Case.countDocuments({
+      status: { $in: ["Hearing","hearing","mediation","arbitration"] },
+    });
+
+    const totalSettled = resolvedCases + awardedCases;
+    const resolutionRate = totalCases > 0
+      ? ((totalSettled / totalCases) * 100).toFixed(1)
+      : 0;
+
+    /* ── 3. Latest active case for progress card ── */
+    const latestActiveCase = await Case.findOne({
+      status: { $in: ["in-progress","mediation","arbitration","Hearing","hearing"] },
+    })
+      .populate("assignedNeutral",     "name avatar")
+      .populate("assignedCaseManager", "name avatar")
+      .populate("claimant",            "name")
+      .populate("createdBy",           "name")
+      .sort({ updatedAt: -1 });
+
+    /* ── 4. Recent cases for table (last 10) ── */
+    const recentCases = await Case.find()
+      .populate("assignedNeutral",     "name avatar")
+      .populate("assignedMediator",    "name avatar")
+      .populate("assignedCaseManager", "name avatar")
+      .populate("claimant",            "name email")
+      .populate("createdBy",           "name email")
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .lean();
+
+    const formattedCases = recentCases.map((c) => {
+      const neutral  = c.assignedNeutral || c.assignedMediator;
+      const manager  = c.assignedCaseManager;
+      const claimant = c.claimant || c.createdBy;
+
+      return {
+        _id:          c._id,
+        caseId:       c.caseId,
+        title:        c.caseTitle,
+        party1:       c.petitionerDetails?.fullName || claimant?.name || "N/A",
+        party2:       c.defendantDetails?.fullName  || c.respondent?.name || "N/A",
+        category:     c.caseType || "General",
+        assignedTo:   neutral?.name || manager?.name || "Not Assigned",
+        assignedAvatar: neutral?.avatar || manager?.avatar || null,
+        status:       c.status,
+        adminStatus:  c.adminStatus,
+        filedOn:      c.createdAt,
+      };
+    });
+
+    /* ── 5. Today's meetings ── */
+    const startOfDay = new Date(now); startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay   = new Date(now); endOfDay.setHours(23, 59, 59, 999);
+
+    const todayMeetings = await Meeting.find({
+      scheduledDate: { $gte: startOfDay, $lte: endOfDay },
+      status:        { $in: ["Scheduled","Confirmed","In Progress"] },
+    })
+      .populate("caseId",   "caseId caseTitle")
+      .populate("mediator", "name")
+      .sort({ startTime: 1 })
+      .limit(5)
+      .lean();
+
+    const formattedMeetings = todayMeetings.map((m) => ({
+      _id:      m._id,
+      caseId:   m.caseId?.caseId   || "",
+      title:    m.caseId?.caseTitle || m.meetingTitle || "Meeting",
+      time:     `${m.startTime} - ${m.endTime}`,
+      date:     m.scheduledDate,
+      meetingWith: m.mediator?.name || "Manager",
+      link:     m.virtualMeeting?.meetingLink || "",
+      status:   m.status,
+    }));
+
+    /* ── 6. Case progress for progress card ── */
+    let caseProgress = null;
+    if (latestActiveCase) {
+      // Calculate phase based on status
+      const phaseMap = {
+        "notice-sent":  { phase: "Phase 1", percent: 20 },
+        "in-progress":  { phase: "Phase 2", percent: 40 },
+        "mediation":    { phase: "Phase 3", percent: 60 },
+        "arbitration":  { phase: "Phase 3", percent: 60 },
+        "Hearing":      { phase: "Phase 4", percent: 80 },
+        "hearing":      { phase: "Phase 4", percent: 80 },
+        "awarded":      { phase: "Phase 5", percent: 100 },
+        "resolved":     { phase: "Phase 5", percent: 100 },
+        "Resolved":     { phase: "Phase 5", percent: 100 },
+      };
+
+      const phase = phaseMap[latestActiveCase.status] || { phase: "Phase 1", percent: 20 };
+
+      caseProgress = {
+        _id:          latestActiveCase._id,
+        caseId:       latestActiveCase.caseId,
+        title:        latestActiveCase.caseTitle,
+        status:       latestActiveCase.status,
+        phase:        phase.phase,
+        phasePercent: phase.percent,
+        filingFeePaid: latestActiveCase.filingFeePaid || false,
+        filingFee:    latestActiveCase.filingFee || 0,
+        party1:       latestActiveCase.petitionerDetails?.fullName ||
+                      latestActiveCase.claimant?.name || "N/A",
+        party2:       latestActiveCase.defendantDetails?.fullName  ||
+                      latestActiveCase.respondent?.name || "N/A",
+        mediator:     latestActiveCase.assignedNeutral?.name    || "Not Assigned",
+        manager:      latestActiveCase.assignedCaseManager?.name || "Not Assigned",
+        category:     latestActiveCase.caseType || "General",
+      };
+    }
+
+    /* ── 7. Cases by type for chart ── */
+    const casesByType = await Case.aggregate([
+      { $group: { _id: "$caseType", count: { $sum: 1 } } },
+    ]);
+
+    /* ── 8. 30-day trend ── */
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const recentTrend = await Case.aggregate([
+      { $match: { createdAt: { $gte: thirtyDaysAgo } } },
+      { $group: {
+        _id:   { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+        count: { $sum: 1 },
+      }},
+      { $sort: { _id: 1 } },
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      admin: {
+        name:   admin?.name   || "Admin",
+        email:  admin?.email  || "",
+        avatar: admin?.avatar || "",
+      },
+      stats: {
+        active:         activeCases,
+        current:        currentCases,
+        total:          totalCases,
+        pendingReview,
+        resolved:       resolvedCases,
+        awarded:        awardedCases,
+        rejected:       rejectedCases,
+        exParte:        exParteCases,
+        noticeSent:     noticeSentCases,
+        resolutionRate,
+      },
+      cases:        formattedCases,
+      todayMeetings: formattedMeetings,
+      caseProgress,
+      casesByType,
+      recentTrend,
+    });
+  } catch (error) {
+    console.error("❌ getAdminDashboard error:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/* ════════════════════════════════════════
+   DASHBOARD STATS (kept — used by other places)
 ════════════════════════════════════════ */
 export const getDashboardStats = async (req, res) => {
   try {
@@ -20,10 +213,10 @@ export const getDashboardStats = async (req, res) => {
     ] = await Promise.all([
       Case.countDocuments(),
       Case.countDocuments({ adminStatus: "pending-review" }),
-      Case.countDocuments({ status: { $in: ["in-progress", "Assigned", "Hearing", "hearing", "mediation", "arbitration", "In Review"] } }),
-      Case.countDocuments({ status: { $in: ["Resolved", "resolved"] } }),
+      Case.countDocuments({ status: { $in: ["in-progress","Assigned","Hearing","hearing","mediation","arbitration","In Review"] } }),
+      Case.countDocuments({ status: { $in: ["Resolved","resolved"] } }),
       Case.countDocuments({ status: "awarded" }),
-      Case.countDocuments({ status: { $in: ["Rejected", "rejected"] } }),
+      Case.countDocuments({ status: { $in: ["Rejected","rejected"] } }),
       Case.countDocuments({ isExParte: true }),
       User.countDocuments({ role: "user" }),
       User.countDocuments({ role: "mediator" }),
@@ -100,7 +293,7 @@ export const deleteUser = async (req, res) => {
 export const updateUserRole = async (req, res) => {
   try {
     const { role } = req.body;
-    const validRoles = ["user", "admin", "mediator", "arbitrator", "case-manager"];
+    const validRoles = ["user","admin","mediator","arbitrator","case-manager"];
     if (!validRoles.includes(role))
       return res.status(400).json({ message: "Invalid role" });
     const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true }).select("-password");
@@ -187,10 +380,10 @@ export const getAllCases = async (req, res) => {
   try {
     const { status, adminStatus, caseType, priority, page = 1, limit = 20, search } = req.query;
     const filter = {};
-    if (status)      filter.status = status;
+    if (status)      filter.status      = status;
     if (adminStatus) filter.adminStatus = adminStatus;
-    if (caseType)    filter.caseType = caseType;
-    if (priority)    filter.priority = priority;
+    if (caseType)    filter.caseType    = caseType;
+    if (priority)    filter.priority    = priority;
     if (search) {
       filter.$or = [
         { caseTitle: { $regex: search, $options: "i" } },
@@ -199,9 +392,9 @@ export const getAllCases = async (req, res) => {
     }
     const total = await Case.countDocuments(filter);
     const cases = await Case.find(filter)
-      .populate("createdBy", "name email").populate("claimant", "name email")
+      .populate("createdBy",         "name email").populate("claimant", "name email")
       .populate("respondent.userId", "name email").populate("assignedCaseManager", "name email")
-      .populate("assignedNeutral", "name email role")
+      .populate("assignedNeutral",   "name email role")
       .sort({ createdAt: -1 }).skip((page - 1) * limit).limit(Number(limit));
     return res.status(200).json({ success: true, total, cases });
   } catch (error) {
@@ -212,9 +405,12 @@ export const getAllCases = async (req, res) => {
 export const getCaseById = async (req, res) => {
   try {
     const caseData = await Case.findById(req.params.id)
-      .populate("createdBy", "name email").populate("claimant", "name email avatar phone")
-      .populate("respondent.userId", "name email avatar phone").populate("assignedCaseManager", "name email avatar")
-      .populate("assignedNeutral", "name email avatar role").populate("reviewedBy", "name email")
+      .populate("createdBy",            "name email")
+      .populate("claimant",             "name email avatar phone")
+      .populate("respondent.userId",    "name email avatar phone")
+      .populate("assignedCaseManager",  "name email avatar")
+      .populate("assignedNeutral",      "name email avatar role")
+      .populate("reviewedBy",           "name email")
       .populate("timeline.performedBy", "name role");
     if (!caseData) return res.status(404).json({ message: "Case not found" });
     return res.status(200).json({ success: true, case: caseData });
@@ -224,18 +420,16 @@ export const getCaseById = async (req, res) => {
 };
 
 /* ════════════════════════════════════════
-   REVIEW CASE — Accept or Reject
-   On accept: sends notice to respondent, starts 30-day notice period
+   REVIEW CASE
 ════════════════════════════════════════ */
 export const reviewCase = async (req, res) => {
   try {
     const { decision, note } = req.body;
-    if (!["accepted", "rejected"].includes(decision))
+    if (!["accepted","rejected"].includes(decision))
       return res.status(400).json({ message: "Decision must be 'accepted' or 'rejected'" });
 
     const caseData = await Case.findById(req.params.id);
     if (!caseData) return res.status(404).json({ message: "Case not found" });
-
     if (caseData.adminStatus !== "pending-review")
       return res.status(400).json({ message: "Case already reviewed" });
 
@@ -252,7 +446,6 @@ export const reviewCase = async (req, res) => {
       caseData.noticesSent.push({ sentAt: now, channel: "email", noticeNo: 1, message: "Initial notice sent to respondent" });
       caseData.timeline.push({ action: "Case Accepted by Admin", performedBy: req.user.id, note: "30-day notice period started", isSystem: false });
 
-      // Send invite email to respondent
       try {
         const inviteUrl = `${process.env.FRONTEND_URL}/accept-invite/${caseData.respondent.inviteToken}`;
         await getTransporter().sendMail({
@@ -338,12 +531,12 @@ export const assignCaseManager = async (req, res) => {
 };
 
 /* ════════════════════════════════════════
-   ASSIGN NEUTRAL (Mediator OR Arbitrator)
+   ASSIGN NEUTRAL
 ════════════════════════════════════════ */
 export const assignNeutral = async (req, res) => {
   try {
     const { neutralId, neutralType } = req.body;
-    if (!["mediator", "arbitrator"].includes(neutralType))
+    if (!["mediator","arbitrator"].includes(neutralType))
       return res.status(400).json({ message: "neutralType must be 'mediator' or 'arbitrator'" });
 
     const neutral = await User.findOne({ _id: neutralId, role: neutralType });
@@ -354,9 +547,7 @@ export const assignNeutral = async (req, res) => {
 
     caseData.assignedNeutral = neutralId;
     caseData.neutralType     = neutralType;
-    // Also keep legacy field for backward compat
     if (neutralType === "mediator") caseData.assignedMediator = neutralId;
-
     caseData.status = neutralType === "mediator" ? "mediation" : "arbitration";
     caseData.timeline.push({ action: `${neutralType.charAt(0).toUpperCase() + neutralType.slice(1)} Assigned`, performedBy: req.user.id, note: `${neutral.name} assigned as ${neutralType}`, isSystem: false });
 
@@ -367,7 +558,6 @@ export const assignNeutral = async (req, res) => {
   }
 };
 
-/* Legacy: kept for backward compat with old adminRoutes that used assignMediator */
 export const assignMediator = async (req, res) => {
   req.body.neutralType = "mediator";
   req.body.neutralId   = req.body.mediatorId;
@@ -444,6 +634,59 @@ export const addTimelineNote = async (req, res) => {
     caseData.timeline.push({ action: "Note Added", performedBy: req.user.id, note, isSystem: false });
     await caseData.save();
     return res.status(200).json({ success: true, timeline: caseData.timeline });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+/* ════════════════════════════════════════
+   GET CASE PROGRESS BY ID (for search)
+   Called when admin searches a case ID in the progress card
+════════════════════════════════════════ */
+export const getCaseProgress = async (req, res) => {
+  try {
+    const { caseId } = req.params;
+
+    const caseData = await Case.findOne({ caseId })
+      .populate("assignedNeutral",     "name avatar")
+      .populate("assignedCaseManager", "name avatar")
+      .populate("claimant",            "name")
+      .populate("createdBy",           "name");
+
+    if (!caseData) return res.status(404).json({ message: "Case not found" });
+
+    const phaseMap = {
+      "notice-sent": { phase: "Phase 1", percent: 20 },
+      "in-progress": { phase: "Phase 2", percent: 40 },
+      "mediation":   { phase: "Phase 3", percent: 60 },
+      "arbitration": { phase: "Phase 3", percent: 60 },
+      "Hearing":     { phase: "Phase 4", percent: 80 },
+      "hearing":     { phase: "Phase 4", percent: 80 },
+      "awarded":     { phase: "Phase 5", percent: 100 },
+      "resolved":    { phase: "Phase 5", percent: 100 },
+      "Resolved":    { phase: "Phase 5", percent: 100 },
+    };
+
+    const phase = phaseMap[caseData.status] || { phase: "Phase 1", percent: 20 };
+
+    return res.status(200).json({
+      success: true,
+      progress: {
+        _id:           caseData._id,
+        caseId:        caseData.caseId,
+        title:         caseData.caseTitle,
+        status:        caseData.status,
+        phase:         phase.phase,
+        phasePercent:  phase.percent,
+        filingFeePaid: caseData.filingFeePaid || false,
+        filingFee:     caseData.filingFee     || 0,
+        party1:        caseData.petitionerDetails?.fullName || caseData.claimant?.name || "N/A",
+        party2:        caseData.defendantDetails?.fullName  || caseData.respondent?.name || "N/A",
+        mediator:      caseData.assignedNeutral?.name    || "Not Assigned",
+        manager:       caseData.assignedCaseManager?.name || "Not Assigned",
+        category:      caseData.caseType || "General",
+      },
+    });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

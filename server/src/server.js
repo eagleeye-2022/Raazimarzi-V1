@@ -9,6 +9,8 @@ import { Server } from "socket.io";
 import path from "path";
 import { fileURLToPath } from "url";
 import { testSMTP } from "./services/mail.service.js"; 
+import { registerCronJobs, runNoticePeriodCheckNow } from "./cron/noticePeriod.cron.js";
+import protect, { authorizeRoles } from "./middleware/authMiddleware.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,7 +23,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import otpRoutes from "./routes/otpRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import caseRoutes from "./routes/caseRoutes.js";
-import documentRoutes from "./routes/documentRoutes.js";  // ✅ NEW
+import documentRoutes from "./routes/documentRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import passwordRoutes from "./routes/passwordRoutes.js";
 import contactRoutes from "./routes/contact.routes.js";
@@ -29,6 +31,8 @@ import demoRoutes from "./routes/demo.routes.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 import meetingRoutes from "./routes/meetingRoutes.js";
 import arbitratorRoutes from "./routes/arbitratorRoutes.js";
+// import paymentRoutes from "./routes/paymentRoutes.js";        
+import caseManagerRoutes from "./routes/caseManagerRoutes.js";  
 
 const app = express();
 
@@ -57,6 +61,8 @@ app.use(cors({
 }));
 
 // ===== Middleware =====
+// ✅ Raw body for Razorpay webhook signature verification — must be BEFORE express.json()
+// app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -71,13 +77,34 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/otp", otpRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/cases", caseRoutes);
-app.use("/api/documents", documentRoutes);  // ✅ NEW - Document management
+app.use("/api/documents", documentRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/password", passwordRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/demo", demoRoutes);
 app.use("/api/meetings", meetingRoutes);
 app.use("/api/arbitrator", arbitratorRoutes);
+// app.use("/api/payments", paymentRoutes);         // ✅ NEW
+app.use("/api/case-manager", caseManagerRoutes); // ✅ NEW
+
+// ===== Admin: Manual Cron Trigger (for testing) =====
+app.post(
+  "/api/admin/cron/run-notice-check",
+  protect,
+  authorizeRoles(["admin"]),
+  async (req, res) => {
+    try {
+      console.log("🔧 Manual cron trigger by admin:", req.user.email);
+      await runNoticePeriodCheckNow();
+      return res.status(200).json({
+        success: true,
+        message: "Notice period check completed. Check server logs for details.",
+      });
+    } catch (err) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
+);
 
 // ===== Health check =====
 app.get("/", (req, res) => {
@@ -110,6 +137,10 @@ const connectDB = async () => {
       // useUnifiedTopology: true,
     });
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+
+    // ✅ Register cron jobs AFTER DB is connected
+    registerCronJobs();
+
   } catch (error) {
     console.error(`❌ MongoDB connection failed: ${error.message}`);
     process.exit(1);
@@ -137,7 +168,6 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
     credentials: true
   },
-  // Add ping timeout and interval for better connection handling
   pingTimeout: 60000,
   pingInterval: 25000
 });
@@ -154,6 +184,11 @@ io.on("connection", (socket) => {
   socket.on("sendMessage", ({ roomId, message }) => {
     console.log(`📨 Message in room ${roomId}:`, message);
     io.to(roomId).emit("receiveMessage", message);
+  });
+
+  // ✅ Typing indicator
+  socket.on("typing", ({ roomId, userId, isTyping }) => {
+    socket.to(roomId).emit("userTyping", { userId, isTyping });
   });
 
   socket.on("disconnect", (reason) => {
@@ -203,6 +238,10 @@ server.listen(PORT, async () => {
   console.log(`   POST /api/password/reset - Reset password`);
   console.log(`   POST /api/documents/upload - Upload document`);
   console.log(`   GET  /api/documents/case/:caseId - Get case documents`);
+  console.log(`   GET  /api/payments/fee/:caseType - Get filing fee`);
+  console.log(`   POST /api/payments/create-order - Create Razorpay order`);
+  console.log(`   POST /api/payments/verify - Verify payment`);
+  console.log(`   POST /api/admin/cron/run-notice-check - Manual cron trigger`);
   console.log(`\n✨ Ready to accept connections!\n`);
 });
 

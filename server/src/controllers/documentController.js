@@ -1,27 +1,34 @@
 import Document from "../models/documentModel.js";
 import Case from "../models/caseModel.js";
-import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { cloudinary } from "../middleware/documentUpload.js";
 
 /* ═══════════════════════════════════════════════════════════════
    HELPER: Check if user has access to a case
 ═══════════════════════════════════════════════════════════════ */
 const canAccessCase = async (userId, caseId, userRole) => {
-  if (userRole === "admin") return true;
+  if (userRole === "admin" || userRole === "case-manager") return true;
 
   const caseDoc = await Case.findById(caseId);
   if (!caseDoc) return false;
 
-  // User created the case
-  if (caseDoc.createdBy.toString() === userId.toString()) return true;
+  // User is claimant (new field) or created the case (legacy)
+  if (
+    caseDoc.createdBy?.toString() === userId.toString() ||
+    caseDoc.claimant?.toString() === userId.toString()
+  ) return true;
 
-  // User is defendant
+  // User is respondent (new system)
+  if (caseDoc.respondent?.userId?.toString() === userId.toString()) return true;
+
+  // User is respondent (legacy — email match)
   const userEmail = await getUserEmail(userId);
   if (caseDoc.defendantDetails?.email === userEmail) return true;
+  if (caseDoc.respondent?.email === userEmail) return true;
+
+  // User is assigned neutral (mediator or arbitrator)
+  if (caseDoc.assignedNeutral?.toString() === userId.toString()) return true;
+  if (caseDoc.assignedMediator?.toString() === userId.toString()) return true;
 
   return false;
 };
@@ -33,22 +40,31 @@ const getUserEmail = async (userId) => {
 };
 
 /* ═══════════════════════════════════════════════════════════════
+   HELPER: Delete file from Cloudinary
+   ✅ Fixed: cloudinary.v2.uploader.destroy (v1 syntax)
+═══════════════════════════════════════════════════════════════ */
+const deleteFromCloudinary = async (publicId, resourceType = "raw") => {
+  if (!publicId) return;
+  try {
+    await cloudinary.v2.uploader.destroy(publicId, { resource_type: resourceType });
+    console.log(`🗑️ Cloudinary: deleted ${publicId}`);
+  } catch (err) {
+    console.warn(`⚠️ Cloudinary delete failed for ${publicId}:`, err.message);
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════════
    1. UPLOAD DOCUMENT
 ═══════════════════════════════════════════════════════════════ */
 export const uploadDocument = async (req, res) => {
   try {
-    const {
-      documentTitle,
-      description,
-      category,
-      caseId,
-      accessControl,
-      tags,
-      isConfidential,
-    } = req.body;
+    const { documentTitle, description, category, caseId, accessControl, tags, isConfidential } = req.body;
 
     // ✅ Validation
     if (!documentTitle || !category || !caseId) {
+      if (req.file?.filename) {
+        await deleteFromCloudinary(req.file.filename, req.file.resource_type || "raw");
+      }
       return res.status(400).json({
         success: false,
         message: "Document title, category, and case ID are required",
@@ -56,68 +72,59 @@ export const uploadDocument = async (req, res) => {
     }
 
     if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "No file uploaded",
-      });
+      return res.status(400).json({ success: false, message: "No file uploaded" });
     }
 
-    // ✅ Verify case exists and user has access
+    // ✅ Verify case exists
     const caseExists = await Case.findById(caseId);
     if (!caseExists) {
-      // Delete uploaded file if case doesn't exist
-      fs.unlinkSync(req.file.path);
-      return res.status(404).json({
-        success: false,
-        message: "Case not found",
-      });
+      await deleteFromCloudinary(req.file.filename, req.file.resource_type || "raw");
+      return res.status(404).json({ success: false, message: "Case not found" });
     }
 
+    // ✅ Verify user has access to the case
     const hasAccess = await canAccessCase(req.user._id, caseId, req.user.role);
     if (!hasAccess) {
-      fs.unlinkSync(req.file.path);
-      return res.status(403).json({
-        success: false,
-        message: "You don't have access to this case",
-      });
+      await deleteFromCloudinary(req.file.filename, req.file.resource_type || "raw");
+      return res.status(403).json({ success: false, message: "You don't have access to this case" });
     }
 
     // ✅ Create document record
     const document = await Document.create({
-      documentTitle: documentTitle.trim(),
-      description: description?.trim(),
+      documentTitle:          documentTitle.trim(),
+      description:            description?.trim(),
       category,
-      originalFileName: req.file.originalname,
-      storedFileName: req.file.filename,
-      filePath: req.file.path,
-      fileSize: req.file.size,
-      mimeType: req.file.mimetype,
-      fileExtension: path.extname(req.file.originalname).toLowerCase(),
+      originalFileName:       req.file.originalname,
+      storedFileName:         req.file.filename,
+      fileUrl:                req.file.path,
+      cloudinaryPublicId:     req.file.filename,
+      cloudinaryResourceType: req.file.resource_type || "raw",
+      filePath:               "",
+      fileSize:               req.file.size,
+      mimeType:               req.file.mimetype,
+      fileExtension:          path.extname(req.file.originalname).toLowerCase(),
       caseId,
-      uploadedBy: req.user._id,
-      accessControl: accessControl || "case-parties",
-      tags: tags ? JSON.parse(tags) : [],
-      isConfidential: isConfidential === "true",
+      uploadedBy:             req.user._id,
+      accessControl:          accessControl || "case-parties",
+      tags:                   tags ? JSON.parse(tags) : [],
+      isConfidential:         isConfidential === "true",
     });
 
     const populatedDoc = await Document.findById(document._id)
       .populate("uploadedBy", "name email")
       .populate("caseId", "caseId caseTitle");
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Document uploaded successfully",
       document: populatedDoc,
     });
   } catch (error) {
     console.error("❌ Upload document error:", error);
-    
-    // Clean up file if DB save failed
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
+    if (req.file?.filename) {
+      await deleteFromCloudinary(req.file.filename, req.file.resource_type || "raw");
     }
-
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to upload document",
       error: error.message,
@@ -132,37 +139,28 @@ export const getDocumentsByCase = async (req, res) => {
   try {
     const { caseId } = req.params;
 
-    // ✅ Verify access
     const hasAccess = await canAccessCase(req.user._id, caseId, req.user.role);
     if (!hasAccess) {
-      return res.status(403).json({
-        success: false,
-        message: "Access denied",
-      });
+      return res.status(403).json({ success: false, message: "Access denied" });
     }
 
-    // ✅ Fetch documents
     const documents = await Document.find({ caseId })
       .populate("uploadedBy", "name email")
       .populate("approvedBy", "name email")
       .sort({ createdAt: -1 });
 
-    // ✅ Filter by access control (non-admins can't see admin-only docs)
     const filteredDocs = documents.filter((doc) =>
       doc.canAccess(req.user._id, req.user.role)
     );
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       count: filteredDocs.length,
       documents: filteredDocs,
     });
   } catch (error) {
     console.error("❌ Get documents error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch documents",
-    });
+    return res.status(500).json({ success: false, message: "Failed to fetch documents" });
   }
 };
 
@@ -177,92 +175,62 @@ export const getDocumentById = async (req, res) => {
       .populate("caseId", "caseId caseTitle");
 
     if (!document) {
-      return res.status(404).json({
-        success: false,
-        message: "Document not found",
-      });
+      return res.status(404).json({ success: false, message: "Document not found" });
     }
 
-    // ✅ Check access
-    const hasAccess = document.canAccess(req.user._id, req.user.role);
-    const hasCaseAccess = await canAccessCase(
-      req.user._id,
-      document.caseId._id,
-      req.user.role
-    );
+    const hasAccess     = document.canAccess(req.user._id, req.user.role);
+    const hasCaseAccess = await canAccessCase(req.user._id, document.caseId._id, req.user.role);
 
     if (!hasAccess || !hasCaseAccess) {
-      return res.status(403).json({
-        success: false,
-        message: "Access denied",
-      });
+      return res.status(403).json({ success: false, message: "Access denied" });
     }
 
-    // ✅ Record view in audit trail
     const ipAddress = req.ip || req.connection.remoteAddress;
     await document.recordView(req.user._id, ipAddress);
 
-    res.status(200).json({
-      success: true,
-      document,
-    });
+    return res.status(200).json({ success: true, document });
   } catch (error) {
     console.error("❌ Get document error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch document",
-    });
+    return res.status(500).json({ success: false, message: "Failed to fetch document" });
   }
 };
 
 /* ═══════════════════════════════════════════════════════════════
    4. DOWNLOAD DOCUMENT
+   ✅ Fixed: cloudinary.v2.url (v1 syntax)
 ═══════════════════════════════════════════════════════════════ */
 export const downloadDocument = async (req, res) => {
   try {
     const document = await Document.findById(req.params.id);
 
     if (!document) {
-      return res.status(404).json({
-        success: false,
-        message: "Document not found",
-      });
+      return res.status(404).json({ success: false, message: "Document not found" });
     }
 
-    // ✅ Check access
-    const hasAccess = document.canAccess(req.user._id, req.user.role);
-    const hasCaseAccess = await canAccessCase(
-      req.user._id,
-      document.caseId,
-      req.user.role
-    );
+    const hasAccess     = document.canAccess(req.user._id, req.user.role);
+    const hasCaseAccess = await canAccessCase(req.user._id, document.caseId, req.user.role);
 
     if (!hasAccess || !hasCaseAccess) {
-      return res.status(403).json({
-        success: false,
-        message: "Access denied",
-      });
+      return res.status(403).json({ success: false, message: "Access denied" });
     }
 
-    // ✅ Check file exists
-    if (!fs.existsSync(document.filePath)) {
-      return res.status(404).json({
-        success: false,
-        message: "File not found on server",
-      });
-    }
-
-    // ✅ Record download
     await document.recordDownload();
 
-    // ✅ Send file
-    res.download(document.filePath, document.originalFileName);
+    // ✅ Fixed: cloudinary.v2.url for v1 package
+    const downloadUrl = cloudinary.v2.url(document.cloudinaryPublicId, {
+      resource_type: document.cloudinaryResourceType || "raw",
+      flags:         "attachment",
+      secure:        true,
+    });
+
+    return res.status(200).json({
+      success:     true,
+      downloadUrl,
+      fileName:    document.originalFileName,
+    });
   } catch (error) {
     console.error("❌ Download document error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to download document",
-    });
+    return res.status(500).json({ success: false, message: "Failed to download document" });
   }
 };
 
@@ -274,31 +242,22 @@ export const updateDocument = async (req, res) => {
     const { documentTitle, description, category, tags, accessControl } = req.body;
 
     const document = await Document.findById(req.params.id);
-
     if (!document) {
-      return res.status(404).json({
-        success: false,
-        message: "Document not found",
-      });
+      return res.status(404).json({ success: false, message: "Document not found" });
     }
 
-    // ✅ Only uploader or admin can update
     if (
       req.user.role !== "admin" &&
       document.uploadedBy.toString() !== req.user._id.toString()
     ) {
-      return res.status(403).json({
-        success: false,
-        message: "Access denied",
-      });
+      return res.status(403).json({ success: false, message: "Access denied" });
     }
 
-    // ✅ Update fields
-    if (documentTitle) document.documentTitle = documentTitle.trim();
-    if (description !== undefined) document.description = description.trim();
-    if (category) document.category = category;
-    if (tags) document.tags = JSON.parse(tags);
-    if (accessControl) document.accessControl = accessControl;
+    if (documentTitle)              document.documentTitle = documentTitle.trim();
+    if (description !== undefined)  document.description   = description.trim();
+    if (category)                   document.category      = category;
+    if (tags)                       document.tags          = JSON.parse(tags);
+    if (accessControl)              document.accessControl = accessControl;
 
     await document.save();
 
@@ -306,17 +265,14 @@ export const updateDocument = async (req, res) => {
       .populate("uploadedBy", "name email")
       .populate("approvedBy", "name email");
 
-    res.status(200).json({
-      success: true,
-      message: "Document updated successfully",
+    return res.status(200).json({
+      success:  true,
+      message:  "Document updated successfully",
       document: updated,
     });
   } catch (error) {
     console.error("❌ Update document error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to update document",
-    });
+    return res.status(500).json({ success: false, message: "Failed to update document" });
   }
 };
 
@@ -326,129 +282,100 @@ export const updateDocument = async (req, res) => {
 export const deleteDocument = async (req, res) => {
   try {
     const document = await Document.findById(req.params.id);
-
     if (!document) {
-      return res.status(404).json({
-        success: false,
-        message: "Document not found",
-      });
+      return res.status(404).json({ success: false, message: "Document not found" });
     }
 
-    // ✅ Only uploader or admin can delete
     if (
       req.user.role !== "admin" &&
       document.uploadedBy.toString() !== req.user._id.toString()
     ) {
-      return res.status(403).json({
-        success: false,
-        message: "Access denied",
-      });
+      return res.status(403).json({ success: false, message: "Access denied" });
     }
 
-    // ✅ Delete file from filesystem
-    if (fs.existsSync(document.filePath)) {
-      fs.unlinkSync(document.filePath);
-    }
+    await deleteFromCloudinary(
+      document.cloudinaryPublicId,
+      document.cloudinaryResourceType || "raw"
+    );
 
-    // ✅ Delete previous versions
     for (const version of document.previousVersions) {
-      if (fs.existsSync(version.filePath)) {
-        fs.unlinkSync(version.filePath);
+      if (version.cloudinaryPublicId) {
+        await deleteFromCloudinary(
+          version.cloudinaryPublicId,
+          version.cloudinaryResourceType || "raw"
+        );
       }
     }
 
-    // ✅ Delete from DB
     await document.deleteOne();
 
-    res.status(200).json({
-      success: true,
-      message: "Document deleted successfully",
-    });
+    return res.status(200).json({ success: true, message: "Document deleted successfully" });
   } catch (error) {
     console.error("❌ Delete document error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to delete document",
-    });
+    return res.status(500).json({ success: false, message: "Failed to delete document" });
   }
 };
 
 /* ═══════════════════════════════════════════════════════════════
-   7. APPROVE DOCUMENT (ADMIN ONLY)
+   7. APPROVE DOCUMENT
 ═══════════════════════════════════════════════════════════════ */
 export const approveDocument = async (req, res) => {
   try {
     const document = await Document.findById(req.params.id);
-
     if (!document) {
-      return res.status(404).json({
-        success: false,
-        message: "Document not found",
-      });
+      return res.status(404).json({ success: false, message: "Document not found" });
     }
 
-    document.status = "Approved";
+    document.status     = "Approved";
     document.approvedBy = req.user._id;
     document.approvedAt = new Date();
-
     await document.save();
 
     const updated = await Document.findById(document._id)
       .populate("uploadedBy", "name email")
       .populate("approvedBy", "name email");
 
-    res.status(200).json({
-      success: true,
-      message: "Document approved successfully",
+    return res.status(200).json({
+      success:  true,
+      message:  "Document approved successfully",
       document: updated,
     });
   } catch (error) {
     console.error("❌ Approve document error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to approve document",
-    });
+    return res.status(500).json({ success: false, message: "Failed to approve document" });
   }
 };
 
 /* ═══════════════════════════════════════════════════════════════
-   8. REJECT DOCUMENT (ADMIN ONLY)
+   8. REJECT DOCUMENT
 ═══════════════════════════════════════════════════════════════ */
 export const rejectDocument = async (req, res) => {
   try {
     const { reason } = req.body;
 
     const document = await Document.findById(req.params.id);
-
     if (!document) {
-      return res.status(404).json({
-        success: false,
-        message: "Document not found",
-      });
+      return res.status(404).json({ success: false, message: "Document not found" });
     }
 
-    document.status = "Rejected";
+    document.status          = "Rejected";
     document.rejectionReason = reason || "No reason provided";
-    document.approvedBy = req.user._id;
-    document.approvedAt = new Date();
-
+    document.approvedBy      = req.user._id;
+    document.approvedAt      = new Date();
     await document.save();
 
     const updated = await Document.findById(document._id)
       .populate("uploadedBy", "name email")
       .populate("approvedBy", "name email");
 
-    res.status(200).json({
-      success: true,
-      message: "Document rejected",
+    return res.status(200).json({
+      success:  true,
+      message:  "Document rejected",
       document: updated,
     });
   } catch (error) {
     console.error("❌ Reject document error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to reject document",
-    });
+    return res.status(500).json({ success: false, message: "Failed to reject document" });
   }
 };
 
@@ -460,9 +387,9 @@ export const getAllDocuments = async (req, res) => {
     const { status, category, caseId } = req.query;
 
     const filter = {};
-    if (status) filter.status = status;
+    if (status)   filter.status   = status;
     if (category) filter.category = category;
-    if (caseId) filter.caseId = caseId;
+    if (caseId)   filter.caseId   = caseId;
 
     const documents = await Document.find(filter)
       .populate("uploadedBy", "name email")
@@ -470,16 +397,13 @@ export const getAllDocuments = async (req, res) => {
       .populate("caseId", "caseId caseTitle")
       .sort({ createdAt: -1 });
 
-    res.status(200).json({
-      success: true,
-      count: documents.length,
+    return res.status(200).json({
+      success:   true,
+      count:     documents.length,
       documents,
     });
   } catch (error) {
     console.error("❌ Get all documents error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch documents",
-    });
+    return res.status(500).json({ success: false, message: "Failed to fetch documents" });
   }
 };

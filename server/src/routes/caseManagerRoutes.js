@@ -1,24 +1,20 @@
 import express from "express";
 import protect, { authorizeRoles } from "../middleware/authMiddleware.js";
-
 import {
-  getMyCases,
-  getMyCaseById,
-  updateMyCaseStatus,
-  scheduleMyCaseHearing,
-  addMyCaseNote,
-  getMyCaseStats,
+  getMyCaseStats, getMyCases, getMyCaseById,
+  updateMyCaseStatus, scheduleMyCaseHearing,
+  addMyCaseNote, getMyMeetings,
 } from "../controllers/caseManagerController.js";
 
 const router = express.Router();
+const isCaseManagerOrAdmin = [protect, authorizeRoles(["case-manager", "admin"])];
 
-const isManager = [protect, authorizeRoles(["case-manager", "admin"])];
-
-router.get("/stats", ...isManager, getMyCaseStats);
-router.get("/cases", ...isManager, getMyCases);
-router.get("/cases/:id", ...isManager, getMyCaseById);
-router.patch("/cases/:id/status", ...isManager, updateMyCaseStatus);
-router.patch("/cases/:id/hearing", ...isManager, scheduleMyCaseHearing);
-router.post("/cases/:id/note", ...isManager, addMyCaseNote);
+router.get("/stats",                          ...isCaseManagerOrAdmin, getMyCaseStats);
+router.get("/cases",                          ...isCaseManagerOrAdmin, getMyCases);
+router.get("/meetings",                       ...isCaseManagerOrAdmin, getMyMeetings);
+router.get("/cases/:id",                      ...isCaseManagerOrAdmin, getMyCaseById);
+router.patch("/cases/:id/status",             ...isCaseManagerOrAdmin, updateMyCaseStatus);
+router.patch("/cases/:id/hearing",            ...isCaseManagerOrAdmin, scheduleMyCaseHearing);
+router.post("/cases/:id/note",                ...isCaseManagerOrAdmin, addMyCaseNote);
 
 export default router;

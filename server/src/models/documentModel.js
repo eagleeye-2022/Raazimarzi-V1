@@ -19,17 +19,17 @@ const documentSchema = new mongoose.Schema(
       type: String,
       required: [true, "Document category is required"],
       enum: [
-        "Evidence",                 // Photos, videos, physical evidence scans
-        "Legal Notice",             // Legal notices, summons
-        "Agreement",                // Settlement agreements, contracts
-        "Witness Statement",        // Witness affidavits, statements
-        "Court Order",              // Court decisions, orders
-        "ID Proof",                 // Identity documents
-        "Address Proof",            // Utility bills, rental agreements
-        "Financial Document",       // Bank statements, invoices
-        "Correspondence",           // Emails, letters
-        "Medical Certificate",      // Medical reports, certificates
-        "Other",                    // Miscellaneous
+        "Evidence",
+        "Legal Notice",
+        "Agreement",
+        "Witness Statement",
+        "Court Order",
+        "ID Proof",
+        "Address Proof",
+        "Financial Document",
+        "Correspondence",
+        "Medical Certificate",
+        "Other",
       ],
     },
 
@@ -45,9 +45,29 @@ const documentSchema = new mongoose.Schema(
       unique: true,
     },
 
-    filePath: {
+    // ✅ UPDATED: Cloudinary URL instead of local path
+    fileUrl: {
       type: String,
       required: true,
+    },
+
+    // ✅ UPDATED: Cloudinary public_id (needed for deletion)
+    cloudinaryPublicId: {
+      type: String,
+      required: true,
+    },
+
+    // ✅ UPDATED: Cloudinary resource type (image / raw)
+    cloudinaryResourceType: {
+      type: String,
+      enum: ["image", "raw"],
+      default: "raw",
+    },
+
+    // Kept for backward compat — local path (empty for new uploads)
+    filePath: {
+      type: String,
+      default: "",
     },
 
     fileSize: {
@@ -81,15 +101,10 @@ const documentSchema = new mongoose.Schema(
       index: true,
     },
 
-    // Who can view this document
     accessControl: {
       type: String,
       enum: ["private", "case-parties", "public", "admin-only"],
       default: "case-parties",
-      // private: only uploader
-      // case-parties: petitioner + defendant + admin
-      // public: everyone
-      // admin-only: only admins
     },
 
     // ═══════════ VERSION CONTROL ═══════════
@@ -100,10 +115,13 @@ const documentSchema = new mongoose.Schema(
 
     previousVersions: [
       {
-        versionNumber: Number,
-        storedFileName: String,
-        filePath: String,
-        uploadedAt: Date,
+        versionNumber:          Number,
+        storedFileName:         String,
+        fileUrl:                String,   // Cloudinary URL
+        cloudinaryPublicId:     String,   // for deletion
+        cloudinaryResourceType: String,
+        filePath:               String,   // legacy local path
+        uploadedAt:             Date,
         uploadedBy: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
@@ -123,25 +141,19 @@ const documentSchema = new mongoose.Schema(
       ref: "User",
     },
 
-    approvedAt: {
-      type: Date,
-    },
+    approvedAt: { type: Date },
 
-    rejectionReason: {
-      type: String,
-    },
+    rejectionReason: { type: String },
 
     // ═══════════ METADATA ═══════════
-    tags: [String], // searchable tags
+    tags: [String],
 
     isConfidential: {
       type: Boolean,
       default: false,
     },
 
-    expiresAt: {
-      type: Date, // Optional: auto-delete after case closure + X days
-    },
+    expiresAt: { type: Date },
 
     downloadCount: {
       type: Number,
@@ -155,17 +167,12 @@ const documentSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
         },
-        viewedAt: {
-          type: Date,
-          default: Date.now,
-        },
+        viewedAt: { type: Date, default: Date.now },
         ipAddress: String,
       },
     ],
   },
-  {
-    timestamps: true, // auto createdAt, updatedAt
-  }
+  { timestamps: true }
 );
 
 // ═══════════ INDEXES ═══════════
@@ -175,43 +182,29 @@ documentSchema.index({ createdAt: -1 });
 
 // ═══════════ METHODS ═══════════
 
-// Check if user has access to this document
 documentSchema.methods.canAccess = function (userId, userRole) {
-  // Admin can access everything
   if (userRole === "admin") return true;
-
-  // Uploader can always access their own documents
   if (this.uploadedBy.toString() === userId.toString()) return true;
-
-  // Check access control level
   if (this.accessControl === "public") return true;
   if (this.accessControl === "admin-only") return false;
   if (this.accessControl === "private") return false;
-
-  // For case-parties, need to check if user is petitioner/defendant
-  // This will be handled in controller with case lookup
   return this.accessControl === "case-parties";
 };
 
-// Increment download counter
 documentSchema.methods.recordDownload = async function () {
   this.downloadCount += 1;
   await this.save();
 };
 
-// Record view in audit trail
 documentSchema.methods.recordView = async function (userId, ipAddress) {
   this.viewHistory.push({
-    viewedBy: userId,
-    viewedAt: new Date(),
+    viewedBy:  userId,
+    viewedAt:  new Date(),
     ipAddress,
   });
-  
-  // Keep only last 50 views to prevent bloat
   if (this.viewHistory.length > 50) {
     this.viewHistory = this.viewHistory.slice(-50);
   }
-  
   await this.save();
 };
 

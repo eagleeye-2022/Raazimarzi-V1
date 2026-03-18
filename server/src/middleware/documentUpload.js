@@ -1,94 +1,79 @@
 import multer from "multer";
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+/* ── Cloudinary Config ── */
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-// ═══════════ CREATE UPLOADS DIRECTORY ═══════════
-const uploadDir = path.join(__dirname, "../uploads/documents");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+/* ── Allowed file types ── */
+const ALLOWED_MIME_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
 
-// ═══════════ STORAGE CONFIGURATION ═══════════
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    // Generate unique filename: timestamp_randomstring_originalname
-    const uniqueSuffix = `${Date.now()}_${Math.random().toString(36).substring(7)}`;
-    const ext = path.extname(file.originalname);
-    const nameWithoutExt = path.basename(file.originalname, ext);
-    const sanitizedName = nameWithoutExt.replace(/[^a-zA-Z0-9_-]/g, "_");
-    cb(null, `${uniqueSuffix}_${sanitizedName}${ext}`);
+const ALLOWED_EXTENSIONS = [".pdf", ".jpg", ".jpeg", ".png", ".webp", ".doc", ".docx"];
+
+/* ── Cloudinary Storage ── */
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+
+    // Use 'raw' resource type for PDFs and docs (not 'image')
+    const resourceType =
+      file.mimetype === "application/pdf" ||
+      file.mimetype.includes("word") ||
+      file.mimetype.includes("document")
+        ? "raw"
+        : "image";
+
+    return {
+      folder:        `raazimarzi/cases/${req.body.caseId || "general"}`,
+      resource_type: resourceType,
+      public_id:     `doc_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+      // Raw files (PDF/docs) don't support transformation
+      ...(resourceType === "image" && {
+        transformation: [{ quality: "auto", fetch_format: "auto" }],
+      }),
+    };
   },
 });
 
-// ═══════════ FILE FILTER (ALLOWED TYPES) ═══════════
+/* ── File Filter ── */
 const fileFilter = (req, file, cb) => {
-  // Allowed file types for dispute resolution documents
-  const allowedMimes = [
-    // Documents
-    "application/pdf",
-    "application/msword", // .doc
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
-    "application/vnd.ms-excel", // .xls
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
-    "text/plain", // .txt
-    
-    // Images
-    "image/jpeg",
-    "image/jpg",
-    "image/png",
-    "image/gif",
-    "image/webp",
-    
-    // Archives (for multiple documents)
-    "application/zip",
-    "application/x-zip-compressed",
-    "application/x-rar-compressed",
-  ];
+  const ext  = path.extname(file.originalname).toLowerCase();
+  const mime = file.mimetype;
 
-  const allowedExtensions = [
-    ".pdf",
-    ".doc",
-    ".docx",
-    ".xls",
-    ".xlsx",
-    ".txt",
-    ".jpg",
-    ".jpeg",
-    ".png",
-    ".gif",
-    ".webp",
-    ".zip",
-    ".rar",
-  ];
-
-  const ext = path.extname(file.originalname).toLowerCase();
-
-  if (allowedMimes.includes(file.mimetype) && allowedExtensions.includes(ext)) {
+  if (ALLOWED_MIME_TYPES.includes(mime) && ALLOWED_EXTENSIONS.includes(ext)) {
     cb(null, true);
   } else {
     cb(
       new Error(
-        `Invalid file type. Allowed: PDF, DOC, DOCX, XLS, XLSX, TXT, JPG, PNG, GIF, WEBP, ZIP, RAR`
+        `Invalid file type. Allowed: PDF, JPG, PNG, WEBP, DOC, DOCX. Got: ${ext}`
       ),
       false
     );
   }
 };
 
-// ═══════════ MULTER INSTANCE ═══════════
+/* ── Multer Instance ── */
 const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
+  storage,
+  fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB max file size
+    fileSize: 10 * 1024 * 1024, // 10MB max
   },
 });
 
 export default upload;
+export { cloudinary };

@@ -1,6 +1,7 @@
 import Case, { CASE_PREFIXES } from "../models/caseModel.js";
 import User from "../models/userModel.js";
-import nodemailer from "nodemailer";
+// import Payment from "../models/paymentModel.js";  // ✅ NEW
+import nodemailer from "nodemailer";        
 import crypto from "crypto";
 
 const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -24,6 +25,7 @@ const getTransporter = () => nodemailer.createTransport({
 export const fileNewCase = async (req, res) => {
   try {
     const { caseType, caseTitle, causeOfAction, reliefSought, caseValue, petitioner, defendant, caseFacts } = req.body;
+
     if (!caseTitle || !petitioner?.fullName || !caseFacts?.declaration)
       return res.status(400).json({ success: false, message: "Required fields missing or declaration not accepted" });
     if (!validateEmail(petitioner.email))
@@ -38,6 +40,37 @@ export const fileNewCase = async (req, res) => {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     if (defendant.email?.toLowerCase() === req.user.email?.toLowerCase())
       return res.status(400).json({ success: false, message: "You cannot file a case against yourself" });
+
+    /* ── ✅ Payment verification ─────────────────────────────────
+       User must pay filing fee before case is accepted.
+       razorpayOrderId comes from the frontend after payment.
+    ──────────────────────────────────────────────────────────── */
+    // const { razorpayOrderId } = req.body;
+
+    // if (!razorpayOrderId) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Filing fee payment is required before filing a case",
+    //     code:    "PAYMENT_REQUIRED",
+    //   });
+    // }
+
+    // const payment = await Payment.findOne({
+    //   razorpayOrderId,
+    //   userId:   req.user.id,
+    //   status:   "paid",
+    //   caseType: sanitizeInput(caseType),
+    //   caseId:   null, // ensure payment not already used for another case
+    // });
+
+    // if (!payment) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Valid payment not found. Please complete the filing fee payment first.",
+    //     code:    "PAYMENT_NOT_FOUND",
+    //   });
+    // }
+    /* ────────────────────────────────────────────────────────── */
 
     const createdBy    = req.user.id;
     const caseId       = generateCaseId(caseType);
@@ -75,8 +108,14 @@ export const fileNewCase = async (req, res) => {
         inviteToken, inviteStatus: "pending", inviteSentAt: new Date(),
       },
       createdBy, status: "Pending", adminStatus: "pending-review",
+      filingFee:     payment.amountInRupees,  // ✅ store fee amount on case
+      filingFeePaid: true,                    // ✅ mark as paid
       timeline: [{ action: "Case Filed", performedBy: createdBy, note: `${caseType || "New"} case filed`, isSystem: false }],
     });
+
+    /* ── ✅ Link payment to the new case ── */
+    payment.caseId = newCase._id;
+    await payment.save();
 
     try {
       await getTransporter().sendMail({
@@ -94,6 +133,7 @@ export const fileNewCase = async (req, res) => {
           <p><strong>Cause of Action:</strong> ${causeOfAction || "N/A"}</p>
           <p><strong>Relief Sought:</strong> ${reliefSought || "N/A"}</p>
           <p><strong>Case Value:</strong> ${caseValue || "N/A"}</p>
+          <p><strong>Filing Fee Paid:</strong> ₹${payment.amountInRupees} ✅</p>
 
           <hr />
 
