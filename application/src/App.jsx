@@ -27,16 +27,12 @@ import MediatorMyCases from "./pages/MediatorMyCases";
 import MediatorCaseMeetings from "./pages/MediatorCaseMeetings";
 import MediatorChats from "./pages/MediatorChats";
 import ForgotPassword from "./pages/ForgotPassword";
-
-// 🟢 Import Context providers
 import { CaseProvider } from "./context/caseContext";
 import { UserProvider } from "./context/userContext";
 
 function App() {
   return (
-    // ✅ Add basename="/app" to handle /app subdirectory
     <Router basename="/app">
-      {/* ✅ Wrap all routes inside UserProvider and CaseProvider */}
       <UserProvider>
         <CaseProvider>
           <Routes>

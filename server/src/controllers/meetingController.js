@@ -1,34 +1,27 @@
 import Meeting from "../models/meetingModel.js";
-import Case from "../models/caseModel.js";
-import User from "../models/userModel.js";
+import Case    from "../models/caseModel.js";
+import User    from "../models/userModel.js";
+import {
+  sendMeetingScheduledEmails,
+  sendMeetingRescheduledEmails,
+  sendMeetingCancelledEmails,
+} from "../services/mail.service.js";
 
 /* ═══════════════════════════════════════════════════════════════
    HELPER: Check if user has access to a case
 ═══════════════════════════════════════════════════════════════ */
 const canAccessCase = async (userId, caseId, userRole) => {
   if (userRole === "admin" || userRole === "case-manager") return true;
-
   const caseDoc = await Case.findById(caseId);
   if (!caseDoc) return false;
-
-  // Claimant (new field)
-  if (caseDoc.claimant?.toString() === userId.toString()) return true;
-
-  // Created by (legacy)
-  if (caseDoc.createdBy?.toString() === userId.toString()) return true;
-
-  // Respondent (new field)
+  if (caseDoc.claimant?.toString()           === userId.toString()) return true;
+  if (caseDoc.createdBy?.toString()          === userId.toString()) return true;
   if (caseDoc.respondent?.userId?.toString() === userId.toString()) return true;
-
-  // Assigned neutral (mediator or arbitrator)
-  if (caseDoc.assignedNeutral?.toString() === userId.toString()) return true;
-  if (caseDoc.assignedMediator?.toString() === userId.toString()) return true;
-
-  // Defendant by email (legacy + new)
+  if (caseDoc.assignedNeutral?.toString()    === userId.toString()) return true;
+  if (caseDoc.assignedMediator?.toString()   === userId.toString()) return true;
   const user = await User.findById(userId).select("email");
-  if (caseDoc.defendantDetails?.email === user?.email) return true;
-  if (caseDoc.respondent?.email === user?.email?.toLowerCase()) return true;
-
+  if (caseDoc.defendantDetails?.email        === user?.email) return true;
+  if (caseDoc.respondent?.email              === user?.email?.toLowerCase()) return true;
   return false;
 };
 
@@ -53,7 +46,6 @@ export const createMeeting = async (req, res) => {
       agendaItems, isPrivate, requiresApproval,
     } = req.body;
 
-    // ✅ Validation
     if (!meetingTitle || !caseId || !meetingType || !scheduledDate || !startTime || !endTime) {
       return res.status(400).json({
         success: false,
@@ -61,17 +53,18 @@ export const createMeeting = async (req, res) => {
       });
     }
 
-    // ✅ Verify case exists
-    const caseExists = await Case.findById(caseId);
+    const caseExists = await Case.findById(caseId)
+      .populate("claimant",          "name email")
+      .populate("createdBy",         "name email")
+      .populate("respondent.userId", "name email");
+
     if (!caseExists)
       return res.status(404).json({ success: false, message: "Case not found" });
 
-    // ✅ Access check
     const hasAccess = await canAccessCase(req.user._id, caseId, req.user.role);
     if (!hasAccess)
       return res.status(403).json({ success: false, message: "Access denied to this case" });
 
-    // ✅ Calculate duration from startTime and endTime
     const startMinutes = timeToMinutes(startTime);
     const endMinutes   = timeToMinutes(endTime);
     const duration     = endMinutes - startMinutes;
@@ -79,8 +72,7 @@ export const createMeeting = async (req, res) => {
     if (duration <= 0)
       return res.status(400).json({ success: false, message: "End time must be after start time" });
 
-    // ✅ Build meeting object
-    const meetingData = {
+    const meeting = new Meeting({
       meetingTitle, description, caseId, meetingType,
       scheduledDate:    new Date(scheduledDate),
       startTime, endTime, duration,
@@ -89,16 +81,11 @@ export const createMeeting = async (req, res) => {
       mediator:         mediatorId   || null,
       participants:     participants || [],
       locationType:     locationType || "virtual",
-      virtualMeeting,
-      physicalLocation,
-      agendaItems,
+      virtualMeeting, physicalLocation, agendaItems,
       isPrivate:        isPrivate        || false,
       requiresApproval: requiresApproval || false,
-    };
+    });
 
-    const meeting = new Meeting(meetingData);
-
-    // ✅ Conflict check if mediator assigned
     if (mediatorId) {
       const hasConflict = await meeting.hasConflict(mediatorId);
       if (hasConflict)
@@ -107,7 +94,6 @@ export const createMeeting = async (req, res) => {
 
     await meeting.save();
 
-    // ✅ Update case status to Hearing + hearingLink
     if (!["Hearing", "hearing"].includes(caseExists.status)) {
       caseExists.status      = "Hearing";
       caseExists.hearingDate = new Date(scheduledDate);
@@ -127,9 +113,15 @@ export const createMeeting = async (req, res) => {
       .populate("caseId",            "caseId caseTitle")
       .populate("participants.user", "name email");
 
+    try {
+      await sendMeetingScheduledEmails({ meeting: populated, caseData: caseExists });
+    } catch (mailErr) {
+      console.warn("⚠️ Meeting email notifications failed:", mailErr.message);
+    }
+
     return res.status(201).json({
       success: true,
-      message: "Meeting scheduled successfully",
+      message: "Meeting scheduled successfully. All parties have been notified.",
       meeting: populated,
     });
   } catch (error) {
@@ -201,10 +193,8 @@ export const updateMeeting = async (req, res) => {
     if (["Completed", "Cancelled"].includes(meeting.status))
       return res.status(400).json({ success: false, message: `Cannot update a ${meeting.status} meeting` });
 
-    // ✅ Only organizer, mediator, or admin can update
     const isAuthorized =
-      req.user.role === "admin" ||
-      req.user.role === "case-manager" ||
+      req.user.role === "admin" || req.user.role === "case-manager" ||
       meeting.organizer.toString() === req.user._id.toString() ||
       meeting.mediator?.toString() === req.user._id.toString();
 
@@ -216,7 +206,6 @@ export const updateMeeting = async (req, res) => {
       "virtualMeeting", "physicalLocation",
       "agendaItems", "meetingNotes",
     ];
-
     allowedUpdates.forEach((field) => {
       if (req.body[field] !== undefined) meeting[field] = req.body[field];
     });
@@ -253,19 +242,17 @@ export const rescheduleMeeting = async (req, res) => {
       return res.status(400).json({ success: false, message: `Cannot reschedule a ${meeting.status} meeting` });
 
     const isAuthorized =
-      req.user.role === "admin" ||
-      req.user.role === "case-manager" ||
+      req.user.role === "admin" || req.user.role === "case-manager" ||
       meeting.organizer.toString() === req.user._id.toString() ||
       meeting.mediator?.toString() === req.user._id.toString();
 
     if (!isAuthorized)
       return res.status(403).json({ success: false, message: "Access denied" });
 
-    // ✅ Check conflicts on new time slot
     if (meeting.mediator) {
       const tempMeeting = new Meeting({
         ...meeting.toObject(),
-        _id:          meeting._id,
+        _id:           meeting._id,
         scheduledDate: new Date(newDate),
         startTime:     newStartTime,
         endTime:       newEndTime,
@@ -282,7 +269,18 @@ export const rescheduleMeeting = async (req, res) => {
       .populate("mediator",  "name email avatar")
       .populate("caseId",    "caseId caseTitle");
 
-    return res.status(200).json({ success: true, message: "Meeting rescheduled successfully", meeting: updated });
+    try {
+      const caseData = await Case.findById(meeting.caseId)
+        .populate("claimant",  "name email")
+        .populate("createdBy", "name email");
+      if (caseData) {
+        await sendMeetingRescheduledEmails({ meeting: updated, caseData, rescheduledBy: req.user });
+      }
+    } catch (mailErr) {
+      console.warn("⚠️ Reschedule email failed:", mailErr.message);
+    }
+
+    return res.status(200).json({ success: true, message: "Meeting rescheduled. All parties notified.", meeting: updated });
   } catch (error) {
     console.error("❌ rescheduleMeeting error:", error);
     return res.status(500).json({ success: false, message: "Failed to reschedule meeting" });
@@ -296,7 +294,10 @@ export const cancelMeeting = async (req, res) => {
   try {
     const { reason } = req.body;
 
-    const meeting = await Meeting.findById(req.params.id);
+    const meeting = await Meeting.findById(req.params.id)
+      .populate("organizer", "name email")
+      .populate("mediator",  "name email");
+
     if (!meeting)
       return res.status(404).json({ success: false, message: "Meeting not found" });
 
@@ -304,8 +305,7 @@ export const cancelMeeting = async (req, res) => {
       return res.status(400).json({ success: false, message: `Meeting is already ${meeting.status}` });
 
     const isAuthorized =
-      req.user.role === "admin" ||
-      req.user.role === "case-manager" ||
+      req.user.role === "admin" || req.user.role === "case-manager" ||
       meeting.organizer.toString() === req.user._id.toString() ||
       meeting.mediator?.toString() === req.user._id.toString();
 
@@ -314,7 +314,18 @@ export const cancelMeeting = async (req, res) => {
 
     await meeting.cancel(reason || "Cancelled", req.user._id);
 
-    return res.status(200).json({ success: true, message: "Meeting cancelled successfully", meeting });
+    try {
+      const caseData = await Case.findById(meeting.caseId)
+        .populate("claimant",  "name email")
+        .populate("createdBy", "name email");
+      if (caseData) {
+        await sendMeetingCancelledEmails({ meeting, caseData, reason });
+      }
+    } catch (mailErr) {
+      console.warn("⚠️ Cancellation email failed:", mailErr.message);
+    }
+
+    return res.status(200).json({ success: true, message: "Meeting cancelled. All parties notified.", meeting });
   } catch (error) {
     console.error("❌ cancelMeeting error:", error);
     return res.status(500).json({ success: false, message: "Failed to cancel meeting" });
@@ -336,15 +347,14 @@ export const completeMeeting = async (req, res) => {
       return res.status(400).json({ success: false, message: "Meeting already completed" });
 
     const isAuthorized =
-      req.user.role === "admin" ||
-      req.user.role === "case-manager" ||
+      req.user.role === "admin" || req.user.role === "case-manager" ||
       meeting.organizer.toString() === req.user._id.toString() ||
       meeting.mediator?.toString() === req.user._id.toString();
 
     if (!isAuthorized)
       return res.status(403).json({ success: false, message: "Access denied" });
 
-    meeting.status = "Completed";
+    meeting.status  = "Completed";
     meeting.outcome = {
       summary:          summary          || "",
       agreementReached: agreementReached || false,
@@ -353,7 +363,6 @@ export const completeMeeting = async (req, res) => {
       recordedAt:       new Date(),
     };
     if (meetingNotes) meeting.meetingNotes = meetingNotes;
-
     await meeting.save();
 
     const updated = await Meeting.findById(meeting._id)
@@ -370,7 +379,6 @@ export const completeMeeting = async (req, res) => {
 
 /* ═══════════════════════════════════════════════════════════════
    8. GET MEDIATOR AVAILABILITY
-   ✅ Updated: returns mediator profile + booked slots + isAvailable flag
 ═══════════════════════════════════════════════════════════════ */
 export const getMediatorAvailability = async (req, res) => {
   try {
@@ -379,7 +387,6 @@ export const getMediatorAvailability = async (req, res) => {
     if (!mediatorId || !date)
       return res.status(400).json({ success: false, message: "mediatorId and date are required" });
 
-    // ✅ Verify mediator exists
     const mediator = await User.findOne({
       _id:  mediatorId,
       role: { $in: ["mediator", "arbitrator"] },
@@ -388,7 +395,6 @@ export const getMediatorAvailability = async (req, res) => {
     if (!mediator)
       return res.status(404).json({ success: false, message: "Mediator/arbitrator not found" });
 
-    // ✅ Get all meetings on that date
     const startOfDay = new Date(date); startOfDay.setHours(0, 0, 0, 0);
     const endOfDay   = new Date(date); endOfDay.setHours(23, 59, 59, 999);
 
@@ -399,16 +405,12 @@ export const getMediatorAvailability = async (req, res) => {
     }).select("startTime endTime meetingTitle status");
 
     const bookedSlots = meetings.map((m) => ({
-      startTime: m.startTime,
-      endTime:   m.endTime,
-      title:     m.meetingTitle,
-      status:    m.status,
+      startTime: m.startTime, endTime: m.endTime,
+      title: m.meetingTitle,  status: m.status,
     }));
 
     return res.status(200).json({
-      success: true,
-      mediator,
-      date,
+      success: true, mediator, date,
       workingHours: { start: "09:00", end: "18:00" },
       bookedSlots,
       isAvailable: bookedSlots.length === 0,
@@ -421,7 +423,6 @@ export const getMediatorAvailability = async (req, res) => {
 
 /* ═══════════════════════════════════════════════════════════════
    9. GET ALL MEETINGS — ADMIN
-   ✅ Added: pagination, mediatorId filter, date range filter
 ═══════════════════════════════════════════════════════════════ */
 export const getAllMeetings = async (req, res) => {
   try {
@@ -456,20 +457,27 @@ export const getAllMeetings = async (req, res) => {
 
 /* ═══════════════════════════════════════════════════════════════
    10. GET MY MEETINGS — logged in user
-   ✅ Added: pagination, splits upcoming/past
+   ✅ Fixed: renamed conflicting 'upcoming' variable to 'upcomingList'
 ═══════════════════════════════════════════════════════════════ */
 export const getMyMeetings = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { page = 1, limit = 20 } = req.query;
+    const { page = 1, limit = 20, upcoming } = req.query;
 
-    const meetings = await Meeting.find({
+    const filter = {
       $or: [
         { organizer:           userId },
         { mediator:            userId },
         { "participants.user": userId },
       ],
-    })
+    };
+
+    if (upcoming === "true") {
+      filter.scheduledDate = { $gte: new Date() };
+      filter.status        = { $in: ["Scheduled", "Confirmed"] };
+    }
+
+    const meetings = await Meeting.find(filter)
       .populate("organizer",         "name email avatar")
       .populate("mediator",          "name email avatar")
       .populate("caseId",            "caseId caseTitle status")
@@ -478,15 +486,15 @@ export const getMyMeetings = async (req, res) => {
       .skip((page - 1) * limit)
       .limit(Number(limit));
 
-    const now      = new Date();
-    const upcoming = meetings.filter((m) => new Date(m.scheduledDate) >= now);
-    const past     = meetings.filter((m) => new Date(m.scheduledDate) < now);
+    const now          = new Date();
+    const upcomingList = meetings.filter((m) => new Date(m.scheduledDate) >= now);
+    const pastList     = meetings.filter((m) => new Date(m.scheduledDate) < now);
 
     return res.status(200).json({
-      success: true,
+      success:  true,
       total:    meetings.length,
-      upcoming,
-      past,
+      upcoming: upcomingList,
+      past:     pastList,
     });
   } catch (error) {
     console.error("❌ getMyMeetings error:", error);
