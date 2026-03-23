@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaCog, FaBell, FaSyncAlt } from "react-icons/fa";
 import api from "../api/axios";
@@ -18,15 +18,14 @@ const AdminNewCases = () => {
   const [allCases, setAllCases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [adminUser, setAdminUser] = useState({ name: "Admin", avatar: "https://i.pravatar.cc/40" });
+  const [adminUser] = useState({ name: "Admin", avatar: "https://i.pravatar.cc/40" }); // ✅ removed unused setAdminUser
 
   // ─── Fetch all cases from backend ───────────────────────────────────────────
-  const fetchCases = async () => {
+  const fetchCases = useCallback(async () => { // ✅ wrapped in useCallback
     setLoading(true);
     setError(null);
     
     try {
-      // ✅ GET /api/cases/all → getAllCases in caseController
       const response = await api.get("/cases/all");
       
       console.log("✅ Admin fetched cases:", response.data);
@@ -40,7 +39,6 @@ const AdminNewCases = () => {
       console.error("❌ Failed to fetch cases:", err);
       setError(err.response?.data?.message || "Failed to load cases");
       
-      // If unauthorized, redirect to login
       if (err.response?.status === 401 || err.response?.status === 403) {
         alert("Unauthorized. Please login as admin.");
         navigate("/login");
@@ -48,10 +46,9 @@ const AdminNewCases = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]); // ✅ navigate is the only dependency
 
   useEffect(() => {
-    // Check if user is logged in
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
     
@@ -60,7 +57,6 @@ const AdminNewCases = () => {
       return;
     }
     
-    // Optional: verify admin role (if you store it in localStorage)
     if (role && role !== "admin") {
       alert("Access denied. Admin only.");
       navigate("/login");
@@ -68,7 +64,7 @@ const AdminNewCases = () => {
     }
     
     fetchCases();
-  }, [navigate]);
+  }, [navigate, fetchCases]); // ✅ fixed missing dependency
 
   // ─── Filter cases by search ──────────────────────────────────────────────────
   const filteredCases = allCases.filter((c) =>

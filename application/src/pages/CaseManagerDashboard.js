@@ -14,7 +14,7 @@ import SupportIcon  from "../assets/icons/support.png";
 import LogoutIcon   from "../assets/icons/logout.png";
 import { FaCog, FaBell } from "react-icons/fa";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api"; // ✅ fixed: use process.env for CRA
 
 const CaseManagerDashboard = () => {
   const navigate = useNavigate();
@@ -25,7 +25,7 @@ const CaseManagerDashboard = () => {
   const [stats, setStats]               = useState({ total:0, active:0, pending:0, resolved:0 });
   const [cases, setCases]               = useState([]);
   const [todayMeeting, setTodayMeeting] = useState(null);
-  const [documents, setDocuments]       = useState([]);
+  // ✅ removed unused: const [documents, setDocuments] = useState([]);
 
   /* ── Schedule Meeting Modal ── */
   const [showModal, setShowModal]       = useState(false);
@@ -140,7 +140,6 @@ const CaseManagerDashboard = () => {
         setScheduleMsg("✅ Meeting scheduled successfully!");
         setShowModal(false);
         setForm({ meetingTitle:"", meetingType:"Mediation Session", scheduledDate:"", startTime:"", endTime:"", mediatorId:"", meetingLink:"", agendaItems:"" });
-        // Refresh meetings
         const meetRes  = await fetch(`${API_URL}/meetings/my?upcoming=true&limit=1`, {
           headers: { Authorization: `Bearer ${token}` },
         });
