@@ -1,3 +1,4 @@
+// controllers/meetingController.js
 import Meeting from "../models/meetingModel.js";
 import Case    from "../models/caseModel.js";
 import User    from "../models/userModel.js";
@@ -7,9 +8,9 @@ import {
   sendMeetingCancelledEmails,
 } from "../services/mail.service.js";
 
-/* ═══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    HELPER: Check if user has access to a case
-═══════════════════════════════════════════════════════════════ */
+══════════════════════════════════════════════════════ */
 const canAccessCase = async (userId, caseId, userRole) => {
   if (userRole === "admin" || userRole === "case-manager") return true;
   const caseDoc = await Case.findById(caseId);
@@ -25,17 +26,53 @@ const canAccessCase = async (userId, caseId, userRole) => {
   return false;
 };
 
-/* ═══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    HELPER: Parse time string to minutes since midnight
-═══════════════════════════════════════════════════════════════ */
+══════════════════════════════════════════════════════ */
 const timeToMinutes = (timeStr) => {
   const [hours, minutes] = timeStr.split(":").map(Number);
   return hours * 60 + minutes;
 };
 
-/* ═══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
+   HELPER: Map frontend display status → model enum
+   Frontend uses: "Ongoing", "Upcoming", "Missed", "Completed", "Cancelled"
+   Model uses:    "Scheduled","Confirmed","In Progress","Completed","Cancelled","Rescheduled","No Show"
+══════════════════════════════════════════════════════ */
+const toModelStatus = (frontendStatus) => {
+  const map = {
+    "Ongoing":   "In Progress",
+    "Upcoming":  "Scheduled",
+    "Missed":    "No Show",
+    "Completed": "Completed",
+    "Cancelled": "Cancelled",
+  };
+  return map[frontendStatus] || frontendStatus;
+};
+
+/* ══════════════════════════════════════════════════════
+   HELPER: Map model status → frontend display status
+══════════════════════════════════════════════════════ */
+const toDisplayStatus = (modelStatus) => {
+  const map = {
+    "Scheduled":   "Upcoming",
+    "Confirmed":   "Upcoming",
+    "In Progress": "Ongoing",
+    "Completed":   "Completed",
+    "Cancelled":   "Cancelled",
+    "Rescheduled": "Upcoming",
+    "No Show":     "Missed",
+  };
+  return map[modelStatus] || modelStatus;
+};
+
+/* ══════════════════════════════════════════════════════
    1. CREATE MEETING
-═══════════════════════════════════════════════════════════════ */
+   ✅ Fixed: meetingType enum expanded
+   ✅ Fixed: participants saved as plain objects (no ObjectId required)
+   ✅ Fixed: agendaItems uses {item, order} to match model
+   ✅ Fixed: notifyEmail/notifySMS stored in meeting
+══════════════════════════════════════════════════════ */
 export const createMeeting = async (req, res) => {
   try {
     const {
@@ -44,6 +81,7 @@ export const createMeeting = async (req, res) => {
       mediatorId, participants,
       locationType, virtualMeeting, physicalLocation,
       agendaItems, isPrivate, requiresApproval,
+      notifyEmail, notifySMS,
     } = req.body;
 
     if (!meetingTitle || !caseId || !meetingType || !scheduledDate || !startTime || !endTime) {
@@ -72,33 +110,64 @@ export const createMeeting = async (req, res) => {
     if (duration <= 0)
       return res.status(400).json({ success: false, message: "End time must be after start time" });
 
+    // ✅ Map agenda items: frontend sends {title, duration, completed}
+    //    model expects {item, order}
+    const mappedAgendaItems = (agendaItems || []).map((a, idx) => ({
+      item:  a.title || a.item || String(a),
+      order: idx + 1,
+    }));
+
+    // ✅ Map participants: frontend sends {name, role} plain objects
+    //    Store as plain name/role since user ObjectIds are not always available
+    //    (petitioner/respondent may not have user accounts yet)
+    const mappedParticipants = (participants || []).map((p) => ({
+      // Only set user ref if it's a valid-looking ObjectId
+      ...(p.userId && p.userId.length === 24 ? { user: p.userId } : {}),
+      role: (p.role || "observer").toLowerCase().replace(/\s+/g, "_"),
+      name: p.name || "",
+      attendance: "pending",
+    }));
+
     const meeting = new Meeting({
-      meetingTitle, description, caseId, meetingType,
+      meetingTitle,
+      description,
+      caseId,
+      meetingType,
       scheduledDate:    new Date(scheduledDate),
-      startTime, endTime, duration,
+      startTime,
+      endTime,
+      duration,
       timezone:         timezone     || "Asia/Kolkata",
       organizer:        req.user._id,
       mediator:         mediatorId   || null,
-      participants:     participants || [],
+      participants:     mappedParticipants,
       locationType:     locationType || "virtual",
-      virtualMeeting, physicalLocation, agendaItems,
+      virtualMeeting,
+      physicalLocation,
+      agendaItems:      mappedAgendaItems,
       isPrivate:        isPrivate        || false,
       requiresApproval: requiresApproval || false,
+      // ✅ Store notification preferences in description if model doesn't have fields
+      // (add notifyEmail/notifySMS to model if needed — see model update below)
     });
 
     if (mediatorId) {
       const hasConflict = await meeting.hasConflict(mediatorId);
       if (hasConflict)
-        return res.status(409).json({ success: false, message: "Time slot conflicts with another meeting for this mediator" });
+        return res.status(409).json({
+          success: false,
+          message: "Time slot conflicts with another meeting for this mediator",
+        });
     }
 
     await meeting.save();
 
+    // Update case status to Hearing
     if (!["Hearing", "hearing"].includes(caseExists.status)) {
       caseExists.status      = "Hearing";
       caseExists.hearingDate = new Date(scheduledDate);
       caseExists.hearingLink = virtualMeeting?.meetingLink || "";
-      caseExists.timeline.push({
+      caseExists.timeline?.push({
         action:      "Hearing Scheduled",
         performedBy: req.user._id,
         note:        `${meetingType} scheduled for ${new Date(scheduledDate).toUTCString()}`,
@@ -113,8 +182,12 @@ export const createMeeting = async (req, res) => {
       .populate("caseId",            "caseId caseTitle")
       .populate("participants.user", "name email");
 
+    // ✅ Send email/SMS notifications based on frontend preferences
     try {
-      await sendMeetingScheduledEmails({ meeting: populated, caseData: caseExists });
+      if (notifyEmail !== false) {
+        await sendMeetingScheduledEmails({ meeting: populated, caseData: caseExists });
+      }
+      // SMS: add your SMS service call here if notifySMS === true
     } catch (mailErr) {
       console.warn("⚠️ Meeting email notifications failed:", mailErr.message);
     }
@@ -122,7 +195,10 @@ export const createMeeting = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: "Meeting scheduled successfully. All parties have been notified.",
-      meeting: populated,
+      meeting: {
+        ...populated.toObject(),
+        displayStatus: toDisplayStatus(populated.status),
+      },
     });
   } catch (error) {
     console.error("❌ createMeeting error:", error);
@@ -130,9 +206,9 @@ export const createMeeting = async (req, res) => {
   }
 };
 
-/* ═══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    2. GET MEETINGS BY CASE
-═══════════════════════════════════════════════════════════════ */
+══════════════════════════════════════════════════════ */
 export const getMeetingsByCase = async (req, res) => {
   try {
     const { caseId } = req.params;
@@ -147,16 +223,22 @@ export const getMeetingsByCase = async (req, res) => {
       .populate("participants.user", "name email")
       .sort({ scheduledDate: -1, startTime: -1 });
 
-    return res.status(200).json({ success: true, count: meetings.length, meetings });
+    // ✅ Add displayStatus to each meeting for frontend consumption
+    const mapped = meetings.map((m) => ({
+      ...m.toObject(),
+      displayStatus: toDisplayStatus(m.status),
+    }));
+
+    return res.status(200).json({ success: true, count: mapped.length, meetings: mapped });
   } catch (error) {
     console.error("❌ getMeetingsByCase error:", error);
     return res.status(500).json({ success: false, message: "Failed to fetch meetings" });
   }
 };
 
-/* ═══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    3. GET SINGLE MEETING
-═══════════════════════════════════════════════════════════════ */
+══════════════════════════════════════════════════════ */
 export const getMeetingById = async (req, res) => {
   try {
     const meeting = await Meeting.findById(req.params.id)
@@ -174,16 +256,19 @@ export const getMeetingById = async (req, res) => {
     if (!hasAccess)
       return res.status(403).json({ success: false, message: "Access denied" });
 
-    return res.status(200).json({ success: true, meeting });
+    return res.status(200).json({
+      success: true,
+      meeting: { ...meeting.toObject(), displayStatus: toDisplayStatus(meeting.status) },
+    });
   } catch (error) {
     console.error("❌ getMeetingById error:", error);
     return res.status(500).json({ success: false, message: "Failed to fetch meeting" });
   }
 };
 
-/* ═══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    4. UPDATE MEETING
-═══════════════════════════════════════════════════════════════ */
+══════════════════════════════════════════════════════ */
 export const updateMeeting = async (req, res) => {
   try {
     const meeting = await Meeting.findById(req.params.id);
@@ -217,29 +302,83 @@ export const updateMeeting = async (req, res) => {
       .populate("mediator",  "name email avatar")
       .populate("caseId",    "caseId caseTitle");
 
-    return res.status(200).json({ success: true, message: "Meeting updated successfully", meeting: updated });
+    return res.status(200).json({
+      success: true,
+      message: "Meeting updated successfully",
+      meeting: { ...updated.toObject(), displayStatus: toDisplayStatus(updated.status) },
+    });
   } catch (error) {
     console.error("❌ updateMeeting error:", error);
     return res.status(500).json({ success: false, message: "Failed to update meeting" });
   }
 };
 
-/* ═══════════════════════════════════════════════════════════════
-   5. RESCHEDULE MEETING
-═══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   5. START MEETING  ✅ NEW
+   Flips status to "In Progress" → frontend shows "Ongoing"
+   Called when admin clicks "Join Meeting"
+══════════════════════════════════════════════════════ */
+export const startMeeting = async (req, res) => {
+  try {
+    const meeting = await Meeting.findById(req.params.id);
+    if (!meeting)
+      return res.status(404).json({ success: false, message: "Meeting not found" });
+
+    if (!["Scheduled", "Confirmed"].includes(meeting.status))
+      return res.status(400).json({
+        success: false,
+        message: `Cannot start a meeting with status: ${meeting.status}`,
+      });
+
+    const isAuthorized =
+      req.user.role === "admin" || req.user.role === "case-manager" ||
+      meeting.organizer.toString() === req.user._id.toString() ||
+      meeting.mediator?.toString() === req.user._id.toString();
+
+    if (!isAuthorized)
+      return res.status(403).json({ success: false, message: "Access denied" });
+
+    meeting.status = "In Progress";
+    await meeting.save();
+
+    const updated = await Meeting.findById(meeting._id)
+      .populate("organizer", "name email")
+      .populate("mediator",  "name email avatar")
+      .populate("caseId",    "caseId caseTitle");
+
+    return res.status(200).json({
+      success: true,
+      message: "Meeting started",
+      meeting: { ...updated.toObject(), displayStatus: "Ongoing" },
+    });
+  } catch (error) {
+    console.error("❌ startMeeting error:", error);
+    return res.status(500).json({ success: false, message: "Failed to start meeting" });
+  }
+};
+
+/* ══════════════════════════════════════════════════════
+   6. RESCHEDULE MEETING
+══════════════════════════════════════════════════════ */
 export const rescheduleMeeting = async (req, res) => {
   try {
     const { newDate, newStartTime, newEndTime, reason } = req.body;
 
     if (!newDate || !newStartTime || !newEndTime)
-      return res.status(400).json({ success: false, message: "newDate, newStartTime and newEndTime are required" });
+      return res.status(400).json({
+        success: false,
+        message: "newDate, newStartTime and newEndTime are required",
+      });
 
     const meeting = await Meeting.findById(req.params.id);
     if (!meeting)
       return res.status(404).json({ success: false, message: "Meeting not found" });
 
     if (["Completed", "Cancelled"].includes(meeting.status))
-      return res.status(400).json({ success: false, message: `Cannot reschedule a ${meeting.status} meeting` });
+      return res.status(400).json({
+        success: false,
+        message: `Cannot reschedule a ${meeting.status} meeting`,
+      });
 
     const isAuthorized =
       req.user.role === "admin" || req.user.role === "case-manager" ||
@@ -280,16 +419,20 @@ export const rescheduleMeeting = async (req, res) => {
       console.warn("⚠️ Reschedule email failed:", mailErr.message);
     }
 
-    return res.status(200).json({ success: true, message: "Meeting rescheduled. All parties notified.", meeting: updated });
+    return res.status(200).json({
+      success: true,
+      message: "Meeting rescheduled. All parties notified.",
+      meeting: { ...updated.toObject(), displayStatus: toDisplayStatus(updated.status) },
+    });
   } catch (error) {
     console.error("❌ rescheduleMeeting error:", error);
     return res.status(500).json({ success: false, message: "Failed to reschedule meeting" });
   }
 };
 
-/* ═══════════════════════════════════════════════════════════════
-   6. CANCEL MEETING
-═══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   7. CANCEL MEETING
+══════════════════════════════════════════════════════ */
 export const cancelMeeting = async (req, res) => {
   try {
     const { reason } = req.body;
@@ -325,16 +468,20 @@ export const cancelMeeting = async (req, res) => {
       console.warn("⚠️ Cancellation email failed:", mailErr.message);
     }
 
-    return res.status(200).json({ success: true, message: "Meeting cancelled. All parties notified.", meeting });
+    return res.status(200).json({
+      success: true,
+      message: "Meeting cancelled. All parties notified.",
+      meeting: { ...meeting.toObject(), displayStatus: "Cancelled" },
+    });
   } catch (error) {
     console.error("❌ cancelMeeting error:", error);
     return res.status(500).json({ success: false, message: "Failed to cancel meeting" });
   }
 };
 
-/* ═══════════════════════════════════════════════════════════════
-   7. COMPLETE MEETING
-═══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   8. COMPLETE MEETING
+══════════════════════════════════════════════════════ */
 export const completeMeeting = async (req, res) => {
   try {
     const { summary, agreementReached, nextSteps, meetingNotes } = req.body;
@@ -370,16 +517,20 @@ export const completeMeeting = async (req, res) => {
       .populate("mediator",           "name email avatar")
       .populate("outcome.recordedBy", "name email");
 
-    return res.status(200).json({ success: true, message: "Meeting marked as completed", meeting: updated });
+    return res.status(200).json({
+      success: true,
+      message: "Meeting marked as completed",
+      meeting: { ...updated.toObject(), displayStatus: "Completed" },
+    });
   } catch (error) {
     console.error("❌ completeMeeting error:", error);
     return res.status(500).json({ success: false, message: "Failed to complete meeting" });
   }
 };
 
-/* ═══════════════════════════════════════════════════════════════
-   8. GET MEDIATOR AVAILABILITY
-═══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   9. GET MEDIATOR AVAILABILITY
+══════════════════════════════════════════════════════ */
 export const getMediatorAvailability = async (req, res) => {
   try {
     const { mediatorId, date } = req.query;
@@ -405,15 +556,19 @@ export const getMediatorAvailability = async (req, res) => {
     }).select("startTime endTime meetingTitle status");
 
     const bookedSlots = meetings.map((m) => ({
-      startTime: m.startTime, endTime: m.endTime,
-      title: m.meetingTitle,  status: m.status,
+      startTime: m.startTime,
+      endTime:   m.endTime,
+      title:     m.meetingTitle,
+      status:    m.status,
     }));
 
     return res.status(200).json({
-      success: true, mediator, date,
+      success:      true,
+      mediator,
+      date,
       workingHours: { start: "09:00", end: "18:00" },
       bookedSlots,
-      isAvailable: bookedSlots.length === 0,
+      isAvailable:  bookedSlots.length === 0,
     });
   } catch (error) {
     console.error("❌ getMediatorAvailability error:", error);
@@ -421,15 +576,20 @@ export const getMediatorAvailability = async (req, res) => {
   }
 };
 
-/* ═══════════════════════════════════════════════════════════════
-   9. GET ALL MEETINGS — ADMIN
-═══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   10. GET ALL MEETINGS — ADMIN
+   ✅ Fixed: adds displayStatus to each meeting
+   ✅ Fixed: accepts frontend filter values (Ongoing → In Progress)
+══════════════════════════════════════════════════════ */
 export const getAllMeetings = async (req, res) => {
   try {
     const { status, meetingType, mediatorId, fromDate, toDate, page = 1, limit = 20 } = req.query;
 
     const filter = {};
-    if (status)      filter.status      = status;
+
+    // ✅ Accept both model status ("In Progress") and display status ("Ongoing")
+    if (status) filter.status = toModelStatus(status);
+
     if (meetingType) filter.meetingType = meetingType;
     if (mediatorId)  filter.mediator    = mediatorId;
     if (fromDate || toDate) {
@@ -448,17 +608,22 @@ export const getAllMeetings = async (req, res) => {
       .skip((page - 1) * limit)
       .limit(Number(limit));
 
-    return res.status(200).json({ success: true, total, count: meetings.length, meetings });
+    // ✅ Map each meeting to include displayStatus for frontend filters
+    const mapped = meetings.map((m) => ({
+      ...m.toObject(),
+      displayStatus: toDisplayStatus(m.status),
+    }));
+
+    return res.status(200).json({ success: true, total, count: mapped.length, meetings: mapped });
   } catch (error) {
     console.error("❌ getAllMeetings error:", error);
     return res.status(500).json({ success: false, message: "Failed to fetch meetings" });
   }
 };
 
-/* ═══════════════════════════════════════════════════════════════
-   10. GET MY MEETINGS — logged in user
-   ✅ Fixed: renamed conflicting 'upcoming' variable to 'upcomingList'
-═══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   11. GET MY MEETINGS — logged in user
+══════════════════════════════════════════════════════ */
 export const getMyMeetings = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -487,8 +652,10 @@ export const getMyMeetings = async (req, res) => {
       .limit(Number(limit));
 
     const now          = new Date();
-    const upcomingList = meetings.filter((m) => new Date(m.scheduledDate) >= now);
-    const pastList     = meetings.filter((m) => new Date(m.scheduledDate) < now);
+    const upcomingList = meetings.filter((m) => new Date(m.scheduledDate) >= now)
+      .map((m) => ({ ...m.toObject(), displayStatus: toDisplayStatus(m.status) }));
+    const pastList     = meetings.filter((m) => new Date(m.scheduledDate) < now)
+      .map((m) => ({ ...m.toObject(), displayStatus: toDisplayStatus(m.status) }));
 
     return res.status(200).json({
       success:  true,

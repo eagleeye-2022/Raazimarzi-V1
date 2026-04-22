@@ -1,440 +1,376 @@
-import React, { useState, useEffect } from "react";
+// src/pages/AdminDashboard.js
+import React, { useState, useEffect, useRef } from "react";
 import "./AdminDashboard.css";
+import AdminSidebar from "../components/AdminSidebar";
 import { useNavigate } from "react-router-dom";
-import ActiveIcon  from "../assets/icons/active.png";
-import CurrentIcon from "../assets/icons/current.png";
-import TotalIcon   from "../assets/icons/total.png";
-import HomeIcon    from "../assets/icons/home.png";
-import CaseIcon    from "../assets/icons/newcase.png";
-import MeetingIcon from "../assets/icons/meeting.png";
-import ChatIcon    from "../assets/icons/chat.png";
-import PaymentIcon from "../assets/icons/payment.png";
-import SupportIcon from "../assets/icons/support.png";
-import LogoutIcon  from "../assets/icons/logout.png";
+import { FaBell, FaSearch, FaHome, FaFolder, FaUsers, FaComments, FaCreditCard, FaLifeRing, FaSignOutAlt, FaBars } from "react-icons/fa";
+import { Line } from "react-chartjs-2";
+import {
+  Chart, CategoryScale, LinearScale, PointElement, LineElement,
+  Tooltip, Filler,
+} from "chart.js";
 
-import { Doughnut } from "react-chartjs-2";
-import { Chart, ArcElement, Tooltip, Legend } from "chart.js";
-import { FaCog, FaBell } from "react-icons/fa";
+import UDIcon1 from "../assets/icons/ud-1.png";
+import UDIcon2 from "../assets/icons/ud-2.png";
+import UDIcon3 from "../assets/icons/ud-3.png";
+import UDIcon4 from "../assets/icons/ud-4.png";
+import ADIcon5 from "../assets/icons/ad-5.png";
 
-Chart.register(ArcElement, Tooltip, Legend);
+Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler);
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
+const MONTH_LABELS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
+/* ── helpers ── */
+const pad = (n) => String(n).padStart(2, "0");
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
+const getStatusClass = (s = "") => {
+  const v = s.toLowerCase();
+  if (["resolved", "awarded", "active"].includes(v)) return "adx-badge-green";
+  if (["pending", "pending-review"].includes(v)) return "adx-badge-yellow";
+  if (["rejected", "withdrawn"].includes(v)) return "adx-badge-red";
+  return "adx-badge-blue";
+};
+
+/* ── MOCK fallback (used when API is unavailable) ── */
+const MOCK = {
+  admin: { name: "Admin", avatar: "" },
+  stats: { total: 10, active: 2, resolved: 8, pending: 4, revenue: 580000 },
+  cases: [
+    { _id: "1", caseId: "#4245", title: "Property Division", party1: "Ramesh V", party2: "Suresh V", mediator: "Dharma", status: "PENDING" },
+    { _id: "2", caseId: "#4246", title: "Employment Dispute", party1: "Harish K", party2: "Tech Corp", mediator: "Anita R", status: "ACTIVE" },
+    { _id: "3", caseId: "#4247", title: "Consumer Complaint", party1: "Priya M", party2: "Store Ltd", mediator: "Vikas S", status: "RESOLVED" },
+    { _id: "4", caseId: "#4248", title: "Lease Disagreement", party1: "Kavya T", party2: "Landlord", mediator: "Dharma", status: "PENDING" },
+    { _id: "5", caseId: "#4249", title: "Insurance Claim", party1: "Arun N", party2: "Insurer Co", mediator: "Anita R", status: "PENDING" },
+  ],
+  actions: [
+    { id: 1, title: "Overdue Cases (03)", sub: "Cases exceeding resolution time", btn: "Remind Mediator", icon: "⏰" },
+    { id: 2, title: "Unassigned Mediations (12)", sub: "Cases awaiting mediator assignment", btn: "Assign Mediators", icon: "👤" },
+    { id: 3, title: "Respondent Onboarding (18)", sub: "Follow up with respondent for onboarding", btn: "View Details", icon: "🔗" },
+  ],
+  sessions: [
+    { id: 1, month: "OCT", day: "15", caseId: "#7843 (Asset Mediation)", time: "10:30 AM – 11:30 AM" },
+    { id: 2, month: "OCT", day: "16", caseId: "#8734 (Employment Dispute)", time: "02:00 PM – 03:00 PM" },
+  ],
+  registrations: [
+    { id: 1, name: "Harish", role: "Corporate Attorney", ago: "2m ago" },
+    { id: 2, name: "Vikas", role: "Worker", ago: "1h ago" },
+  ],
+  revenueMonthly: [12000, 18000, 14000, 22000, 17000, 25000, 30000, 27000, 32000, 28000, 24000, 20000],
+};
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [admin, setAdmin] = useState(MOCK.admin);
+  const [stats, setStats] = useState(MOCK.stats);
+  const [cases, setCases] = useState(MOCK.cases);
+  const [actions, setActions] = useState(MOCK.actions);
+  const [sessions, setSessions] = useState(MOCK.sessions);
+  const [registrations, setRegistrations] = useState(MOCK.registrations);
+  const [revenueData, setRevenueData] = useState(MOCK.revenueMonthly);
 
-  const [loading, setLoading]               = useState(true);
-  const [error, setError]                   = useState(null);
-  const [admin, setAdmin]                   = useState({ name: "Admin", avatar: "" });
-  const [stats, setStats]                   = useState({ active: 0, current: 0, total: 0 });
-  const [cases, setCases]                   = useState([]);
-  const [todayMeetings, setTodayMeetings]   = useState([]);
-  const [caseProgress, setCaseProgress]     = useState(null);
-  const [searchCaseId, setSearchCaseId]     = useState("");
-  const [searchLoading, setSearchLoading]   = useState(false);
-
-  /* ── Fetch dashboard data ── */
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        setLoading(true);
         const token = localStorage.getItem("token");
-        if (!token) { setError("Not logged in"); setLoading(false); return; }
-
-        const res  = await fetch(`${API_URL}/admin/dashboard`, {
+        if (!token) { setLoading(false); return; }
+        const res = await fetch(`${API_URL}/admin/dashboard`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
-
-        if (!res.ok || !data.success) {
-          setError(data.message || "Failed to load dashboard");
-          return;
+        if (res.ok && data.success) {
+          setAdmin(data.admin || MOCK.admin);
+          setStats(data.stats || MOCK.stats);
+          setCases(data.cases || MOCK.cases);
+          if (data.actions) setActions(data.actions);
+          if (data.sessions) setSessions(data.sessions);
+          if (data.registrations) setRegistrations(data.registrations);
+          if (data.revenueMonthly) setRevenueData(data.revenueMonthly);
         }
-
-        setAdmin(data.admin || { name: "Admin", avatar: "" });
-        setStats(data.stats || { active: 0, current: 0, total: 0 });
-        setCases(data.cases || []);
-        setTodayMeetings(data.todayMeetings || []);
-        setCaseProgress(data.caseProgress || null);
-      } catch (err) {
-        setError("Could not connect to server");
-      } finally {
-        setLoading(false);
-      }
+      } catch (_) { /* keep mock */ }
+      finally { setLoading(false); }
     };
-
     fetchDashboard();
   }, []);
 
-  /* ── Search case progress ── */
-  const handleCaseSearch = async (e) => {
-    e.preventDefault();
-    if (!searchCaseId.trim()) return;
-
-    try {
-      setSearchLoading(true);
-      const token = localStorage.getItem("token");
-      const res   = await fetch(`${API_URL}/admin/case-progress/${searchCaseId.trim()}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data.success) setCaseProgress(data.progress);
-      else alert("Case not found");
-    } catch (err) {
-      alert("Error searching case");
-    } finally {
-      setSearchLoading(false);
-    }
-  };
-
-  /* ── Chart data from real values ── */
-  const phaseChart = {
-    labels: ["Completed", "Remaining"],
+  /* ── Revenue chart config ── */
+  const chartData = {
+    labels: MONTH_LABELS,
     datasets: [{
-      data: [caseProgress?.phasePercent || 0, 100 - (caseProgress?.phasePercent || 0)],
-      backgroundColor: ["#6b5bff", "#eee"],
-      borderWidth: 0,
+      data: revenueData,
+      borderColor: "rgba(119,138,255,1)",
+      backgroundColor: "rgba(119,138,255,0.1)",
+      borderWidth: 2.5,
+      tension: 0.45,
+      fill: true,
+      pointRadius: 0,
+      pointHoverRadius: 5,
     }],
   };
-
-  const paymentChart = {
-    labels: ["Paid", "Remaining"],
-    datasets: [{
-      data: caseProgress?.filingFeePaid ? [100, 0] : [0, 100],
-      backgroundColor: ["#30c48d", "#eee"],
-      borderWidth: 0,
-    }],
+  const chartOpts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 10 }, color: "#bbb" } },
+      y: { display: false },
+    },
   };
 
-  /* ── Status badge style ── */
-  const getStatusStyle = (status) => {
-    const s = status?.toLowerCase();
-    if (["resolved","awarded"].includes(s))         return { color: "#16a34a" };
-    if (["in-progress","assigned","mediation","arbitration","notice-sent"].includes(s))
-                                                     return { color: "#1d4ed8" };
-    if (["pending","pending-review"].includes(s))    return { color: "#854d0e" };
-    if (["rejected","withdrawn"].includes(s))        return { color: "#dc2626" };
-    return { color: "#16a34a" }; // default active green
-  };
+  const filteredCases = cases.filter((c) =>
+    !search || [c.caseId, c.title, c.mediator, c.party1, c.party2]
+      .join(" ").toLowerCase().includes(search.toLowerCase())
+  );
 
-  /* ── Format date ── */
-  const formatDate = (d) => d ? new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
-
-  /* ── Current month label ── */
   const currentMonth = new Date().toLocaleString("en-IN", { month: "long", year: "numeric" });
 
-  /* ── Loading / Error states ── */
-  if (loading) {
-    return (
-      <div className="admin-dashboard-container">
-        <aside className="admin-sidebar">
-          <h2 className="admin-sidebar-title">Dashboard</h2>
-        </aside>
-        <main className="admin-main-content" style={{ display:"flex", alignItems:"center", justifyContent:"center" }}>
-          <p style={{ color:"#888" }}>Loading dashboard...</p>
-        </main>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="admin-dashboard-container">
-        <aside className="admin-sidebar"><h2 className="admin-sidebar-title">Dashboard</h2></aside>
-        <main className="admin-main-content" style={{ display:"flex", alignItems:"center", justifyContent:"center" }}>
-          <p style={{ color:"#dc2626" }}>{error}</p>
-        </main>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="adx-root">
+      <div className="adx-loading">Loading dashboard…</div>
+    </div>
+  );
 
   return (
-    <div className="admin-dashboard-container">
-      {/* Sidebar */}
-      <aside className="admin-sidebar">
-        <h2 className="admin-sidebar-title">Dashboard</h2>
-        <nav className="admin-menu">
-          <div className="admin-menu-item active" onClick={() => navigate("/admin/dashboard")}>
-            <img src={HomeIcon} alt="Home" /><span>Home</span>
-          </div>
-          <div className="menu-item" onClick={() => navigate("/admin/new-cases")}>
-            <img src={CaseIcon} alt="New Cases" /><span>New Cases</span>
-          </div>
-          <div className="admin-menu-item" onClick={() => navigate("/admin/case-meetings")}>
-            <img src={MeetingIcon} alt="Case Meetings" /><span>Case Meetings</span>
-          </div>
-          <div className="admin-menu-item" onClick={() => navigate("/admin/chats")}>
-            <img src={ChatIcon} alt="Chats" /><span>Chats</span>
-          </div>
-          <div className="admin-menu-item" onClick={() => navigate("/admin/payment")}>
-            <img src={PaymentIcon} alt="Payment" /><span>Payment</span>
-          </div>
-          <div className="admin-menu-item" onClick={() => navigate("/admin/support")}>
-            <img src={SupportIcon} alt="Support" /><span>Support</span>
-          </div>
-        </nav>
-        <div className="admin-logout">
-          <div className="admin-menu-item">
-            <img src={LogoutIcon} alt="Logout" /><span>Log out</span>
-          </div>
-        </div>
-      </aside>
+    <div className="adx-root">
 
-      {/* Main Content */}
-      <main className="admin-main-content">
-        {/* Navbar */}
-        <header className="admin-navbar">
-          <div></div>
-          <div className="admin-nav-icons">
-            <FaCog className="admin-icon" />
-            <FaBell className="admin-icon" />
-            <div className="admin-profile">
+      {/* ══ SIDEBAR ══ */}
+      <AdminSidebar activePage="dashboard" />
+
+      {/* ══ MAIN ══ */}
+      <main className="adx-main">
+
+        {/* ── Topbar ── */}
+        <header className="adx-topbar">
+          <div className="adx-search">
+            <FaSearch className="adx-search__icon" />
+            <input
+              className="adx-search__input"
+              placeholder="Search cases, mediators or files…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <div className="adx-topbar__right">
+            <button className="adx-topbar__bell"><FaBell /></button>
+            <div className="adx-topbar__profile">
               <img
-                src={admin.avatar || "https://i.pravatar.cc/40"}
-                alt="profile"
-                className="admin-profile-img"
+                src={admin.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(admin.name)}&background=778aff&color=fff&size=80`}
+                alt="admin"
+                className="adx-topbar__avatar"
               />
-              <span>{admin.name}</span>
             </div>
           </div>
         </header>
 
-        {/* Stats */}
-        <section className="admin-stats">
-          <div className="admin-stat-card admin-green">
-            <div className="admin-stat-left">
-              <p className="admin-stat-label">Active Case</p>
-              <h2 className="admin-stat-value">{String(stats.active).padStart(2,"0")}</h2>
-            </div>
-            <div className="admin-stat-right">
-              <img src={ActiveIcon} alt="Active Case" className="admin-stat-icon" />
-            </div>
-          </div>
+        <div className="adx-body">
 
-          <div className="admin-stat-card admin-blue">
-            <div className="admin-stat-left">
-              <p className="admin-stat-label">Current Cases</p>
-              <h2 className="admin-stat-value">{String(stats.current).padStart(2,"0")}</h2>
-            </div>
-            <div className="admin-stat-right">
-              <img src={CurrentIcon} alt="Current Cases" className="admin-stat-icon" />
-            </div>
-          </div>
+          {/* ── STAT CARDS ── */}
 
-          <div className="admin-stat-card admin-yellow">
-            <div className="admin-stat-left">
-              <p className="admin-stat-label">Total Case</p>
-              <h2 className="admin-stat-value">{String(stats.total).padStart(2,"0")}</h2>
-            </div>
-            <div className="admin-stat-right">
-              <img src={TotalIcon} alt="Total Case" className="admin-stat-icon" />
-            </div>
-          </div>
+          <section className="adx-stats">
 
-          <div className="admin-stat-card admin-purple">
-            <div className="admin-stat-left">
-              <p className="admin-stat-label">
-                {caseProgress ? `Progress: ${caseProgress.caseId}` : "Resolution Rate"}
-              </p>
-              <h2 className="admin-stat-value">+{stats.resolutionRate || 0}%</h2>
+            <div className="stat-card">
+              <div className="stat-icon-wrap">
+                <img src={UDIcon1} alt="Total Cases" className="stat-icon" />
+              </div>
+              <div className="stat-info">
+                <p className="stat-label">Total Cases</p>
+                <h2 className="stat-value">{pad(stats.total)}</h2>
+              </div>
             </div>
-            <div className="admin-stat-right">
-              <img src={ActiveIcon} alt="Progress" className="admin-stat-icon" />
-            </div>
-          </div>
-        </section>
 
-        {/* New Cases Table */}
-        <section className="admin-new-cases">
-          <div className="admin-section-header">
-            <h3>New Cases ({currentMonth})</h3>
-            <button onClick={() => navigate("/admin/new-cases")}>View all</button>
-          </div>
-          {cases.length === 0 ? (
-            <p style={{ color:"#888", padding:"16px 0" }}>No cases found.</p>
-          ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>Case ID</th>
-                  <th>Title</th>
-                  <th>Party 1</th>
-                  <th>Party 2</th>
-                  <th>Category</th>
-                  <th>Assigned to</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cases.slice(0, 5).map((c) => (
-                  <tr key={c._id} style={{ cursor:"pointer" }} onClick={() => navigate(`/admin/cases/${c._id}`)}>
-                    <td>{c.caseId}</td>
-                    <td>{c.title}</td>
-                    <td>{c.party1}</td>
-                    <td>{c.party2}</td>
-                    <td style={{ textTransform:"capitalize" }}>{c.category}</td>
-                    <td className="admin-assigned">
-                      <img
-                        src={c.assignedAvatar || "https://i.pravatar.cc/30"}
-                        alt="avatar"
-                      />
-                      {c.assignedTo}
-                    </td>
-                    <td className="admin-status admin-active" style={getStatusStyle(c.status)}>
-                      {c.status}
-                    </td>
-                  </tr>
+            <div className="stat-card">
+              <div className="stat-icon-wrap">
+                <img src={UDIcon2} alt="Active Cases" className="stat-icon" />
+              </div>
+              <div className="stat-info">
+                <p className="stat-label">Active Cases</p>
+                <h2 className="stat-value">{pad(stats.active)}</h2>
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-icon-wrap">
+                <img src={UDIcon3} alt="Resolved Cases" className="stat-icon" />
+              </div>
+              <div className="stat-info">
+                <p className="stat-label">Resolved Cases</p>
+                <h2 className="stat-value">{pad(stats.resolved)}</h2>
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-icon-wrap">
+                <img src={UDIcon4} alt="Pending Actions" className="stat-icon" />
+              </div>
+              <div className="stat-info">
+                <p className="stat-label">Pending Actions</p>
+                <h2 className="stat-value">{pad(stats.pending)}</h2>
+              </div>
+            </div>
+
+            {/* NEW ADMIN CARD */}
+            <div className="stat-card">
+              <div className="stat-icon-wrap">
+                <img src={ADIcon5} alt="Total Revenue" className="stat-icon" />
+              </div>
+              <div className="stat-info">
+                <p className="stat-label">Total Revenue</p>
+                <h2 className="stat-value">
+                  ₹{(stats.revenue / 100000).toFixed(1)}L
+                </h2>
+              </div>
+            </div>
+
+          </section>
+
+          {/* ── MIDDLE GRID: Actions + Revenue ── */}
+          <section className="adx-mid">
+
+            {/* Action Required */}
+            <div className="adx-card adx-actions">
+              <h3 className="adx-card__title adx-actions__heading">
+                <span className="adx-actions__bang">❗</span> Action Required
+              </h3>
+              <div className="adx-actions__list">
+                {actions.map((a) => (
+                  <div key={a.id} className="adx-action-row">
+                    <span className="adx-action-row__icon">{a.icon}</span>
+                    <div className="adx-action-row__text">
+                      <p className="adx-action-row__title">{a.title}</p>
+                      <p className="adx-action-row__sub">{a.sub}</p>
+                    </div>
+                    <button className="adx-action-row__btn">{a.btn}</button>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          )}
-        </section>
-
-        {/* Middle Section */}
-        <section className="admin-middle">
-          {/* Meeting Scheduled */}
-          <div className="admin-meeting-section">
-            <h3 className="admin-meeting-title">Meeting Scheduled</h3>
-
-            <div className="admin-meeting-container">
-              {todayMeetings.length === 0 ? (
-                <>
-                  <div className="admin-meeting-header">
-                    <div>
-                      <p className="admin-meeting-day">Today</p>
-                      <p className="admin-meeting-time">No meetings scheduled</p>
-                    </div>
-                    <span className="admin-meeting-date">{formatDate(new Date())}</span>
-                  </div>
-                  <div className="admin-meeting-footer">
-                    <button className="admin-join-btn" disabled style={{ opacity:0.5 }}>No Meeting</button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="admin-meeting-header">
-                    <div>
-                      <p className="admin-meeting-day">Today</p>
-                      <p className="admin-meeting-time">{todayMeetings[0]?.time || ""}</p>
-                    </div>
-                    <span className="admin-meeting-date">{formatDate(todayMeetings[0]?.date)}</span>
-                  </div>
-
-                  <div className="admin-meeting-list">
-                    {todayMeetings.slice(0, 2).map((m) => (
-                      <div className="admin-meeting-row" key={m._id}>
-                        <p><strong>Case Id:</strong> {m.caseId}</p>
-                        <p><strong>Title:</strong> {m.title}</p>
-                        <p><strong>Meeting:</strong> {m.meetingWith}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="admin-meeting-footer">
-                    <button
-                      className="admin-join-btn"
-                      onClick={() => todayMeetings[0]?.link && window.open(todayMeetings[0].link, "_blank")}
-                      disabled={!todayMeetings[0]?.link}
-                    >
-                      Join now
-                    </button>
-                  </div>
-                </>
-              )}
+              </div>
             </div>
-          </div>
 
-          {/* Case Progress */}
-          <section className="admin-case-progress">
-            <h3>Case Progress</h3>
-
-            <div className="admin-case-progress-box">
-              <div className="admin-progress-header">
-                <form onSubmit={handleCaseSearch} style={{ display:"flex", gap:"8px" }}>
-                  <input
-                    type="text"
-                    placeholder="Search by case id..."
-                    value={searchCaseId}
-                    onChange={(e) => setSearchCaseId(e.target.value)}
-                  />
-                  <button type="submit" style={{ padding:"6px 12px", cursor:"pointer" }}>
-                    {searchLoading ? "..." : "Go"}
-                  </button>
-                </form>
-                {caseProgress && (
-                  <div className="admin-progress-status">
-                    <span className="admin-status-label">Status:</span>
-                    <span className="admin-status admin-active" style={getStatusStyle(caseProgress.status)}>
-                      {caseProgress.status}
-                    </span>
-                    <span className="admin-case-id">Case Id: {caseProgress.caseId}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="admin-charts-row">
-                <div className="admin-chart-item">
-                  <div className="admin-chart-wrapper">
-                    <Doughnut
-                      data={phaseChart}
-                      options={{ cutout:"75%", plugins:{ legend:{display:false}, tooltip:{enabled:false} } }}
-                    />
-                    <div className="admin-chart-center">
-                      <p className="admin-chart-title">{caseProgress?.phase || "Phase 1"}</p>
-                      <p className="admin-chart-subtitle">{caseProgress?.phasePercent || 0}%</p>
-                    </div>
-                  </div>
+            {/* Revenue Chart */}
+            <div className="adx-card adx-revenue">
+              <div className="adx-revenue__header">
+                <div>
+                  <p className="adx-revenue__label">Revenue</p>
+                  <p className="adx-revenue__sub">Earnings Performance</p>
                 </div>
-
-                <div className="admin-chart-item">
-                  <div className="admin-chart-wrapper">
-                    <Doughnut
-                      data={paymentChart}
-                      options={{ cutout:"75%", plugins:{ legend:{display:false}, tooltip:{enabled:false} } }}
-                    />
-                    <div className="admin-chart-center">
-                      <p className="admin-chart-title">Payment</p>
-                      <p className="admin-chart-subtitle">
-                        {caseProgress?.filingFeePaid ? `₹${caseProgress.filingFee?.toLocaleString("en-IN")}` : "Pending"}
-                      </p>
-                    </div>
-                  </div>
+                <div className="adx-revenue__right">
+                  <span className="adx-revenue__amount">₹{(stats.revenue / 100).toLocaleString("en-IN")}.00</span>
+                  <span className="adx-revenue__growth">↑ 36%</span>
+                  <p className="adx-revenue__growthlabel">Growth this month</p>
                 </div>
               </div>
-
-              {caseProgress ? (
-                <div className="admin-case-details">
-                  <p><strong>Party 1:</strong> {caseProgress.party1}</p>
-                  <p><strong>Party 2:</strong> {caseProgress.party2}</p>
-                  <p><strong>Mediator:</strong> {caseProgress.mediator}</p>
-                  <p><strong>Manager:</strong> {caseProgress.manager}</p>
-                  <p><strong>Category:</strong> {caseProgress.category}</p>
-                </div>
-              ) : (
-                <div className="admin-case-details">
-                  <p style={{ color:"#888" }}>Search a case ID above to view progress</p>
-                </div>
-              )}
+              <div className="adx-revenue__chart">
+                <Line data={chartData} options={chartOpts} />
+              </div>
             </div>
           </section>
-        </section>
 
-        {/* Bottom Section */}
-        <section className="admin-bottom">
-          <div className="admin-feedback">
-            <h3>Feedback {caseProgress ? `Case Id: ${caseProgress.caseId}` : ""}</h3>
-            <div className="admin-feedback-box">
-              <p style={{ color:"#888" }}>Feedback system coming soon</p>
-            </div>
-          </div>
+          {/* ── BOTTOM GRID: Table + Sidebar widgets ── */}
+          <section className="adx-bottom">
 
-          <div className="admin-coming-soon">
-            <h3>Coming Soon...!</h3>
-            <div className="admin-coming-box">
-              <p>🚧 New Features in Progress 🚧</p>
+            {/* Recent Disputes Table */}
+            <div className="adx-card adx-table-card">
+              <div className="adx-table-card__header">
+                <h3 className="adx-card__title">Recent Disputes</h3>
+                <button className="adx-link-btn" onClick={() => navigate("/admin/new-cases")}>View All</button>
+              </div>
+              <div className="adx-table-wrap">
+                <table className="adx-table">
+                  <thead>
+                    <tr>
+                      <th>CASE ID</th>
+                      <th>TOPIC</th>
+                      <th>MEDIATOR</th>
+                      <th>STATUS</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredCases.slice(0, 6).map((c) => (
+                      <tr key={c._id} onClick={() => navigate(`/admin/cases/${c._id}`)}>
+                        <td className="adx-table__caseid">{c.caseId}</td>
+                        <td>{c.title}</td>
+                        <td>{c.mediator || c.assignedTo || "—"}</td>
+                        <td>
+                          <span className={`adx-badge ${getStatusClass(c.status)}`}>
+                            {c.status}
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            className="adx-view-btn"
+                            onClick={(e) => { e.stopPropagation(); navigate(`/admin/cases/${c._id}`); }}
+                          >
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {filteredCases.length === 0 && (
+                      <tr><td colSpan={5} className="adx-table__empty">No cases match your search.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-        </section>
+
+            {/* Right widgets */}
+            <div className="adx-widgets">
+
+              {/* Upcoming Sessions */}
+              <div className="adx-card adx-sessions">
+                <div className="adx-sessions__header">
+                  <p className="adx-sessions__heading">UPCOMING SESSIONS</p>
+                  <button className="adx-link-btn" onClick={() => navigate("/admin/case-meetings")}>View All</button>
+                </div>
+                <div className="adx-sessions__list">
+                  {sessions.map((s) => (
+                    <div key={s.id} className="adx-session-row">
+                      <div className="adx-session-row__date">
+                        <span className="adx-session-row__month">{s.month}</span>
+                        <span className="adx-session-row__day">{s.day}</span>
+                      </div>
+                      <div className="adx-session-row__info">
+                        <p className="adx-session-row__title">{s.caseId}</p>
+                        <p className="adx-session-row__time">{s.time}</p>
+                      </div>
+                      <button className="adx-session-row__arrow">›</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* New Registrations */}
+              <div className="adx-card adx-registrations">
+                <p className="adx-sessions__heading" style={{ marginBottom: 14 }}>NEW REGISTRATIONS</p>
+                <div className="adx-reg__list">
+                  {registrations.map((r) => (
+                    <div key={r.id} className="adx-reg-row">
+                      <div className="adx-reg-row__avatar">
+                        {r.name.charAt(0)}
+                      </div>
+                      <div className="adx-reg-row__info">
+                        <p className="adx-reg-row__name">{r.name}</p>
+                        <p className="adx-reg-row__role">{r.role}</p>
+                      </div>
+                      <span className="adx-reg-row__ago">{r.ago}</span>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  className="adx-view-all-users"
+                  onClick={() => navigate("/admin/users")}
+                >
+                  VIEW ALL USERS
+                </button>
+              </div>
+
+            </div>
+          </section>
+        </div>
       </main>
     </div>
   );

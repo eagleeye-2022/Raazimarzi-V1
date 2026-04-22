@@ -1,7 +1,7 @@
 .dashboard-container {
   display: flex;
   height: 100vh;
-  background: #F8F8FC;
+  background: #fff;
   font-family: 'Inter', sans-serif;
 }
 

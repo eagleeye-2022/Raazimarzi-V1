@@ -1,0 +1,284 @@
+/* ══════════════════════════════════════════
+   STEP 3 — UPLOAD DOCUMENTS
+══════════════════════════════════════════ */
+
+/* ── Completed step state (reused from step2) ── */
+.fnc-step.completed .fnc-step-icon {
+  background: rgba(119, 138, 255, 1);
+  border-color: rgba(119, 138, 255, 1);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.fnc-step.completed span {
+  color: rgba(119, 138, 255, 0.7);
+  font-weight: 500;
+}
+
+.fnc-step-line.completed {
+  background: rgba(119, 138, 255, 0.5);
+}
+
+/* ══════════════════════════════════════════
+   INFO BANNER
+══════════════════════════════════════════ */
+.s3-info-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+}
+
+.s3-banner-icon {
+  font-size: 16px;
+  color: #dc2626;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.s3-info-banner p {
+  font-size: 13px;
+  color: #444;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ══════════════════════════════════════════
+   DROP ZONE
+══════════════════════════════════════════ */
+.s3-dropzone {
+  border: 2px dashed #c5caff;
+  border-radius: 16px;
+  padding: 48px 40px 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  background: #fafbff;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  margin-bottom: 8px;
+}
+
+.s3-dropzone:hover {
+  border-color: rgba(119, 138, 255, 0.8);
+  background: rgba(119, 138, 255, 0.03);
+  box-shadow: 0 4px 24px rgba(119, 138, 255, 0.08);
+}
+
+.s3-dropzone.drag-over {
+  border-color: rgba(119, 138, 255, 1);
+  background: rgba(119, 138, 255, 0.07);
+  box-shadow: 0 6px 32px rgba(119, 138, 255, 0.18);
+}
+
+/* File upload icon circle */
+.s3-drop-icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(119, 138, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.s3-dropzone:hover .s3-drop-icon-wrap,
+.s3-dropzone.drag-over .s3-drop-icon-wrap {
+  background: rgba(119, 138, 255, 0.2);
+  transform: scale(1.08);
+}
+
+.s3-drop-icon {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.s3-drop-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111;
+  margin: 0;
+}
+
+.s3-drop-sub {
+  font-size: 13px;
+  color: #888;
+  margin: 0;
+  text-align: center;
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+/* Browse button */
+.s3-browse-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(90deg, #778AFF 0%, #E6EAFF 100%);
+  color: #1a1a2e;
+  padding: 14px 38px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 700;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  box-shadow:
+    0px 6px 0px 0px rgba(119, 138, 255, 1),
+    0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.s3-browse-btn:hover {
+  background: #5a6fe0;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(119, 138, 255, 0.45),
+              inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+.s3-browse-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 10px rgba(119, 138, 255, 0.3);
+}
+
+.s3-drop-limit {
+  font-size: 12px;
+  color: #bbb;
+  margin: 4px 0 0 0;
+}
+
+/* ══════════════════════════════════════════
+   ERROR
+══════════════════════════════════════════ */
+.s3-error {
+  font-size: 13px;
+  color: #dc2626;
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 8px 0 0 0;
+}
+
+/* ══════════════════════════════════════════
+   UPLOADED FILES
+══════════════════════════════════════════ */
+.s3-files-section {
+  margin-top: 28px;
+}
+
+.s3-files-heading {
+  font-size: 17px;
+  font-weight: 700;
+  color: #111;
+  margin: 0 0 16px 0;
+}
+
+.s3-files-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.s3-file-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid #e8e8f0;
+  border-radius: 12px;
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+
+.s3-file-card:hover {
+  border-color: rgba(119, 138, 255, 0.35);
+  box-shadow: 0 3px 14px rgba(119, 138, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.s3-file-icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: rgba(119, 138, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.s3-file-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.s3-file-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.s3-file-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.s3-file-meta {
+  font-size: 12px;
+  color: #888;
+}
+
+.s3-file-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 17px;
+  padding: 4px;
+  border-radius: 6px;
+  color: #dc2626;
+  opacity: 0.6;
+  transition: opacity 0.2s, background 0.2s, transform 0.15s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.s3-file-delete:hover {
+  opacity: 1;
+  background: #fff0f0;
+  transform: scale(1.15);
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════ */
+@media (max-width: 700px) {
+  .s3-files-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .s3-dropzone {
+    padding: 36px 20px 28px;
+  }
+
+  .s3-drop-title {
+    font-size: 16px;
+  }
+}

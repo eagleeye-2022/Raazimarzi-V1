@@ -1,31 +1,30 @@
 // src/components/UserNavbar.js
 import React from "react";
 import { useUser } from "../context/userContext";
-import { FaCog, FaBell } from "react-icons/fa";
+import { FaBell } from "react-icons/fa";
 
 const UserNavbar = () => {
-  const { user, loading, getAvatarUrl } = useUser();
+  const { user, loading, disputes } = useUser();
+
+  const activeDisputes = disputes?.filter(d => d.status === "active")?.length ?? 0;
 
   return (
-    <header className="navbar">
-      <div></div>
-      <div className="nav-icons">
-        <FaCog className="icon" />
-        <FaBell className="icon" />
-        <div className="profile">
-          <img
-            src={getAvatarUrl(user?.avatar)}
-            alt="profile"
-            className="profile-img"
-            onError={(e) => {
-              // Fallback if image fails to load
-              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || "User")}&background=4F46E5&color=fff&size=200`;
-            }}
-          />
-          <span>{loading ? "Loading..." : user?.name || "User"}</span>
+    <>
+      <header className="navbar">
+        <div className="greeting">
+          <h2>Hello, {loading ? "..." : user?.name || "User"} 👋</h2>
+          <p>
+            You have{" "}
+            <span className="highlight">{activeDisputes} active disputes</span>{" "}
+            requiring your attention.
+          </p>
         </div>
-      </div>
-    </header>
+
+        <div className="nav-icons">
+          <FaBell className="icon" />
+        </div>
+      </header>
+    </>
   );
 };
 

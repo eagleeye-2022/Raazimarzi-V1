@@ -1,34 +1,30 @@
 import React, { useState, useEffect } from "react";
 import UserSidebar from "../components/UserSidebar";
 import UserNavbar from "../components/Navbar";
+import { useNavigate } from "react-router-dom";
 
-import ActiveIcon from "../assets/icons/active.png";
-import CurrentIcon from "../assets/icons/current.png";
-import TotalIcon from "../assets/icons/total.png";
-import Vector from "../assets/icons/Vector.png";
-
-import { PieChart, Pie, Cell } from "recharts";
+import UDIcon1 from "../assets/icons/ud-1.png";
+import UDIcon2 from "../assets/icons/ud-2.png";
+import UDIcon3 from "../assets/icons/ud-3.png";
+import UDIcon4 from "../assets/icons/ud-4.png";
+import fingerprint from "../assets/icons/fingerprint.png"
+import respond from "../assets/icons/respond.png"
 
 import "./UserDashboard.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const UserDashboard = () => {
-  const [showAllCases, setShowAllCases]   = useState(false);
-  const [loading, setLoading]             = useState(true);
-  const [error, setError]                 = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+  const [stats, setStats] = useState({ total: 0, active: 0, resolved: 0, pending: 0 });
+  const [cases, setCases] = useState([]);
+  const [meetings, setMeetings] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [actions, setActions] = useState([]);
+  const [userName, setUserName] = useState("User");
 
-  /* ── Real data state ── */
-  const [stats, setStats]                 = useState({ active: 0, current: 0, total: 0, progress: null });
-  const [cases, setCases]                 = useState([]);
-  const [meetings, setMeetings]           = useState([]);
-  const [todayReminder, setTodayReminder] = useState(null);
-  const [documents, setDocuments]         = useState({ total: 0, approved: 0, progress: 0, recent: [] });
-
-  /* ── Pie chart colors ── */
-  const COLORS = ["#7C3AED", "#E5E7EB"];
-
-  /* ── Fetch dashboard data on mount ── */
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
@@ -45,7 +41,7 @@ const UserDashboard = () => {
         const res = await fetch(`${API_URL}/dashboard/user`, {
           method: "GET",
           headers: {
-            "Content-Type":  "application/json",
+            "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`,
           },
         });
@@ -57,11 +53,12 @@ const UserDashboard = () => {
           return;
         }
 
-        setStats(data.stats         || { active: 0, current: 0, total: 0, progress: null });
-        setCases(data.cases         || []);
-        setMeetings(data.meetings   || []);
-        setTodayReminder(data.todayReminder || null);
-        setDocuments(data.documents || { total: 0, approved: 0, progress: 0, recent: [] });
+        setStats(data.stats || { total: 0, active: 0, resolved: 0, pending: 0 });
+        setCases(data.cases || []);
+        setMeetings(data.meetings || []);
+        setMessages(data.messages || []);
+        setActions(data.actions || []);
+        setUserName(data.userName || "User");
 
       } catch (err) {
         console.error("❌ Dashboard fetch error:", err);
@@ -74,13 +71,6 @@ const UserDashboard = () => {
     fetchDashboard();
   }, []);
 
-  /* ── Pie data from real documents ── */
-  const pieData = [
-    { name: "Completed", value: documents.progress       || 0  },
-    { name: "Remaining", value: 100 - (documents.progress || 0) },
-  ];
-
-  /* ── Status badge color ── */
   const getStatusStyle = (status) => {
     const s = status?.toLowerCase();
     if (["resolved", "awarded"].includes(s))
@@ -88,57 +78,61 @@ const UserDashboard = () => {
     if (["in-progress", "assigned", "notice-sent", "mediation", "arbitration"].includes(s))
       return { background: "#dbeafe", color: "#1d4ed8" };
     if (["pending", "pending-review"].includes(s))
-      return { background: "#fef9c3", color: "#854d0e" };
+      return { background: "#fef3c7", color: "#92400e" };
     if (["rejected", "withdrawn", "closed"].includes(s))
       return { background: "#fee2e2", color: "#dc2626" };
-    return { background: "#dcfce7", color: "#16a34a" };
+    return { background: "#fef3c7", color: "#92400e" };
   };
 
-  /* ── Format date ── */
   const formatDate = (dateStr) => {
     if (!dateStr) return "—";
-    return new Date(dateStr).toLocaleDateString("en-IN", {
-      day: "numeric", month: "short", year: "numeric",
-    });
+    const d = new Date(dateStr);
+    return {
+      month: d.toLocaleString("en-IN", { month: "short" }).toUpperCase(),
+      day: d.getDate(),
+    };
   };
 
   const formatTime = (dateStr) => {
     if (!dateStr) return "";
     return new Date(dateStr).toLocaleTimeString("en-IN", {
-      hour: "2-digit", minute: "2-digit", hour12: true,
+      hour: "2-digit", minute: "2-digit", hour12: false,
     });
   };
 
-  /* ── Get current month name ── */
-  const currentMonth = new Date().toLocaleString("en-IN", { month: "long", year: "numeric" });
+  const formatMessageTime = (dateStr) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diff = now - d;
+    if (diff < 86400000) {
+      return d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false });
+    }
+    return "Yesterday";
+  };
 
-  /* ── Display cases — all or first 3 ── */
-  const displayedCases = showAllCases ? cases : cases.slice(0, 3);
-
-  /* ── Loading state ── */
   if (loading) {
     return (
       <div className="dashboard-container">
         <UserSidebar activePage="dashboard" />
         <main className="main-content">
           <UserNavbar />
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh" }}>
-            <p style={{ color: "#888", fontSize: "16px" }}>Loading dashboard...</p>
+          <div className="center-state">
+            <p>Loading dashboard...</p>
           </div>
         </main>
       </div>
     );
   }
 
-  /* ── Error state ── */
   if (error) {
     return (
       <div className="dashboard-container">
         <UserSidebar activePage="dashboard" />
         <main className="main-content">
           <UserNavbar />
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh" }}>
-            <p style={{ color: "#dc2626", fontSize: "16px" }}>{error}</p>
+          <div className="center-state">
+            <p style={{ color: "#dc2626" }}>{error}</p>
           </div>
         </main>
       </div>
@@ -147,223 +141,220 @@ const UserDashboard = () => {
 
   return (
     <div className="dashboard-container">
-      {/* Reusable Sidebar */}
       <UserSidebar activePage="dashboard" />
 
-      {/* Main Content */}
       <main className="main-content">
-        {/* Reusable Navbar */}
         <UserNavbar />
 
         {/* Stats */}
         <section className="stats">
-          <div className="stat-card green">
-            <div className="stat-left">
-              <p className="stat-label">Active Case</p>
-              <h2 className="stat-value">{String(stats.active).padStart(2, "0")}</h2>
+          <div className="stat-card">
+            <div className="stat-icon-wrap">
+              <img src={UDIcon1} alt="Total Cases" className="stat-icon" />
             </div>
-            <div className="stat-right">
-              <img src={ActiveIcon} alt="Active Case" className="stat-icon" />
-            </div>
-          </div>
-
-          <div className="stat-card blue">
-            <div className="stat-left">
-              <p className="stat-label">Current Cases</p>
-              <h2 className="stat-value">{String(stats.current).padStart(2, "0")}</h2>
-            </div>
-            <div className="stat-right">
-              <img src={CurrentIcon} alt="Current Cases" className="stat-icon" />
-            </div>
-          </div>
-
-          <div className="stat-card yellow">
-            <div className="stat-left">
-              <p className="stat-label">Total Case</p>
+            <div className="stat-info">
+              <p className="stat-label">Total Cases</p>
               <h2 className="stat-value">{String(stats.total).padStart(2, "0")}</h2>
             </div>
-            <div className="stat-right">
-              <img src={TotalIcon} alt="Total Case" className="stat-icon" />
+          </div>
+
+          <div className="stat-card">
+            <div className="stat-icon-wrap">
+              <img src={UDIcon2} alt="Active Cases" className="stat-icon" />
+            </div>
+            <div className="stat-info">
+              <p className="stat-label">Active Cases</p>
+              <h2 className="stat-value">{String(stats.active).padStart(2, "0")}</h2>
             </div>
           </div>
 
-          <div className="stat-card purple">
-            <div className="stat-left">
-              <p className="stat-label">
-                Progress {stats.progress ? `: ${stats.progress.caseId}` : ""}
-              </p>
-              <h2 className="stat-value">
-                +{documents.progress || 0}%
-              </h2>
+          <div className="stat-card">
+            <div className="stat-icon-wrap">
+              <img src={UDIcon3} alt="Resolved Cases" className="stat-icon" />
             </div>
-            <div className="stat-right">
-              <img src={ActiveIcon} alt="Progress" className="stat-icon" />
+            <div className="stat-info">
+              <p className="stat-label">Resolved Cases</p>
+              <h2 className="stat-value">{String(stats.resolved).padStart(2, "0")}</h2>
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div className="stat-icon-wrap">
+              <img src={UDIcon4} alt="Pending Actions" className="stat-icon" />
+            </div>
+            <div className="stat-info">
+              <p className="stat-label">Pending Actions</p>
+              <h2 className="stat-value">{String(stats.pending).padStart(2, "0")}</h2>
             </div>
           </div>
         </section>
 
-        {/* Cases Table */}
-        <section className="cases-section">
-          <div className="section-header">
-            <h3>My Cases ({currentMonth})</h3>
-            {cases.length > 3 && (
-              <button onClick={() => setShowAllCases(!showAllCases)}>
-                {showAllCases ? "Hide" : "View all"}
+        {/*----------------- Cases + Action Required ---------*/}
+        <section className="cases-actions-row">
+
+          {/* LEFT — Recent Disputes */}
+          <div className="disputes-wrapper">
+            <div className="disputes-header">
+              <h3 className="disputes-title">Recent Disputes</h3>
+              <button
+                className="view-all-btn"
+                onClick={() => navigate("/user/my-cases")}
+              >
+                View All
               </button>
+            </div>
+            <div className="cases-section">
+              {cases.length === 0 ? (
+                <p className="empty-state">No cases found.</p>
+              ) : (
+                <table className="cases-table">
+                  <thead>
+                    <tr>
+                      <th>CASE ID</th>
+                      <th>TOPIC</th>
+                      <th>RESPONDENT</th>
+                      <th>STATUS</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cases.slice(0, 5).map((c, index) => (
+                      <tr key={index}>
+                        <td className="case-id">#{c.id}</td>
+                        <td>{c.title || c.topic}</td>
+                        <td>{c.party2 || c.respondent}</td>
+                        <td>
+                          <span className="status-badge" style={getStatusStyle(c.status)}>
+                            {c.status}
+                          </span>
+                        </td>
+                        <td>
+                          <button className="view-details-btn">View Details</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+
+          {/* RIGHT — Action Required */}
+          <div className="action-required-panel">
+            <div className="action-header">
+              <span className="action-exclaim">!</span>
+              <h3 className="action-title">Action Required</h3>
+            </div>
+
+            {actions.length === 0 ? (
+              <p className="empty-state">No actions required.</p>
+            ) : (
+              <div className="action-list">
+                {actions.map((action, i) => (
+                  <div key={i} className="action-item">
+                    <div className="action-left-border" />
+                    <div className="action-icon">
+                      {action.type === "document" ? (
+                        <img src={fingerprint} alt="doc" />
+                      ) : (
+                        <img src={respond} alt="chat" />
+                      )}
+                    </div>
+                    <p className="action-text">{action.description}</p>
+                    <button className="action-cta">
+                      {action.type === "document" ? "Complete Now" : "Reply"}
+                    </button>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
 
-          {displayedCases.length === 0 ? (
-            <p style={{ color: "#888", padding: "20px 0" }}>No cases found.</p>
-          ) : (
-            <table className="cases-table">
-              <thead>
-                <tr>
-                  <th>Case ID</th>
-                  <th>Title</th>
-                  <th>Party 1</th>
-                  <th>Party 2</th>
-                  <th>Category</th>
-                  <th>Mediator</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {displayedCases.map((c, index) => (
-                  <tr key={index}>
-                    <td>{c.id}</td>
-                    <td>{c.title}</td>
-                    <td>{c.party1}</td>
-                    <td>{c.party2}</td>
-                    <td style={{ textTransform: "capitalize" }}>{c.category}</td>
-                    <td className="mediator-cell">
-                      <img
-                        src={c.mediatorAvatar || "https://i.pravatar.cc/30?img=2"}
-                        alt="mediator"
-                        className="mediator-img"
-                      />
-                      {c.mediator}
-                    </td>
-                    <td>
-                      <span className="status-badge" style={getStatusStyle(c.status)}>
-                        {c.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
         </section>
 
-        {/* Meetings Section */}
-        <section className="user-meetings-section">
-          {/* Left — Upcoming Meetings */}
-          <div className="user-upcoming-meetings">
-            <div className="user-section-header">
-              <h3>Upcoming Meetings ({currentMonth})</h3>
+        {/* Messages + Appointments */}
+        <section className="bottom-row">
+          {/* Recent Messages */}
+          <div className="messages-section">
+            <div className="section-header">
+              <h3>Recent Messages</h3>
+              <button className="icon-btn">···</button>
             </div>
 
-            <div className="user-meeting-cards">
-              {meetings.length === 0 ? (
-                <p style={{ color: "#888", fontSize: "14px" }}>No upcoming meetings.</p>
+            <div className="message-list">
+              {messages.length === 0 ? (
+                <p className="empty-state">No messages yet.</p>
               ) : (
-                meetings.slice(0, 4).map((m) => (
-                  <div key={m.id} className="user-meeting-card">
-                    <div className="meeting-icon">
-                      <img src={Vector} alt="Meeting logo" />
-                    </div>
-                    <div className="meeting-info">
-                      <p className="date">{formatDate(m.date)}</p>
-                      <p className="time">{m.time || formatTime(m.date)}</p>
+                messages.slice(0, 2).map((msg, i) => (
+                  <div key={i} className="message-item">
+                    <img
+                      src={msg.avatar || `https://i.pravatar.cc/40?img=${i + 1}`}
+                      alt={msg.sender}
+                      className="msg-avatar"
+                    />
+                    <div className="msg-body">
+                      <div className="msg-top">
+                        <span className="msg-sender">{msg.sender}</span>
+                        <span className="msg-time">{formatMessageTime(msg.createdAt)}</span>
+                      </div>
+                      <p className="msg-preview">"{msg.preview}"</p>
                     </div>
                   </div>
                 ))
               )}
             </div>
+
+            <button
+              className="goto-messenger-btn"
+              onClick={() => navigate("/user/chats")}
+            >
+              Go to Messenger
+            </button>
           </div>
 
-          {/* Right — Reminder */}
-          <div className="right-section">
-            <div className="view-all-wrapper">
-              <button className="view-all">View all</button>
-            </div>
+          {/* Upcoming Appointments */}
+          <div className="appointments-section">
+            <h3>Upcoming Appointments</h3>
 
-            <div className="today-reminder">
-              {todayReminder ? (
-                <>
-                  <div className="reminder-header">
-                    <h4>Today</h4>
-                    <span className="reminder-date">{formatDate(todayReminder.date)}</span>
-                  </div>
-
-                  <p className="reminder-time">
-                    {todayReminder.time || formatTime(todayReminder.date)}
-                  </p>
-
-                  <div className="reminder-details">
-                    <p><span className="label">Case ID:</span> {todayReminder.caseId}</p>
-                    <p><span className="label">Title:</span> {todayReminder.title}</p>
-                    <p><span className="label">Opponent:</span> {todayReminder.opponent}</p>
-                  </div>
-
-                  <button
-                    className="join-btn"
-                    onClick={() => todayReminder.link && window.open(todayReminder.link, "_blank")}
-                    disabled={!todayReminder.link}
-                  >
-                    Join now
-                  </button>
-                </>
-              ) : (
-                <>
-                  <div className="reminder-header">
-                    <h4>Today</h4>
-                    <span className="reminder-date">{formatDate(new Date())}</span>
-                  </div>
-                  <p style={{ color: "#888", fontSize: "14px", marginTop: "12px" }}>
-                    No meetings scheduled for today.
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* Documents & Payments */}
-        <section className="documents-payments">
-          <div className="documents">
-            <h3>Documents</h3>
-            <div className="doc-content">
-              <PieChart width={120} height={120}>
-                <Pie
-                  data={pieData}
-                  cx={60}
-                  cy={60}
-                  innerRadius={35}
-                  outerRadius={55}
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-              </PieChart>
-              <ul>
-                {documents.recent.length === 0 ? (
-                  <li style={{ color: "#888" }}>No documents uploaded yet</li>
-                ) : (
-                  documents.recent.map((doc, i) => (
-                    <li key={i}>{doc.documentTitle}</li>
-                  ))
-                )}
-              </ul>
-            </div>
-          </div>
-
-          <div className="payments">
-            <h3>Payments</h3>
-            {/* Payment gateway coming soon */}
+            {meetings.length === 0 ? (
+              <p className="empty-state">No upcoming appointments.</p>
+            ) : (
+              <div className="appointment-list">
+                {meetings.slice(0, 2).map((m, i) => {
+                  const fd = formatDate(m.date);
+                  const isPrimary = i === 0;
+                  return (
+                    <div key={m.id || i} className="appointment-card">
+                      <div className="appt-date-badge">
+                        <span className="appt-month">{fd.month}</span>
+                        <span className="appt-day">{fd.day}</span>
+                      </div>
+                      <div className="appt-info">
+                        <p className="appt-title">{m.title || m.caseId}</p>
+                        <p className="appt-time">
+                          {m.time || formatTime(m.date)} / #{m.caseId || m.id}
+                        </p>
+                      </div>
+                      {isPrimary ? (
+                        <button
+                          className="join-meeting-btn"
+                          onClick={() => navigate("/user/case-meetings")}
+                        >
+                          Join Meeting
+                        </button>
+                      ) : (
+                        <button
+                          className="view-details-outline-btn"
+                          onClick={() => navigate("/user/documents")}
+                        >
+                          View Details
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </section>
       </main>

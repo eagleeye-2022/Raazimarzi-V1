@@ -1,7 +1,7 @@
 .admin-dashboard-container {
   display: flex;
   font-family: "Inter", sans-serif;
-  background-color: #f9fafb;
+  background-color: #fff;
   height: 100vh;
   overflow: hidden;
 }

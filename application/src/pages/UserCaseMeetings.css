@@ -1,125 +1,273 @@
 .dashboard-container {
   display: flex;
   height: 100vh;
-  background: #F8F8FC;
+  background: #fff;
   font-family: 'Inter', sans-serif;
 }
 
+/* ══════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════ */
 .sidebar {
   width: 220px;
+  min-width: 220px;
   height: 100vh;
-  background: #f9f9fc;
+  background: rgba(119, 138, 255, 1);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 20px 0;
+  padding: 20px 0 28px 0;
+  transition: all 0.3s ease;
+  position: relative;
+  border-radius: 0 28px 28px 0; 
+  overflow: visible;              
 }
 
-.sidebar-title {
-  font-size: 16px;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 24px;
+.sidebar.collapsed {
+  width: 72px;
+  min-width: 72px;
 }
 
+/* Toggle — perfectly centered 3-line hamburger */
+.sidebar-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 16px 20px 16px;
+}
+
+.sidebar.collapsed .sidebar-header {
+  justify-content: center;
+  padding: 0 0 20px 0;
+}
+
+.sidebar-toggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;  /* ← vertically centers the 3 lines */
+  align-items: center;      /* ← horizontally centers */
+  gap: 5px;                 /* ← equal spacing between all 3 lines */
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Each hamburger line — all same width, no zigzag */
+.sidebar-toggle .bar {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: #ffffff;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* Menu list */
 .menu {
   display: flex;
   flex-direction: column;
-  gap: 18px; /* equal spacing between items */
+  gap: 2px;
+  padding: 0 14px;
+  flex: 1;
 }
 
+/* Default item */
 .menu-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 16px;
-  border-radius: 8px;
+  padding: 0 16px;
+  height: 44px;
+  border-radius: 14px;
   cursor: pointer;
-  transition: background 0.2s;
-  color: #111;
-  font-size: 14px;
-  font-weight: 500;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.011em;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+  position: relative;
+  z-index: 1;
 }
 
 .menu-item img {
   width: 20px;
   height: 20px;
+  flex-shrink: 0;
+  filter: brightness(0) invert(1);
+  transition: filter 0.2s;
 }
 
-/* Hover gradient effect */
-.menu-item:hover,
+/* Hover state */
+.menu-item:hover {
+  background: #ffffff;
+  color: rgba(119, 138, 255, 1);
+}
+
+.menu-item:hover img {
+  filter: invert(52%) sepia(60%) saturate(600%) hue-rotate(204deg) brightness(95%);
+}
+
+/* ─────────────────────────────────────────
+   ACTIVE STATE — pill merges into right edge
+   with concave C-curve cutouts above & below
+───────────────────────────────────────── */
 .menu-item.active {
-  background: linear-gradient(135deg, #c3dafe, #f3f4f6);
+  background: #ffffff;
+  color: rgba(119, 138, 255, 1);
+  font-weight: 700;
+  border-radius: 14px 0 0 14px;   /* ← flat right edge so it bleeds to sidebar edge */
+  margin-right: -14px;             /* ← extends pill flush to sidebar right wall */
+  padding-right: 28px;
 }
 
-/* Log out section */
+.menu-item.active img {
+  filter: invert(52%) sepia(60%) saturate(600%) hue-rotate(204deg) brightness(95%);
+}
+
+/* Concave C-curve notch — TOP */
+.menu-item.active::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -28px;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border-radius: 0 0 20px 0;    
+  box-shadow: 10px 10px 0 0 #ffffff;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Concave C-curve notch — BOTTOM */
+.menu-item.active::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -28px;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border-radius: 0 20px 0 0;       
+  box-shadow: 10px -10px 0 0 #ffffff;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Collapsed state */
+.sidebar.collapsed .menu-item {
+  justify-content: center;
+  padding: 0 10px;
+  gap: 0;
+}
+
+.sidebar.collapsed .menu-item span {
+  display: none;
+}
+
+
+.sidebar.collapsed .menu-item.active {
+  border-radius: 14px;
+  margin-right: 0;
+  padding-right: 10px;
+}
+
+.sidebar.collapsed .menu-item.active::before,
+.sidebar.collapsed .menu-item.active::after {
+  display: none;
+}
+
+/* ─────────────────────────────────────────
+   LOGOUT — frosted glass blur pill
+───────────────────────────────────────── */
 .logout {
-  margin-top: auto;
-  padding-top: 20px;
-  border-top: 1px solid #eee;
+  padding: 16px 14px 0;
 }
 
+.logout-item {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.45) !important;
+  border-radius: 16px !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  color: rgba(255, 63, 63, 1) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  justify-content: center !important;
+  padding: 0 16px !important;
+  height: 44px !important;
+  gap: 8px !important;
+  letter-spacing: -0.011em !important;
+}
 
-/* Navbar */
+.logout-item img,
+.logout-item .logout-icon {
+  filter: none !important;
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.logout-item:hover {
+  background: rgba(255, 255, 255, 0.32) !important;
+  border-color: rgba(255, 255, 255, 0.70) !important;
+  color: rgba(255, 63, 63, 1) !important;
+}
+
+/* ══════════════════════════════════════════
+   NAVBAR
+══════════════════════════════════════════ */
 .navbar {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 16px 0;
+  align-items: flex-start;
+  padding: 0 0 20px 0;
 }
 
 .nav-icons {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
 }
 
-.icon {
-  font-size: 18px;
+.nav-icons .icon {
+  font-size: 20px;
+  color: #555;
   cursor: pointer;
 }
 
-.profile {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.profile-img {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-}
-
-
-.dashboard-page {
-  padding: 30px;
-  background-color: #f8f9fb;
-  font-family: Arial, sans-serif;
-}
-
-.search-bar {
-  display: flex;
-  align-items: center;
+/* ══════════════════════════════════════════
+   GREETING
+══════════════════════════════════════════ */
+.greeting {
   margin-bottom: 20px;
 }
 
-.search-bar input {
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  width: 250px;
-  margin-right: 10px;
-  font-size: 14px;
+.greeting h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111;
+  margin: 0 0 4px 0;
 }
 
-.reset-btn {
-  padding: 8px 12px;
-  background-color: #ffffff;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  cursor: pointer;
+.greeting p {
   font-size: 14px;
+  color: #555;
+  margin: 0;
+}
+
+.greeting .highlight {
+  color: rgba(119, 138, 255, 1);
+  font-weight: 600;
 }
 
 /* Meetings Section Layout */

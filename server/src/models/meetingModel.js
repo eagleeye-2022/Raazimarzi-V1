@@ -1,3 +1,4 @@
+// models/meetingModel.js
 import mongoose from "mongoose";
 
 const meetingSchema = new mongoose.Schema(
@@ -23,10 +24,12 @@ const meetingSchema = new mongoose.Schema(
     },
 
     // ═══════════ MEETING TYPE ═══════════
+    // ✅ FIXED: Added all types used by ScheduleMeetingModal frontend
     meetingType: {
       type: String,
       required: true,
       enum: [
+        // Original types
         "Initial Consultation",
         "Mediation Session",
         "Hearing",
@@ -35,6 +38,12 @@ const meetingSchema = new mongoose.Schema(
         "Final Hearing",
         "Follow-up Meeting",
         "Other",
+        // ✅ Added — used by ScheduleMeetingModal
+        "Pre-Mediation",
+        "Caucus",
+        "Joint Session",
+        "Review Session",
+        "Final Settlement",
       ],
     },
 
@@ -46,7 +55,7 @@ const meetingSchema = new mongoose.Schema(
     },
 
     startTime: {
-      type: String, // "14:00" (24-hour format HH:mm)
+      type: String, // "14:00" (24-hour HH:mm)
       required: [true, "Start time is required"],
     },
 
@@ -56,7 +65,7 @@ const meetingSchema = new mongoose.Schema(
     },
 
     duration: {
-      type: Number, // in minutes
+      type: Number, // minutes
       required: true,
     },
 
@@ -80,13 +89,29 @@ const meetingSchema = new mongoose.Schema(
 
     participants: [
       {
+        // ✅ user is now optional — petitioner/respondent may not have accounts
         user: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
+          required: false,
+        },
+        // ✅ Added name field — frontend always has name even without a userId
+        name: {
+          type: String,
+          trim: true,
         },
         role: {
           type: String,
-          enum: ["petitioner", "defendant", "witness", "legal_advisor", "observer"],
+          enum: [
+            "petitioner",
+            "defendant",
+            "respondent",       // ✅ Added alias
+            "witness",
+            "legal_advisor",
+            "observer",
+            "mediator",         // ✅ Added
+          ],
+          default: "observer",
         },
         attendance: {
           type: String,
@@ -101,28 +126,26 @@ const meetingSchema = new mongoose.Schema(
     // ═══════════ MEETING LOCATION ═══════════
     locationType: {
       type: String,
-      enum: ["virtual", "physical", "hybrid"],
+      enum: ["virtual", "physical", "hybrid", "phone"], // ✅ Added "phone"
       default: "virtual",
     },
 
-    // For virtual meetings
     virtualMeeting: {
       platform: {
         type: String,
-        enum: ["zoom", "google_meet", "microsoft_teams", "custom"],
+        enum: ["zoom", "google_meet", "microsoft_teams", "custom", "Zoom"], // ✅ Added "Zoom" (capital) for frontend compat
       },
       meetingLink: String,
-      meetingId: String,
-      passcode: String,
+      meetingId:   String,
+      passcode:    String,
     },
 
-    // For physical meetings
     physicalLocation: {
-      venue: String,
-      address: String,
-      city: String,
-      state: String,
-      pincode: String,
+      venue:      String,
+      address:    String,
+      city:       String,
+      state:      String,
+      pincode:    String,
       roomNumber: String,
     },
 
@@ -144,12 +167,9 @@ const meetingSchema = new mongoose.Schema(
 
     // ═══════════ MEETING OUTCOME ═══════════
     outcome: {
-      summary: String,
-      agreementReached: {
-        type: Boolean,
-        default: false,
-      },
-      nextSteps: String,
+      summary:          String,
+      agreementReached: { type: Boolean, default: false },
+      nextSteps:        String,
       recordedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -165,18 +185,15 @@ const meetingSchema = new mongoose.Schema(
 
     reschedulingHistory: [
       {
-        previousDate: Date,
+        previousDate:      Date,
         previousStartTime: String,
-        previousEndTime: String,
+        previousEndTime:   String,
         rescheduledBy: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
         },
-        reason: String,
-        rescheduledAt: {
-          type: Date,
-          default: Date.now,
-        },
+        reason:        String,
+        rescheduledAt: { type: Date, default: Date.now },
       },
     ],
 
@@ -195,8 +212,8 @@ const meetingSchema = new mongoose.Schema(
           type: String,
           enum: ["24_hours", "1_hour", "15_minutes"],
         },
-        sentAt: Date,
-        recipientCount: Number,
+        sentAt:          Date,
+        recipientCount:  Number,
       },
     ],
 
@@ -208,45 +225,42 @@ const meetingSchema = new mongoose.Schema(
       },
     ],
 
+    // ✅ FIXED: agendaItems now accepts both {item,order} and {title,...}
+    //    Stored as {item, order} to match controller mapping
     agendaItems: [
       {
-        item: String,
-        order: Number,
+        item:  { type: String, trim: true },
+        order: { type: Number, default: 0 },
       },
     ],
 
     meetingNotes: String,
 
-    // ═══════════ RECORDING (OPTIONAL) ═══════════
+    // ═══════════ RECORDING ═══════════
     recording: {
-      isRecorded: {
-        type: Boolean,
-        default: false,
-      },
-      recordingUrl: String,
+      isRecorded:        { type: Boolean, default: false },
+      recordingUrl:      String,
       recordingPassword: String,
     },
 
+    // ═══════════ NOTIFICATIONS ═══════════
+    // ✅ Added — frontend ScheduleMeetingModal sends these
+    notifyEmail: { type: Boolean, default: true  },
+    notifySMS:   { type: Boolean, default: false },
+
     // ═══════════ METADATA ═══════════
-    isPrivate: {
-      type: Boolean,
-      default: false,
-    },
-
-    requiresApproval: {
-      type: Boolean,
-      default: false,
-    },
-
+    isPrivate:        { type: Boolean, default: false },
+    requiresApproval: { type: Boolean, default: false },
     approvedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-
     approvedAt: Date,
   },
   {
     timestamps: true,
+    toObject: { virtuals: true },
+    toJSON:   { virtuals: true },
   }
 );
 
@@ -258,91 +272,71 @@ meetingSchema.index({ scheduledDate: 1, startTime: 1 });
 
 // ═══════════ VIRTUAL FIELDS ═══════════
 meetingSchema.virtual("isUpcoming").get(function () {
-  const now = new Date();
-  const meetingDateTime = new Date(this.scheduledDate);
-  return meetingDateTime > now && this.status === "Scheduled";
+  return new Date(this.scheduledDate) > new Date() && this.status === "Scheduled";
 });
 
 meetingSchema.virtual("isPast").get(function () {
-  const now = new Date();
-  const meetingDateTime = new Date(this.scheduledDate);
-  return meetingDateTime < now;
+  return new Date(this.scheduledDate) < new Date();
+});
+
+// ✅ Virtual displayStatus — available on any populated meeting object
+meetingSchema.virtual("displayStatus").get(function () {
+  const map = {
+    "Scheduled":   "Upcoming",
+    "Confirmed":   "Upcoming",
+    "In Progress": "Ongoing",
+    "Completed":   "Completed",
+    "Cancelled":   "Cancelled",
+    "Rescheduled": "Upcoming",
+    "No Show":     "Missed",
+  };
+  return map[this.status] || this.status;
 });
 
 // ═══════════ METHODS ═══════════
 
-// Check if meeting time conflicts with another meeting
 meetingSchema.methods.hasConflict = async function (mediatorId) {
   const Meeting = this.constructor;
-  
-  const conflictingMeetings = await Meeting.find({
-    _id: { $ne: this._id },
-    mediator: mediatorId,
+  const conflicting = await Meeting.find({
+    _id:           { $ne: this._id },
+    mediator:      mediatorId,
     scheduledDate: this.scheduledDate,
-    status: { $in: ["Scheduled", "Confirmed", "In Progress"] },
+    status:        { $in: ["Scheduled", "Confirmed", "In Progress"] },
     $or: [
-      {
-        // New meeting starts during existing meeting
-        $and: [
-          { startTime: { $lte: this.startTime } },
-          { endTime: { $gt: this.startTime } },
-        ],
-      },
-      {
-        // New meeting ends during existing meeting
-        $and: [
-          { startTime: { $lt: this.endTime } },
-          { endTime: { $gte: this.endTime } },
-        ],
-      },
-      {
-        // New meeting completely overlaps existing meeting
-        $and: [
-          { startTime: { $gte: this.startTime } },
-          { endTime: { $lte: this.endTime } },
-        ],
-      },
+      { $and: [{ startTime: { $lte: this.startTime } }, { endTime: { $gt: this.startTime  } }] },
+      { $and: [{ startTime: { $lt: this.endTime   } }, { endTime: { $gte: this.endTime   } }] },
+      { $and: [{ startTime: { $gte: this.startTime} }, { endTime: { $lte: this.endTime   } }] },
     ],
   });
-
-  return conflictingMeetings.length > 0;
+  return conflicting.length > 0;
 };
 
-// Mark meeting as completed
 meetingSchema.methods.complete = async function (summary, userId) {
-  this.status = "Completed";
-  this.outcome = {
-    summary,
-    recordedBy: userId,
-    recordedAt: new Date(),
-  };
+  this.status  = "Completed";
+  this.outcome = { summary, recordedBy: userId, recordedAt: new Date() };
   await this.save();
 };
 
-// Cancel meeting
 meetingSchema.methods.cancel = async function (reason, userId) {
-  this.status = "Cancelled";
+  this.status             = "Cancelled";
   this.cancellationReason = reason;
-  this.cancelledBy = userId;
-  this.cancelledAt = new Date();
+  this.cancelledBy        = userId;
+  this.cancelledAt        = new Date();
   await this.save();
 };
 
-// Reschedule meeting
 meetingSchema.methods.reschedule = async function (newDate, newStartTime, newEndTime, reason, userId) {
   this.reschedulingHistory.push({
-    previousDate: this.scheduledDate,
+    previousDate:      this.scheduledDate,
     previousStartTime: this.startTime,
-    previousEndTime: this.endTime,
-    rescheduledBy: userId,
+    previousEndTime:   this.endTime,
+    rescheduledBy:     userId,
     reason,
   });
-
   this.scheduledDate = newDate;
-  this.startTime = newStartTime;
-  this.endTime = newEndTime;
-  this.status = "Rescheduled";
-
+  this.startTime     = newStartTime;
+  this.endTime       = newEndTime;
+  this.status        = "Rescheduled";
   await this.save();
 };
 

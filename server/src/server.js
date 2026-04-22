@@ -37,6 +37,7 @@ import arbitratorRoutes  from "./routes/arbitratorRoutes.js";
 // import paymentRoutes  from "./routes/paymentRoutes.js";
 import caseManagerRoutes from "./routes/caseManagerRoutes.js";
 import feedbackRoutes    from "./routes/feedbackRoutes.js";
+import pdfRoutes         from "./routes/pdfRoutes.js";
 
 const app = express();
 
@@ -168,6 +169,7 @@ app.use("/api/arbitrator",   arbitratorRoutes);
 // app.use("/api/payments",  paymentRoutes);
 app.use("/api/case-manager", caseManagerRoutes);
 app.use("/api/feedback",     feedbackRoutes);
+app.use("/api/pdf",          pdfRoutes);
 
 /* ═══════════════════════════════════════════════════════════════
    ADMIN: Manual Cron Triggers

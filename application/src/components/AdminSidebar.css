@@ -1,0 +1,197 @@
+
+.adm-sidebar {
+  width: 220px;
+  min-width: 220px;
+  height: 100vh;
+  background: rgba(119, 138, 255, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px 0 28px 0;
+  transition: all 0.3s ease;
+  position: relative;
+  border-radius: 0 28px 28px 0; 
+  overflow: visible;              
+}
+
+.adm-sidebar.adm-collapsed {
+  width: 72px;
+  min-width: 72px;
+}
+
+.adm-sidebar-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 16px 20px 16px;
+}
+
+.adm-sidebar.adm-collapsed .adm-sidebar-header {
+  justify-content: center;
+  padding: 0 0 20px 0;
+}
+
+.adm-sidebar-toggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.adm-sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.adm-sidebar-toggle .adm-bar {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: #ffffff;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.adm-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 14px;
+  flex: 1;
+}
+
+.adm-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  height: 44px;
+  border-radius: 14px;
+  cursor: pointer;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.011em;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+  position: relative;
+  z-index: 1;
+}
+
+.adm-menu-item img {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  filter: brightness(0) invert(1);
+  transition: filter 0.2s;
+}
+
+.adm-menu-item:hover {
+  background: #ffffff;
+  color: rgba(119, 138, 255, 1);
+}
+
+.adm-menu-item:hover img {
+  filter: invert(52%) sepia(60%) saturate(600%) hue-rotate(204deg) brightness(95%);
+}
+
+.adm-menu-item.adm-active {
+  background: #ffffff;
+  color: rgba(119, 138, 255, 1);
+  font-weight: 700;
+  border-radius: 14px 0 0 14px;
+  margin-right: -14px;
+  padding-right: 28px;
+}
+
+.adm-menu-item.adm-active img {
+  filter: invert(52%) sepia(60%) saturate(600%) hue-rotate(204deg) brightness(95%);
+}
+
+.adm-menu-item.adm-active::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -28px;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border-radius: 0 0 20px 0;
+  box-shadow: 10px 10px 0 0 #ffffff;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.adm-menu-item.adm-active::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -28px;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border-radius: 0 20px 0 0;
+  box-shadow: 10px -10px 0 0 #ffffff;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.adm-sidebar.adm-collapsed .adm-menu-item {
+  justify-content: center;
+  padding: 0 10px;
+  gap: 0;
+}
+
+.adm-sidebar.adm-collapsed .adm-menu-item span {
+  display: none;
+}
+
+.adm-sidebar.adm-collapsed .adm-menu-item.adm-active {
+  border-radius: 14px;
+  margin-right: 0;
+  padding-right: 10px;
+}
+
+.adm-sidebar.adm-collapsed .adm-menu-item.adm-active::before,
+.adm-sidebar.adm-collapsed .adm-menu-item.adm-active::after {
+  display: none;
+}
+
+.adm-logout {
+  padding: 16px 14px 0;
+}
+
+.adm-logout-item {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.45) !important;
+  border-radius: 16px !important;
+  backdrop-filter: blur(12px) !important;
+  color: rgba(255, 63, 63, 1) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  justify-content: center !important;
+  padding: 0 16px !important;
+  height: 44px !important;
+  gap: 8px !important;
+  letter-spacing: -0.011em !important;
+}
+
+.adm-logout-item img,
+.adm-logout-item .adm-logout-icon {
+  filter: none !important;
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.adm-logout-item:hover {
+  background: rgba(255, 255, 255, 0.32) !important;
+  border-color: rgba(255, 255, 255, 0.70) !important;
+}
