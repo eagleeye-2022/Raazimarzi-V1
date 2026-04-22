@@ -1,0 +1,26 @@
+name: Deploy Application
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'application/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy Application to VPS
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /var/www/raazimarzi
+            git pull origin main
+            cd application
+            npm install
+            npm run build
+            sudo systemctl reload nginx
+            echo "✅ Application deployed"
