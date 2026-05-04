@@ -1,177 +1,187 @@
-* {
-  box-sizing: border-box;
-  font-family: "Inter", sans-serif;
+@import './Auth.css';
+
+/* ============================================================
+   Login.css 
+   ──────────────────────────────────────────────────────────── */
+.input-wrap input {
+  padding-left: 46px !important;   /* push text past the icon */
+  padding-right: 46px;             /* room for eye icon on right */
 }
 
-.login-wrapper {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f4f6ff;
-  padding: 20px;
+/* ── BACKGROUND FIX ─────────────────────────────────────────
+   Force white — no grey/lavender bleed
+   ──────────────────────────────────────────────────────────── */
+.auth-right {
+  background: #ffffff !important;
 }
 
-.login-card {
-  width: 100%;
-  max-width: 1100px;
-  background: #fff;
-  border-radius: 20px;
-  display: flex;
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+.auth-form-container {
+  max-width: 400px;
 }
 
-/* LEFT IMAGE */
-.login-image {
-  flex: 1;
+/* ── TITLES ─────────────────────────────────────────────────*/
+.auth-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1A1F5E;
+  margin-bottom: 6px;
 }
 
-.login-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.auth-subtitle {
+  font-size: 14px;
+  color: #6B7280;
+  margin-bottom: 28px;
 }
 
-/* RIGHT FORM */
-.login-form {
-  flex: 1;
-  padding: 60px;
+/* ── FORM SPACING ───────────────────────────────────────────*/
+.auth-form {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 20px;
 }
 
-.logo {
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 0;         /* gap on .auth-form handles spacing */
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* ── FORGOT LINK ────────────────────────────────────────────*/
+.form-row-end {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.forgot-link {
+  font-size: 13px;
+  color: #5B6BF8;
+  text-decoration: none;
+  font-weight: 500;
+}
+.forgot-link:hover { text-decoration: underline; }
+
+/* ── CHECKBOX ───────────────────────────────────────────────*/
+.checkbox-group { gap: 0; }
+
+.checkbox-label {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 20px;
-}
-
-.logo img {
-  height: 40px;
-}
-
-.logo span {
-  font-size: 12px;
-  background: #e9edff;
-  color: #4f5cff;
-  padding: 4px 10px;
-  border-radius: 20px;
-}
-
-.login-form h2 {
-  font-size: 28px;
-  margin-bottom: 5px;
-}
-
-.subtitle {
-  color: #777;
-  margin-bottom: 30px;
-}
-
-.login-form input {
-  width: 100%;
-  padding: 14px 15px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  margin-bottom: 15px;
-  font-size: 15px;
-}
-
-.login-form input:focus {
-  outline: none;
-  border-color: #4f5cff;
-}
-
-.login-form button {
-  width: 100%;
-  padding: 14px;
-  background: #4f5cff;
-  border: none;
-  color: white;
-  border-radius: 8px;
-  font-size: 16px;
   cursor: pointer;
-  margin-top: 10px;
-}
-
-.login-form button:disabled {
-  background: #a0a6ff;
-  cursor: not-allowed;
-}
-
-.bottom-text {
-  margin-top: 20px;
-  font-size: 14px;
-  text-align: center;
-}
-
-.bottom-text a {
-  color: #4f5cff;
-  text-decoration: none;
-}
-
-.back-link {
-  margin-top: 15px;
-  text-align: center;
-  color: #4f5cff;
-  cursor: pointer;
-}
-
-/* RESPONSIVE */
-@media (max-width: 900px) {
-  .login-card {
-    flex-direction: column;
-  }
-
-  .login-image {
-    height: 250px;
-  }
-
-  .login-form {
-    padding: 40px 30px;
-  }
-}
-
-.input-group {
-  position: relative;
-  margin-bottom: 15px;
-}
-
-.password-group span {
-  position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  color: #777;
-}
-
-.forgot {
-  text-align: right;
   font-size: 13px;
-  color: #4f5cff;
-  margin-bottom: 20px;
-  cursor: pointer;
+  color: #374151;
+  font-weight: 500;
+  user-select: none;
 }
 
-.social-row {
-  margin-top: 20px;
+.checkbox-label input[type="checkbox"] { display: none; }
+
+.checkmark {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 4px;
+  background: #F3F4F6;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark {
+  background: #5B6BF8;
+  border-color: #5B6BF8;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  width: 5px;
+  height: 9px;
+  border: 2px solid white;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+/* ── LOGIN BUTTON ───────────────────────────────────────────*/
+.auth-btn {
+  margin-top: 4px;
+}
+
+/* ── DIVIDER ─────────────────────────────────────────────── */
+.auth-or {
   display: flex;
-  justify-content: center;
-  gap: 15px;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+  color: #9CA3AF;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+}
+.auth-or::before,
+.auth-or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #E5E7EB;
 }
 
-.social-row span {
-  width: 38px;
-  height: 38px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+/* ── GOOGLE BUTTON ──────────────────────────────────────────*/
+.google-btn {
+  width: 100%;
+  padding: 13px;
+  background: #F3F4F6;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  font-size: 14px;
+  gap: 10px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.google-btn:hover {
+  background: #E9EAFF;
+  border-color: #5B6BF8;
+}
+
+/* ── FOOTER ─────────────────────────────────────────────────*/
+.auth-footer {
+  text-align: center;
+  font-size: 13px;
+  color: #6B7280;
+  margin-top: 16px;
+}
+
+.auth-link {
+  color: #5B6BF8;
+  text-decoration: none;
+  font-weight: 600;
+}
+.auth-link:hover { text-decoration: underline; }
+
+/* ── ERROR ──────────────────────────────────────────────────*/
+.auth-error {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #DC2626;
+  padding: 11px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 4px;
 }

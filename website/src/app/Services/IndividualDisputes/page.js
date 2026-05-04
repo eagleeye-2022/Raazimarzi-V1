@@ -100,11 +100,7 @@ const IndividualDisputes = () => {
   const nextT = () => setActiveTestimonial((prev) => (prev === testimonialData.length - 1 ? 0 : prev + 1));
   const toggleFaq = (index) => setOpenFaq(openFaq === index ? null : index);
 
-  /*
-    FIX: testimonial slots — only show 3 avatars (-1, 0, 1) when
-    testimonialData.length < 5, to prevent index collisions.
-    With 5 entries, all 5 slots are safe.
-  */
+
   const getIndex = (offset) => {
     const len = testimonialData.length;
     return ((activeTestimonial + offset) % len + len) % len;
@@ -237,39 +233,71 @@ const IndividualDisputes = () => {
           <div className="hiw-header">
             <p className="hiw-eyebrow">3 SIMPLE STEPS</p>
             <h2 className="hiw-title">How It Works</h2>
-            <p className="hiw-sub">
-              A simple and secure process to resolve disputes online.
-            </p>
+            <p className="hiw-sub">A simple and secure process to resolve disputes online.</p>
           </div>
 
           <div className="hiw-stage">
 
-            {/* WAVE */}
-            <svg
-              className="hiw-wave"
-              viewBox="0 0 1440 260"
-              preserveAspectRatio="none"
-            >
-              {/* shadow */}
-              <path
-                className="hiw-wave-shadow"
-                d="M0,160 
-           C200,260 300,260 500,160 
-           C700,60 800,60 1000,160 
-           C1200,260 1300,260 1440,160"
-              />
+            {/* ── WAVE SVG ──
+        viewBox: 0 0 1440 480
+        Path anchors (viewBox coords):
+          Start  → (0, 300)
+          Dot-1  → (360, 140)   peak
+          Dot-2  → (720, 390)   trough
+          Dot-3  → (1080, 140)  peak
+          End    → (1440, 300)
 
-              {/* dotted */}
-              <path
-                className="hiw-wave-dotted"
-                d="M0,160 
-           C200,260 300,260 500,160 
-           C700,60 800,60 1000,160 
-           C1200,260 1300,260 1440,160"
-              />
-            </svg>
+        CSS dot positions mirror these:
+          dot-1: left=25%, top=140px
+          dot-2: left=50%, top=390px
+          dot-3: left=75%, top=140px
+    ── */}
+           <svg
+  className="hiw-wave"
+  viewBox="0 0 1440 480"
+  preserveAspectRatio="xMidYMid meet"
+  style={{ position:'absolute', top:0, left:0, width:'100%', height:'480px' }}
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    className="hiw-wave-shadow"
+    d="M-100,300 C100,300 220,172 360,172 C500,172 540,428 720,428 C900,428 940,172 1080,172 C1220,172 1340,300 1540,300"
+    transform="translate(0,6)"
+  />
+  <path
+    className="hiw-wave-dotted"
+    d="M-100,300 C100,300 220,172 360,172 C500,172 540,428 720,428 C900,428 940,172 1080,172 C1220,172 1340,300 1540,300"
+  />
+</svg>
 
-            {/* DOT ICONS */}
+            {/* ── Step 1: upper-left ── */}
+            <div className="hiw-step hiw-step-1">
+              <div className="hiw-step-heading">
+                <h4>Submit Your Case</h4>
+                <span className="hiw-ghost">1</span>
+              </div>
+              <p>Provide your dispute details and upload necessary documents securely.</p>
+            </div>
+
+            {/* ── Step 2: below center trough ── */}
+            <div className="hiw-step hiw-step-2">
+              <div className="hiw-step-heading">
+                <h4>Mediation &amp; Discussion</h4>
+                <span className="hiw-ghost">2</span>
+              </div>
+              <p>The other party is notified and a mediator facilitates discussion between both sides.</p>
+            </div>
+
+            {/* ── Step 3: upper-right ── */}
+            <div className="hiw-step hiw-step-3">
+              <div className="hiw-step-heading">
+                <h4>Resolution</h4>
+                <span className="hiw-ghost">3</span>
+              </div>
+              <p>Reach a fair agreement or get a final decision through arbitration.</p>
+            </div>
+
+            {/* ── Dot icons ── */}
             <div className="hiw-dot hiw-dot-1">
               <img src="/assets/icons/1.png" alt="" />
             </div>
@@ -278,34 +306,6 @@ const IndividualDisputes = () => {
             </div>
             <div className="hiw-dot hiw-dot-3">
               <img src="/assets/icons/3.png" alt="" />
-            </div>
-
-            {/* STEP 1 */}
-            <div className="hiw-step hiw-step-1">
-              <div className="hiw-ghost">1</div>
-              <h4>Submit Your Case</h4>
-              <p>
-                Provide your dispute details and upload necessary documents securely.
-              </p>
-            </div>
-
-            {/* STEP 2 */}
-            <div className="hiw-step hiw-step-2">
-              <div className="hiw-ghost">2</div>
-              <h4>Mediation &amp; Discussion</h4>
-              <p>
-                The other party is notified and a mediator facilitates discussion
-                between both sides.
-              </p>
-            </div>
-
-            {/* STEP 3 */}
-            <div className="hiw-step hiw-step-3">
-              <div className="hiw-ghost">3</div>
-              <h4>Resolution</h4>
-              <p>
-                Reach a fair agreement or get a final decision through arbitration.
-              </p>
             </div>
 
           </div>

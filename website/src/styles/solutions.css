@@ -20,7 +20,7 @@
 }
 
 * { box-sizing: border-box; }
-html, body { overflow-x: hidden; }
+html, body { overflow-x: clip; }
 body { margin:0; font-family:"Plus Jakarta Sans",sans-serif; color:var(--svc-text); background:#fff; }
 img  { max-width:100%; display:block; }
 a    { text-decoration:none; }
@@ -62,40 +62,38 @@ a    { text-decoration:none; }
   cursor: pointer;
   font-family: "Plus Jakarta Sans", sans-serif;
 
-  padding: 16px 34px;
-  min-width: 180px;
-  border-radius: 999px;
+  width: 185px;
+  height: 56px;
+  padding: 10px;
+  gap: 10px;
+  border-radius: 24px;
 
-  font-size: 16px;
-  font-weight: 600;
-  color: #1e1e2f;
-
-  background: linear-gradient(
-    90deg,
-    rgba(119, 138, 255, 1) 0%,
-    rgba(230, 234, 255, 1) 100%
-  );
-
-  box-shadow: 0 10px 25px rgba(119, 138, 255, 0.25);
-  transition: all 0.3s ease;
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 1);
+  text-decoration: none;
   white-space: nowrap;
   line-height: 1;
-  text-decoration: none;
+
+  background: linear-gradient(90deg, rgba(119,138,255,1) 0%, rgba(230,234,255,1) 100%);
+  box-shadow:
+    0px 6px 0px 0px rgba(119, 138, 255, 1),
+    0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+
+  transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+  position: relative;
+  top: 0;
 }
 
 /* ✅ PRIMARY HOVER */
 .svc-btn-primary:hover,
 .svc-btn-white:hover,
 .svc-cta-btn:hover {
-  transform: translateY(-3px);
-
-  background: linear-gradient(
-    135deg,
-    rgba(119, 138, 255, 1) 0%,
-    rgba(200, 210, 255, 1) 100%
-  );
-
-  box-shadow: 0 14px 32px rgba(119, 138, 255, 0.35);
+  background: linear-gradient(90deg, rgba(88,115,245,1) 0%, rgba(210,220,255,1) 100%);
+  transform: translateY(-2px);
+  box-shadow:
+    0px 8px 0px 0px rgba(119, 138, 255, 1),
+    0px 8px 18px 0px rgba(0, 0, 0, 0.22);
 }
 
 /* ACTIVE */
@@ -192,15 +190,11 @@ a    { text-decoration:none; }
 
 /* ✅ HOVER */
 .svc-btn-hammer:hover {
-  transform: translateY(-3px);
-
-  background: linear-gradient(
-    135deg,
-    rgba(119, 138, 255, 1) 0%,
-    rgba(200, 210, 255, 1) 100%
-  );
-
-  box-shadow: 0 14px 32px rgba(119, 138, 255, 0.35);
+  background: linear-gradient(90deg, rgba(88,115,245,1) 0%, rgba(210,220,255,1) 100%);
+  transform: translateY(-2px);
+  box-shadow:
+    0px 8px 0px 0px rgba(119, 138, 255, 1),
+    0px 8px 18px 0px rgba(0, 0, 0, 0.22);
 }
 
 /* TEXT */
@@ -249,27 +243,31 @@ a    { text-decoration:none; }
 /* ── ABOUT "LEARN MORE" BUTTON ────────────────────────
 ─────────────────────────────────────────────────────── */
 .svc-btn-about-learn {
-  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0;
-  overflow: hidden;
   border: none;
   outline: none;
   cursor: pointer;
   font-family: "Plus Jakarta Sans", sans-serif;
-  padding: 16px 34px;
-  min-width: 180px;
-  border-radius: 999px;
-  font-size: 16px;
-  font-weight: 600;
-  color: #111111;
-  background: linear-gradient(90deg, rgba(247, 248, 255, 1) 0%, #bde8ff 100%);
-  box-shadow: 0 10px 30px rgba(188,144,255,0.28), inset 0 1px 0 rgba(255,255,255,0.45);
-  transition: all 0.28s ease;
+  width: 185px;
+  height: 56px;
+  padding: 10px;
+  gap: 10px;
+  border-radius: 24px;
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 1);
+  text-decoration: none;
   white-space: nowrap;
   line-height: 1;
+  background: linear-gradient(90deg, rgba(119,138,255,1) 0%, rgba(230,234,255,1) 100%);
+  box-shadow:
+    0px 6px 0px 0px rgba(119, 138, 255, 1),
+    0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+  transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+  position: relative;
+  top: 0;
 }
 .svc-btn-about-learn:hover {
   transform: translateY(-2px);
@@ -311,7 +309,7 @@ a    { text-decoration:none; }
 
 .svc-hero {
   width: 100%;
-  background: rgba(237, 240, 255, 1);
+  background: rgba(247, 248, 255, 1);
   position: relative;
   overflow: hidden;
   padding: 64px 0 110px;
@@ -332,18 +330,18 @@ a    { text-decoration:none; }
 .svc-hero-wrap {
   max-width: 1280px;
   margin: 0 auto;
-  min-height: 460px;
+  min-height: 480px;
   display: grid;
-  grid-template-columns: 1fr 600px 1fr;
+  /* Give side panels more space so arrows/tags don't overlap ring */
+  grid-template-columns: 380px 1fr 380px;
   align-items: center;
-  padding: 0 30px;
-  /* NOT position:relative — scroll indicator anchors to .svc-hero */
+  padding: 0 20px;
 }
 
 .svc-hero-side {
   position: relative;
   height: 100%;
-  min-height: 460px;
+  min-height: 480px;
 }
 
 .svc-hero-side-left {
@@ -365,16 +363,16 @@ a    { text-decoration:none; }
   width: 260px;
   height: 260px;
   flex-shrink: 0;
+  z-index: 2;           /* rings stay below decorations (z-index:5) */
 }
-
 .svc-hero-side-left .svc-hero-profile {
   margin-left: 10px;
   margin-top: 20px;
 }
 
 .svc-hero-side-right .svc-hero-profile {
-  margin-right: 0;
-  margin-top: 80px;
+  margin-right: 10px;
+  margin-top: 60px;
 }
 
 /* ── Avatar ── */
@@ -391,6 +389,7 @@ a    { text-decoration:none; }
   background: #d8d8e8;
   box-shadow: 0 6px 24px rgba(80, 70, 180, 0.15);
 }
+
 .svc-hero-avatar img {
   width: 100%;
   height: 100%;
@@ -399,12 +398,9 @@ a    { text-decoration:none; }
   display: block;
 }
 
-/* Hide the third ring — only 2 rings shown in design */
-.svc-ring-fade {
-  display: none;
-}
+.svc-ring-fade { display: none; }
 
-/* ── OUTER ring — full 260×260 ── */
+/* ── OUTER ring ── */
 .svc-ring-outer {
   position: absolute;
   inset: 0;
@@ -413,14 +409,11 @@ a    { text-decoration:none; }
   animation: spinCW 22s linear infinite;
   z-index: 1;
 }
-
-/* Two dots on outer ring (top + bottom, fixed to ring so they orbit) */
 .svc-ring-outer::before,
 .svc-ring-outer::after {
   content: "";
   position: absolute;
-  width: 8px;
-  height: 8px;
+  width: 8px; height: 8px;
   border-radius: 50%;
   background: rgba(110, 100, 210, 0.65);
   left: calc(50% - 4px);
@@ -428,7 +421,7 @@ a    { text-decoration:none; }
 .svc-ring-outer::before { top: -4px; }
 .svc-ring-outer::after  { bottom: -4px; }
 
-/* ── INNER ring — inset 36px ── */
+/* ── INNER ring ── */
 .svc-ring-inner {
   position: absolute;
   inset: 36px;
@@ -437,28 +430,24 @@ a    { text-decoration:none; }
   animation: spinCCW 16s linear infinite;
   z-index: 1;
 }
-
-/* Two dots on inner ring (left + right, fixed to ring so they orbit) */
 .svc-ring-inner::before,
 .svc-ring-inner::after {
   content: "";
   position: absolute;
-  width: 6px;
-  height: 6px;
+  width: 6px; height: 6px;
   border-radius: 50%;
   background: rgba(120, 110, 210, 0.55);
   top: calc(50% - 3px);
 }
 .svc-ring-inner::before { right: -3px; }
-.svc-ring-inner::after  { left: -3px;  }
+.svc-ring-inner::after  { left: -3px; }
 
-/* ── Spin animations ── */
 @keyframes spinCW {
-  from { transform: rotate(0deg);   }
+  from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
 @keyframes spinCCW {
-  from { transform: rotate(0deg);    }
+  from { transform: rotate(0deg); }
   to   { transform: rotate(-360deg); }
 }
 
@@ -522,7 +511,7 @@ a    { text-decoration:none; }
 .svc-hero-scroll {
   position: absolute;
   left: 50%;
-  bottom: 28px;
+  bottom: 22px;
   transform: translateX(-50%);
   width: 44px;
   height: 44px;
@@ -534,7 +523,6 @@ a    { text-decoration:none; }
   z-index: 4;
   animation: bobDown 2.4s ease-in-out infinite;
 }
-
 .svc-hero-scroll span {
   font-size: 18px;
   color: #3a3a5c;
@@ -543,63 +531,149 @@ a    { text-decoration:none; }
   align-items: center;
   justify-content: center;
 }
-
 @keyframes bobDown {
-  0%,  100% { transform: translateX(-50%) translateY(0);   }
+  0%,  100% { transform: translateX(-50%) translateY(0); }
   50%        { transform: translateX(-50%) translateY(6px); }
 }
 
+/* ================= HAMMER BUTTON ================= */
+
+.svc-btn-hammer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: "Plus Jakarta Sans", sans-serif;
+
+  width: 236px;
+  height: 56px;
+  padding: 10px;
+  gap: 10px;
+  border-radius: 24px;
+
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 1);
+  text-decoration: none;
+  white-space: nowrap;
+  line-height: 1;
+
+  background: linear-gradient(90deg, rgba(119,138,255,1) 0%, rgba(230,234,255,1) 100%);
+  box-shadow:
+    0px 6px 0px 0px rgba(119, 138, 255, 1),
+    0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+
+  transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+  position: relative;
+  top: 0;
+}
+
+.svc-btn-hammer:hover {
+  background: linear-gradient(90deg, rgba(88,115,245,1) 0%, rgba(210,220,255,1) 100%);
+  transform: translateY(-2px);
+  box-shadow:
+    0px 8px 0px 0px rgba(119, 138, 255, 1),
+    0px 8px 18px 0px rgba(0, 0, 0, 0.22);
+}
+
+.svc-btn-label {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  /* starts centered, shifts left on hover to make room for icon */
+  transition: transform 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+/* Icon wrapper — hidden off the right edge initially */
+.svc-btn-hammer-wrap {
+  position: absolute;
+  right: -32px;  
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  transition: right 0.38s cubic-bezier(0.34, 1.2, 0.64, 1);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* SVG hammer icon */
+.svc-hammer-icon {
+  width: 20px;
+  height: 20px;
+  color: #1e1e2f;
+  display: block;
+  flex-shrink: 0;
+}
+
+/* HOVER: label slides left, hammer slides in from right */
+.svc-btn-hammer:hover .svc-btn-label {
+  transform: translateX(-14px);
+}
+.svc-btn-hammer:hover .svc-btn-hammer-wrap {
+  right: 14px;        /* slides into visible area */
+}
+
 /* ================= LEFT DECORATIONS ================= */
+.svc-hero-side-left .svc-hero-profile {
+  margin-left: 40px; 
+  margin-top: 0;
+}
 
 .svc-hero-arrow-left {
   position: absolute;
   width: 68px;
-  left: 216px;    /* just past the right edge of the ring */
-  bottom: 148px;  /* above the Legal Mediation tag        */
-  opacity: 0.65;
-  transform: rotate(12deg);
-  z-index: 2;
+  left: 150px;         
+  top: 85%;            
+  transform: translateY(-50%);
+  opacity: 0.78;
+  z-index: 5;           
+  pointer-events: none;
 }
-
 /*
-  lm.png
+  lm.png — Legal Mediation tag, bottom-left corner
 */
 .svc-hero-legal-tag {
   position: absolute;
-  width: 150px;
-  left: -10px;
-  bottom: 46px;
+  width: 148px;
+  left: 0px;
+  bottom: -110px;
   transform: rotate(-18deg);
   transform-origin: left center;
-  z-index: 2;
+  z-index: 5;
+  pointer-events: none;
 }
 
 /* ================= RIGHT DECORATIONS ================= */
-
-/*
-  tag.png — medal badge, top-right corner above the ring.
-*/
-.svc-hero-top-badge {
-  position: absolute;
-  width: 52px;
-  top: 38px;
-  right: 8px;
-  opacity: 0.78;
-  z-index: 2;
+.svc-hero-side-right .svc-hero-profile {
+  margin-right: 40px;   
+  margin-top: 40px;
 }
 
-/*
-  carrow2.png — curved arrow between badge and right profile ring.
-  Curves from lower-left to upper-right, pointing toward badge.
-*/
 .svc-hero-arrow-right {
   position: absolute;
-  width: 84px;
-  top: 118px;
-  left: 26px;
-  opacity: 0.65;
-  transform: rotate(-6deg);
-  z-index: 2;
+  width: 86px;
+  top: 38px;           
+  right: 46px;          
+  opacity: 0.78;
+  transform: none;      
+  z-index: 5;
+  pointer-events: none;
+}
+
+.svc-hero-top-badge {
+  position: absolute;
+  width: 54px;
+  top: 5px;
+  right: -15px;
+  opacity: 0.88;
+  z-index: 5;
+  pointer-events: none;
 }
 
 /* ================= SCATTER DOTS ================= */
@@ -641,10 +715,71 @@ a    { text-decoration:none; }
   left: 28px;
 }
 
+/* ================= MOBILE RESPONSIVE ================= */
+
+@media (max-width: 1024px) {
+  .svc-hero-wrap {
+    grid-template-columns: 180px 1fr 180px;
+  }
+  .svc-hero-profile {
+    width: 200px;
+    height: 200px;
+  }
+  .svc-hero-avatar {
+    width: 120px;
+    height: 120px;
+  }
+  .svc-hero-arrow-left { left: 208px; width: 60px; }
+  .svc-hero-arrow-right { width: 70px; top: 75px; }
+  .svc-hero-top-badge { width: 44px; }
+  .svc-hero-title { font-size: 36px; }
+}
+
+@media (max-width: 768px) {
+  .svc-hero { padding: 48px 0 80px; }
+
+  .svc-hero-wrap {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    min-height: unset;
+    padding: 0 20px;
+    gap: 20px;
+  }
+
+  .svc-hero-side-left  { order: 1; justify-content: center; min-height: 220px; }
+  .svc-hero-content    { order: 2; }
+  .svc-hero-side-right { order: 3; justify-content: center; min-height: 220px; }
+
+  .svc-hero-side-left .svc-hero-profile,
+  .svc-hero-side-right .svc-hero-profile {
+    margin: 0 auto;
+  }
+
+  .svc-hero-profile { width: 190px; height: 190px; }
+  .svc-hero-avatar  { width: 115px; height: 115px; }
+
+  .svc-hero-title { font-size: 28px; }
+  .svc-hero-sub   { font-size: 14px; }
+
+  .svc-hero-actions { flex-direction: column; gap: 10px; }
+  .svc-btn-hammer,
+  .svc-btn-secondary { width: 100%; min-width: unset; justify-content: center; }
+
+  /* Hide decorative elements on mobile */
+  .svc-hero-arrow-left,
+  .svc-hero-arrow-right,
+  .svc-hero-legal-tag,
+  .svc-hero-top-badge { display: none; }
+}
+
+@media (max-width: 480px) {
+  .svc-hero-title { font-size: 24px; }
+  .svc-hero-pill  { font-size: 9px; letter-spacing: 1.6px; padding: 0 12px; }
+}
+
 /* =========================================================
    ABOUT
 ========================================================= */
-
 .svc-about {
   padding: 110px 0 100px;
   background: #ffffff;
@@ -658,64 +793,29 @@ a    { text-decoration:none; }
   align-items: center;
 }
 
+/* ================= IMAGE SIDE ================= */
 .svc-about-img {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-/* ================= IMAGE ANIMATION ================= */
-.svc-about .svc-about-img {
   opacity: 0;
   transform: translateX(-60px);
 }
-
 .svc-about.about-animate .svc-about-img {
   animation: aboutImgSlide 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
-
 @keyframes aboutImgSlide {
   from { opacity: 0; transform: translateX(-60px); }
-  to { opacity: 1; transform: translateX(0); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
-/* ================= EYEBROW ================= */
-.svc-eyebrow-left {
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 4.2px;
-  line-height: 20px;
-  text-transform: uppercase;
-  color: rgba(119, 138, 255, 1);
-  margin-bottom: 16px;
-}
-
-/* ================= TEXT ================= */
-.svc-section-title {
-  font-size: clamp(28px, 4vw, 46px);
-  font-weight: 700;
-  color: #1f2d3d;
-  line-height: 1.2;
-  margin-bottom: 18px;
-}
-
-.svc-about-text {
-  color: #6f7485;
-  line-height: 1.9;
-  font-size: 15px;
-  margin: 10px 0 36px;
-  max-width: 520px;
-}
-
-/* ================= TEXT ANIMATION ================= */
+/* ================= TEXT ANIMATIONS ================= */
 .svc-about .svc-eyebrow-left,
 .svc-about .svc-section-title,
 .svc-about .svc-about-text {
   opacity: 0;
   transform: translateY(30px);
 }
-
 .svc-about.about-animate .svc-eyebrow-left {
   animation: aboutFadeUp 0.55s ease 0.1s forwards;
 }
@@ -725,25 +825,49 @@ a    { text-decoration:none; }
 .svc-about.about-animate .svc-about-text {
   animation: aboutFadeUp 0.55s ease 0.34s forwards;
 }
-
 @keyframes aboutFadeUp {
   from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ================= EYEBROW ================= */
+.svc-eyebrow-left {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(119, 138, 255, 1);
+  margin-bottom: 14px;
+  display: block;
+}
+
+/* ================= TEXT ================= */
+.svc-about .svc-section-title {
+  font-size: clamp(28px, 3.5vw, 44px);
+  font-weight: 800;
+  color: #111827;
+  line-height: 1.15;
+  margin-bottom: 18px;
+  text-align: left;
+}
+.svc-about-text {
+  color: #6b7280;
+  line-height: 1.85;
+  font-size: 15px;
+  margin: 0 0 32px;
+  max-width: 500px;
 }
 
 /* ================= STATS ================= */
 .svc-stats {
   display: flex;
-  gap: 60px;
+  gap: 52px;
   flex-wrap: wrap;
   margin-bottom: 36px;
-  padding-bottom: 30px;
+  padding-bottom: 28px;
   border-bottom: 1px solid #e6e8f2;
 }
-
-.svc-stat {
-  min-width: 120px;
-}
+.svc-stat { min-width: 100px; }
 
 .svc-stat-num {
   display: block;
@@ -751,81 +875,125 @@ a    { text-decoration:none; }
   font-weight: 800;
   color: #1e1e2f;
   margin-bottom: 6px;
+  line-height: 1;
 }
 
 .svc-stat-label {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   color: #9aa0b5;
-  letter-spacing: 1.2px;
+  letter-spacing: 1.4px;
   text-transform: uppercase;
 }
 
-/* FALL ANIMATION */
+/* ── STAT NUMBERS: fall from above ── */
 .svc-stat-fall {
   opacity: 0;
-  transform: translateY(-50px);
+  transform: translateY(-60px);
+  display: block;
 }
 
 .svc-about.about-animate .svc-stat-fall-1 {
-  animation: statFall 0.6s cubic-bezier(0.34, 1.3, 0.64, 1) 0.5s forwards;
+  animation: statFall 0.7s cubic-bezier(0.34, 1.4, 0.64, 1) 0.55s forwards;
 }
 .svc-about.about-animate .svc-stat-fall-2 {
-  animation: statFall 0.6s cubic-bezier(0.34, 1.3, 0.64, 1) 0.65s forwards;
+  animation: statFall 0.7s cubic-bezier(0.34, 1.4, 0.64, 1) 0.72s forwards;
 }
 .svc-about.about-animate .svc-stat-fall-3 {
-  animation: statFall 0.6s cubic-bezier(0.34, 1.3, 0.64, 1) 0.8s forwards;
+  animation: statFall 0.7s cubic-bezier(0.34, 1.4, 0.64, 1) 0.89s forwards;
 }
 
 @keyframes statFall {
-  from { opacity: 0; transform: translateY(-50px); }
-  to { opacity: 1; transform: translateY(0); }
+  0%   { opacity: 0;   transform: translateY(-60px); }
+  55%  { opacity: 1;   transform: translateY(6px);   }
+  75%  { transform: translateY(-3px);                }
+  100% { opacity: 1;   transform: translateY(0);     }
+}
+
+/* ── STAT LABELS: fade up after numbers land ── */
+.svc-stat-label {
+  opacity: 0;
+  transform: translateY(10px);
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: #9aa0b5;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  transition: none;
+}
+.svc-about.about-animate .svc-stat:nth-child(1) .svc-stat-label {
+  animation: aboutFadeUp 0.4s ease 1.0s forwards;
+}
+.svc-about.about-animate .svc-stat:nth-child(2) .svc-stat-label {
+  animation: aboutFadeUp 0.4s ease 1.1s forwards;
+}
+.svc-about.about-animate .svc-stat:nth-child(3) .svc-stat-label {
+  animation: aboutFadeUp 0.4s ease 1.2s forwards;
 }
 
 /* ================= BUTTON ================= */
 .svc-btn-about-learn {
+    display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: "Plus Jakarta Sans", sans-serif;
+
   width: 185px;
   height: 56px;
-  border-radius: 24px;
   padding: 10px;
-  border: none;
-  cursor: pointer;
+  gap: 10px;
+  border-radius: 24px;
 
-  font-size: 14px;
-  font-weight: 600;
-  color: #1e1e2f;
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 1);
+  text-decoration: none;
+  white-space: nowrap;
+  line-height: 1;
 
-  background: linear-gradient(
-    90deg,
-    rgba(119, 138, 255, 1) 0%,
-    rgba(230, 234, 255, 1) 100%
-  );
+  background: linear-gradient(90deg, rgba(119,138,255,1) 0%, rgba(230,234,255,1) 100%);
+  box-shadow:
+    0px 6px 0px 0px rgba(119, 138, 255, 1),
+    0px 5px 10px 0px rgba(0, 0, 0, 0.25);
 
-  box-shadow: 0 10px 20px rgba(119, 138, 255, 0.25);
-  transition: all 0.3s ease;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+  position: relative;
+  top: 0;
 }
 
-.svc-btn-about-learn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 14px 30px rgba(119, 138, 255, 0.35);
-}
-
-/* BUTTON ANIMATION */
-.svc-about .svc-btn-about-learn {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
+/* Animate in when section visible */
 .svc-about.about-animate .svc-btn-about-learn {
-  animation: aboutFadeUp 0.5s ease 0.95s forwards;
+  animation: aboutFadeUp 0.5s ease 1.0s forwards;
 }
 
-/* ================= RING DESIGN ================= */
+/* Hover: lifts up slightly */
+.svc-btn-about-learn:hover {
+  background: linear-gradient(90deg, rgba(88,115,245,1) 0%, rgba(210,220,255,1) 100%);
+  transform: translateY(-2px);
+  box-shadow:
+    0px 8px 0px 0px rgba(119, 138, 255, 1),
+    0px 8px 18px 0px rgba(0, 0, 0, 0.22);
+}
 
+/* Active/press: pushes down — 3D press effect */
+.svc-btn-about-learn:active {
+  top: 4px;
+  box-shadow:
+    0px 2px 0px 0px rgba(90, 105, 220, 0.9),
+    0px 2px 8px 0px rgba(119, 138, 255, 0.2);
+}
+
+/* =========================================================
+   RING DESIGN
+========================================================= */
 .svc-about-ring-wrap {
   width: 100%;
-  max-width: 520px;
-  aspect-ratio: 1/1;
+  max-width: 460px;
+  aspect-ratio: 1 / 1;
   margin: 0 auto;
   position: relative;
   display: flex;
@@ -833,103 +1001,147 @@ a    { text-decoration:none; }
   justify-content: center;
 }
 
-/* OUTER RING */
-.svc-ring-outer {
+/* ── OUTER RING ── */
+.svc-about-ring-outer {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 1px solid #dfe3ff;
+  border: 1.5px solid #dfe3ff;
   animation: rotateRing 18s linear infinite;
+  pointer-events: none;
 }
-
-/* OUTER DOTS */
-.svc-ring-outer::before {
+.svc-about-ring-outer::before {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 10% 50%, #7b8cff 4px, transparent 5px),
-    radial-gradient(circle at 80% 20%, #7b8cff 4px, transparent 5px),
-    radial-gradient(circle at 60% 85%, #7b8cff 4px, transparent 5px);
+    radial-gradient(circle at 50%   2%,  #7b8cff 5px, transparent 6px),
+    radial-gradient(circle at 85%  75%,  #7b8cff 5px, transparent 6px),
+    radial-gradient(circle at 15%  75%,  #7b8cff 5px, transparent 6px);
 }
 
-/* INNER RING */
-.svc-ring-inner {
+/* ── INNER RING ── */
+.svc-about-ring-inner {
   position: absolute;
-  inset: 40px;
+  inset: 11%;
   border-radius: 50%;
-  border: 1px solid #e6e9ff;
+  border: 1.5px solid #e6e9ff;
   animation: rotateRingReverse 14s linear infinite;
+  pointer-events: none;
 }
-
-/* INNER DOTS */
-.svc-ring-inner::before {
+.svc-about-ring-inner::before {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 20% 30%, #a5b0ff 3px, transparent 4px),
-    radial-gradient(circle at 70% 70%, #a5b0ff 3px, transparent 4px),
-    radial-gradient(circle at 50% 10%, #a5b0ff 3px, transparent 4px);
+    radial-gradient(circle at 50%   3%,  #a5b0ff 4px, transparent 5px),
+    radial-gradient(circle at 80%  78%,  #a5b0ff 4px, transparent 5px),
+    radial-gradient(circle at 20%  78%,  #a5b0ff 4px, transparent 5px);
 }
 
-/* ROTATION */
-@keyframes rotateRing {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes rotateRingReverse {
-  from { transform: rotate(360deg); }
-  to { transform: rotate(0deg); }
-}
-
-/* IMAGE CENTER */
+/* ── CENTER IMAGE — fills ring properly ── */
 .svc-about-ring-center {
-  width: 78%;
-  height: 78%;
+  position: absolute;
+  inset: 14%;
   border-radius: 50%;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 2;
+  background: #e8eeff;
 }
-
 .svc-about-ring-center img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;  
+  object-position: center center;
 }
 
-/* FALL ANIMATION — enhanced */
-.svc-stat-fall {
+
+.svc-about-arrow {
+  position: absolute;
+  width: 130px;
+  /* bottom-right of ring, just outside outer edge */
+  bottom: -10px;
+  right: -18px;
+  opacity: 0.72;
+  /*
+    carrow1: tail=top, head=bottom-left
+    We want tail near ring, head pointing RIGHT toward content
+    Flip horizontally (scaleX(-1)) so head goes bottom-right
+    Then rotate slightly so it aims nicely
+  */
+  transform: scaleX(-1) rotate(-20deg);
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* Animate arrow with image */
+.svc-about .svc-about-arrow {
   opacity: 0;
-  transform: translateY(-80px) scale(0.7);
+}
+.svc-about.about-animate .svc-about-arrow {
+  animation: aboutImgSlide 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
 }
 
-.svc-about.about-animate .svc-stat-fall-1 {
-  animation: statFall 0.7s cubic-bezier(0.22, 1.4, 0.5, 1) 0.5s forwards;
+/* ── KEYFRAMES ── */
+@keyframes rotateRing {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
-.svc-about.about-animate .svc-stat-fall-2 {
-  animation: statFall 0.7s cubic-bezier(0.22, 1.4, 0.5, 1) 0.7s forwards;
-}
-.svc-about.about-animate .svc-stat-fall-3 {
-  animation: statFall 0.7s cubic-bezier(0.22, 1.4, 0.5, 1) 0.9s forwards;
+@keyframes rotateRingReverse {
+  from { transform: rotate(360deg); }
+  to   { transform: rotate(0deg); }
 }
 
-@keyframes statFall {
-  0%   { opacity: 0; transform: translateY(-80px) scale(0.7); }
-  60%  { opacity: 1; transform: translateY(8px) scale(1.05); }
-  80%  { transform: translateY(-4px) scale(0.98); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+/* ================= MOBILE ================= */
+@media (max-width: 900px) {
+  .svc-about-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .svc-about-img {
+    max-width: 340px;
+    margin: 0 auto;
+  }
+  .svc-about-ring-wrap {
+    max-width: 340px;
+  }
+  .svc-about .svc-section-title {
+    font-size: 28px;
+  }
+  .svc-stats {
+    gap: 32px;
+  }
+  .svc-stat-num {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .svc-about {
+    padding: 64px 0 60px;
+  }
+  .svc-about .svc-section-title {
+    font-size: 24px;
+  }
+  .svc-stats {
+    gap: 24px;
+  }
+  .svc-btn-about-learn {
+    width: 100%;
+  }
 }
 
 /* =========================================================
    EXPERTISE
 ========================================================= */
-.svc-expertise { background:rgba(247, 248, 255, 1); padding:90px 0 100px; overflow:hidden; }
+.svc-expertise { background:rgba(247, 248, 255, 1); padding:90px 0 100px; }
+.svc-expertise.exp-stacked { overflow: hidden; }
+.svc-expertise.exp-spread  { overflow: visible; }
 
 .exp-header { overflow:hidden; }
 .exp-header .svc-eyebrow,
@@ -948,6 +1160,7 @@ a    { text-decoration:none; }
 .exp-deck {
   position:relative; display:grid; grid-template-columns:repeat(3,1fr);
   gap:24px; padding-top:28px; padding-right:28px;
+  overflow:visible;
 }
 
 .svc-expertise-card {
@@ -1010,11 +1223,9 @@ a    { text-decoration:none; }
 .exp-spread .exp-card-2:hover .svc-expertise-icon,
 .exp-spread .exp-card-3:hover .svc-expertise-icon { background:rgba(255,255,255,0.2); }
 
-.exp-spread .exp-card-1:hover .svc-arrow-link img { filter:brightness(0) invert(1); }
-
 .svc-arrow-link {
   position:absolute; top:-22px; right:-22px;
-  width:72px; height:72px; display:block; z-index:2;
+  width:72px; height:72px; display:block; z-index:10;
   transition:transform 0.25s ease;
 }
 .svc-arrow-link img   { width:100%; height:100%; object-fit:contain; display:block; }
@@ -1041,6 +1252,7 @@ a    { text-decoration:none; }
   margin-top:20px; transition:color 0.2s;
 }
 .svc-explore-link:hover { color:var(--svc-primary); }
+
 
 /* =========================================================
    HOW IT WORKS
@@ -1092,6 +1304,7 @@ a    { text-decoration:none; }
 .hiw-animate .hiw-step-1 { animation:hiwStepDown 0.65s cubic-bezier(0.22,1,0.36,1) 0.3s forwards; }
 .hiw-animate .hiw-step-2 { animation:hiwStepUp   0.65s cubic-bezier(0.22,1,0.36,1) 0.9s forwards; }
 .hiw-animate .hiw-step-3 { animation:hiwStepDown 0.65s cubic-bezier(0.22,1,0.36,1) 1.5s forwards; }
+
 
 @keyframes hiwStepDown { from{opacity:0;transform:translateY(-55px);} to{opacity:1;transform:translateY(0);} }
 @keyframes hiwStepUp   { from{opacity:0;transform:translateX(-50%) translateY(55px);} to{opacity:1;transform:translateX(-50%) translateY(0);} }
@@ -1420,6 +1633,620 @@ a    { text-decoration:none; }
   .svc-cta-btn   { min-width:150px; padding:13px 24px; }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .svc-ring-cw,
+  .svc-ring-ccw,
+  .svc-about-ring-spinner { animation: none; }
+  .svc-stat-fall,
+  .svc-about .svc-eyebrow-left,
+  .svc-about .svc-section-title,
+  .svc-about .svc-about-text,
+  .svc-about .svc-stat-label,
+  .svc-about .svc-btn-about-learn,
+  .svc-about .svc-about-img {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
+
+
+
+/* =========================================================
+   RESPONSIVE — ALL BREAKPOINTS
+   Written fresh to match Figma mobile design exactly.
+   Desktop CSS above is completely untouched.
+========================================================= */
+ 
+/* ─────────────────────────────────────────────────────────
+   ≤ 1200px — large tablet / small desktop
+───────────────────────────────────────────────────────── */
+@media (max-width: 1200px) {
+  .svc-hero-wrap   { grid-template-columns: 280px 1fr 280px; }
+  .id-why-grid     { grid-template-columns: repeat(3, 1fr); }
+}
+ 
+/* ─────────────────────────────────────────────────────────
+   ≤ 1024px
+───────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .svc-hero-wrap        { grid-template-columns: 200px 1fr 200px; }
+  .svc-hero-profile     { width: 200px; height: 200px; }
+  .svc-hero-avatar      { width: 122px; height: 122px; }
+  .svc-ring-inner       { inset: 28px; }
+  .svc-hero-title       { font-size: 38px; }
+  .svc-hero-arrow-left  { left: 185px; width: 58px; }
+  .svc-hero-arrow-right { width: 68px; top: 30px; right: 36px; }
+  .svc-hero-top-badge   { width: 44px; }
+  .svc-hero-legal-tag   { width: 124px; }
+}
+ 
+/* ─────────────────────────────────────────────────────────
+   ≤ 900px — about section stacks
+───────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  /* ABOUT */
+  .svc-about-grid      { grid-template-columns: 1fr; gap: 40px; }
+  .svc-about-img       { max-width: 340px; margin: 0 auto; }
+  .svc-about-ring-wrap { max-width: 340px; }
+  .svc-about .svc-section-title { font-size: 28px; }
+  .svc-stats    { gap: 32px; }
+  .svc-stat-num { font-size: 28px; }
+  /* CTA */
+  .svc-cta         { min-height: 360px; }
+  .svc-cta-overlay { min-height: 360px; padding: 60px 18px; }
+  .svc-cta-title   { font-size: 40px; }
+  .svc-cta-text    { font-size: 16px; max-width: 580px; }
+}
+ 
+/* ─────────────────────────────────────────────────────────
+   ≤ 768px — Figma mobile frame (~390–430px)
+   Hero: 3-col compressed grid, both avatars + decorations
+   visible. Centre content centred. Buttons side by side.
+───────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+ 
+
+  /* ── HERO ─────────────────── */
+  .svc-hero { padding: 28px 0 56px; }
+ 
+  /* Keep the 3-col grid — compress side columns */
+  .svc-hero-wrap {
+    display: grid;
+    grid-template-columns: 120px 1fr 120px;
+    align-items: center;
+    min-height: 380px;
+    padding: 0 6px;
+    gap: 0;
+  }
+ 
+  /* Side panels — full height so decorations can position */
+  .svc-hero-side {
+    min-height: 380px;
+    position: relative;
+  }
+ 
+  /* LEFT side — avatar sits top-left */
+  .svc-hero-side-left {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding-top: 12px;
+  }
+  .svc-hero-side-left .svc-hero-profile {
+    width: 108px;
+    height: 108px;
+    margin-left: 4px !important;
+    margin-top: 0 !important;
+  }
+ 
+  /* RIGHT side — avatar sits bottom-right, show it */
+  .svc-hero-side-right {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding-bottom: 12px;
+  }
+  .svc-hero-side-right .svc-hero-profile {
+    width: 108px;
+    height: 108px;
+    margin-right: 4px !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+ 
+  /* Avatar image */
+  .svc-hero-avatar { width: 66px; height: 66px; }
+ 
+  /* Rings scale down */
+  .svc-ring-inner { inset: 20px; }
+ 
+  /* Centre content — centred */
+  .svc-hero-content {
+    text-align: center;
+    padding: 0 2px;
+    max-width: 100%;
+  }
+ 
+  /* Pill */
+  .svc-hero-pill {
+    font-size: 8.5px;
+    letter-spacing: 1.6px;
+    padding: 0 10px;
+    height: 28px;
+    margin-bottom: 14px;
+    white-space: normal;
+    line-height: 1.3;
+  }
+ 
+  /* Title */
+  .svc-hero-title {
+    font-size: 24px;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+ 
+  /* Sub */
+  .svc-hero-sub {
+    font-size: 12.5px;
+    line-height: 1.65;
+    margin: 0 auto 20px;
+    text-align: center;
+    max-width: 100%;
+  }
+ 
+  /* Buttons — stacked, centred, full width within content area */
+  .svc-hero-actions {
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+  }
+  .svc-btn-hammer {
+    width: 100%;
+    max-width: 210px;
+    min-width: unset;
+    height: 46px;
+    font-size: 13.5px;
+    border-radius: 16px;
+    justify-content: center;
+  }
+  .svc-btn-secondary,
+  .svc-btn-outline {
+    width: 100%;
+    max-width: 210px;
+    min-width: unset;
+    height: 46px;
+    font-size: 13.5px;
+    border-radius: 999px;
+    padding: 0 18px;
+    justify-content: center;
+  }
+ 
+  /* LEFT decorations — Legal Mediation tag + arrow VISIBLE */
+  .svc-hero-legal-tag {
+    display: block;
+    width: 110px;
+    left: -2px;
+    bottom: -62px;
+    transform: rotate(-18deg);
+    transform-origin: left center;
+  }
+  .svc-hero-arrow-left {
+    display: block;
+    width: 46px;
+    left: 76px;
+    top: 83%;
+    transform: translateY(-50%);
+  }
+ 
+  /* RIGHT decorations — badge + arrow VISIBLE */
+  .svc-hero-top-badge {
+    display: block;
+    width: 40px;
+    top: 4px;
+    right: -6px;
+  }
+  .svc-hero-arrow-right {
+    display: block;
+    width: 56px;
+    top: 34px;
+    right: 32px;
+    transform: none;
+  }
+ 
+  /* Scroll indicator — hide */
+  .svc-hero-scroll { display: none; }
+
+
+  /* ABOUT */
+  .svc-about-grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+  .svc-about-content { text-align: center; }
+  .svc-eyebrow-left,
+  .svc-section-title.svc-left { text-align: center; }
+  .svc-stats { justify-content: center; }
+
+  /* EXPERTISE */
+  .exp-deck { grid-template-columns: 1fr; }
+  .exp-stacked .exp-card-1 { transform: translateY(20px) rotate(-3deg); }
+  .exp-stacked .exp-card-2 { transform: translateY(10px) scale(0.98); }
+  .exp-stacked .exp-card-3 { transform: translateY(20px) rotate(3deg); }
+  .exp-spread .exp-card    { transform: none; }
+
+  /* HOW IT WORKS */
+  .hiw-stage {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    padding: 40px 24px 0;
+  }
+  .hiw-wave,
+  .hiw-dot { display: none; }
+  .hiw-step,
+  .hiw-step-1,
+  .hiw-step-2,
+  .hiw-step-3 {
+    position: static;
+    transform: none;
+    max-width: 100%;
+    text-align: center;
+    opacity: 0;
+  }
+  .hiw-animate .hiw-step-1 {
+    animation: hiwStepMobile 0.65s cubic-bezier(0.22,1,0.36,1) 0.15s forwards !important;
+  }
+  .hiw-animate .hiw-step-2 {
+    animation: hiwStepMobile 0.65s cubic-bezier(0.22,1,0.36,1) 0.35s forwards !important;
+  }
+  .hiw-animate .hiw-step-3 {
+    animation: hiwStepMobile 0.65s cubic-bezier(0.22,1,0.36,1) 0.55s forwards !important;
+  }
+  @keyframes hiwStepMobile {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .hiw-ghost { height: 60px; font-size: 80px; }
+
+  /* WHY CHOOSE */
+  .id-why-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  /* WHY CHOOSE animation delays on tablet */
+  .id-why.why-animate .id-why-card:nth-child(1) { animation-delay: 0.40s; }
+  .id-why.why-animate .id-why-card:nth-child(2) { animation-delay: 0.50s; }
+  .id-why.why-animate .id-why-card:nth-child(3) { animation-delay: 0.60s; }
+  .id-why.why-animate .id-why-card:nth-child(4) { animation-delay: 0.70s; }
+  .id-why.why-animate .id-why-card:nth-child(5) { animation-delay: 0.80s; }
+  .id-why.why-animate .id-why-card:nth-child(1) .id-why-circle { animation-delay: 0.65s; }
+  .id-why.why-animate .id-why-card:nth-child(2) .id-why-circle { animation-delay: 0.75s; }
+  .id-why.why-animate .id-why-card:nth-child(3) .id-why-circle { animation-delay: 0.85s; }
+  .id-why.why-animate .id-why-card:nth-child(4) .id-why-circle { animation-delay: 0.95s; }
+  .id-why.why-animate .id-why-card:nth-child(5) .id-why-circle { animation-delay: 1.05s; }
+
+  /* CTA */
+  .svc-cta         { min-height: 360px; }
+  .svc-cta-overlay { min-height: 360px; padding: 60px 18px; }
+  .svc-cta-title   { font-size: 40px; }
+  .svc-cta-text    { font-size: 16px; max-width: 580px; }
+}
+
+/* =========================================================
+   ≤ 900px
+========================================================= */
+@media (max-width: 900px) {
+
+  /* ABOUT ring */
+  .svc-about-img {
+    max-width: 340px;
+    margin: 0 auto;
+  }
+  .svc-about-ring-wrap { max-width: 340px; }
+  .svc-about .svc-section-title { font-size: 28px; }
+  .svc-stats    { gap: 32px; }
+  .svc-stat-num { font-size: 28px; }
+}
+
+/* =========================================================
+   ≤ 768px  — Figma mobile frame ~390 px wide
+========================================================= */
+@media (max-width: 768px) {
+
+  /* ── HERO ── */
+  .svc-hero { padding: 32px 0 52px; }
+
+  .svc-hero-wrap {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    min-height: unset;
+    gap: 16px;
+    padding: 0 16px;
+  }
+
+  /* Figma: avatar sits top-left with text beside it */
+  .svc-hero-side-left {
+    order: 1;
+    justify-content: flex-start;
+    min-height: unset;
+    width: 100%;
+  }
+  .svc-hero-content    { order: 2; padding: 0; }
+  .svc-hero-side-right { display: none; } /* hidden in Figma mobile */
+
+  /* Left profile — smaller, left-aligned */
+  .svc-hero-side-left .svc-hero-profile {
+    width: 110px;
+    height: 110px;
+    margin: 0 !important;
+    flex-shrink: 0;
+  }
+  .svc-hero-side-left .svc-hero-avatar {
+    width: 68px;
+    height: 68px;
+  }
+
+  /* Hero top row: avatar + pill/title side by side */
+  .svc-hero-side-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  /* Title */
+  .svc-hero-title {
+    font-size: 22px;
+    line-height: 1.22;
+    margin-bottom: 12px;
+    text-align: left;
+  }
+
+  /* Pill — left-aligned on mobile */
+  .svc-hero-pill {
+    font-size: 9px;
+    letter-spacing: 1.6px;
+    padding: 0 12px;
+    height: 28px;
+    margin-bottom: 10px;
+    display: inline-flex;
+  }
+
+  /* Sub */
+  .svc-hero-sub {
+    font-size: 13px;
+    line-height: 1.7;
+    margin-bottom: 20px;
+    text-align: left;
+  }
+
+  /* Buttons — stacked, full width */
+  .svc-hero-actions {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .svc-btn-hammer,
+  .svc-btn-secondary,
+  .svc-btn-outline {
+    width: 100%;
+    max-width: 100%;
+    min-width: unset;
+    border-radius: 14px;
+    height: 48px;
+    font-size: 14px;
+    justify-content: center;
+  }
+
+  /* Hide all hero decorations */
+  .svc-hero-arrow-left,
+  .svc-hero-arrow-right,
+  .svc-hero-legal-tag,
+  .svc-hero-top-badge { display: none; }
+
+  /* Scroll indicator */
+  .svc-hero-scroll { display: none; }
+
+  /* ── ABOUT ── */
+  .svc-about { padding: 52px 0 48px; }
+  .svc-about-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .svc-about-img {
+    max-width: 300px;
+    margin: 0 auto;
+  }
+  .svc-about-ring-wrap { max-width: 300px; }
+  .svc-about .svc-section-title {
+    font-size: 22px;
+    text-align: left;
+  }
+  .svc-eyebrow-left { text-align: left; }
+  .svc-section-title.svc-left { text-align: left; }
+  .svc-about-text {
+    font-size: 13px;
+    text-align: left;
+  }
+  .svc-stats {
+    gap: 20px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .svc-stat-num   { font-size: 26px; }
+  .svc-stat-label { font-size: 9px; }
+  .svc-btn-about-learn {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 14px;
+    height: 48px;
+  }
+
+  /* ── EXPERTISE / SERVICES ── */
+  .svc-expertise { padding: 52px 0 56px; }
+  .exp-deck {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding-right: 0;
+  }
+  .svc-expertise-card {
+    min-height: unset;
+    padding: 22px 18px 24px;
+    border-radius: 18px;
+  }
+  /* Arrow link stays top-right */
+  .svc-arrow-link {
+    top: -14px;
+    right: -14px;
+    width: 52px;
+    height: 52px;
+  }
+  .svc-expertise-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    margin-top: 6px;
+  }
+  .svc-expertise-icon img { width: 48px; height: 48px; }
+  .svc-card-title { font-size: 17px; margin-bottom: 8px; }
+  .svc-card-desc  { font-size: 13px; margin-bottom: 14px; }
+  .svc-card-list li { font-size: 13px; }
+  .svc-explore-link { font-size: 12px; margin-top: 14px; }
+
+  /* Section header */
+  .svc-section-title { font-size: 22px; }
+  .svc-section-sub   { font-size: 13px; margin-bottom: 32px; }
+  .svc-eyebrow       { font-size: 10px; letter-spacing: 2px; }
+
+  /* ── HOW IT WORKS ── */
+  .hiw-section { padding: 52px 0 60px; }
+  .hiw-title   { font-size: 22px; }
+  .hiw-sub     { font-size: 13px; }
+  .hiw-stage {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding: 32px 16px 0;
+  }
+  .hiw-wave, .hiw-dot { display: none; }
+  .hiw-step,
+  .hiw-step-1,
+  .hiw-step-2,
+  .hiw-step-3 {
+    position: static;
+    transform: none;
+    max-width: 100%;
+    text-align: left;
+    opacity: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .hiw-ghost {
+    font-size: 64px;
+    height: 52px;
+    color: rgba(40, 40, 60, 0.08);
+    letter-spacing: -2px;
+    margin-bottom: 4px;
+  }
+  .hiw-step h4 { font-size: 15px; font-weight: 700; white-space: normal; }
+  .hiw-step p  { font-size: 13px; }
+
+  /* ── WHY CHOOSE ── */
+  .id-why { padding: 52px 0 56px; }
+  .id-why-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 40px;
+  }
+  .id-why-card h4 { font-size: 14px; }
+  .id-why-card p  { font-size: 12px; }
+  .id-why-circle  { width: 72px; height: 72px; margin-bottom: 14px; }
+  .id-why-circle img { width: 72px; height: 72px; }
+  .id-tag { font-size: 11px; letter-spacing: 3px; }
+  .id-section-head h2 { font-size: 22px; }
+  .id-section-sub { font-size: 13px; }
+
+  /* ── CTA ── */
+  .svc-cta         { min-height: 300px; }
+  .svc-cta-overlay {
+    min-height: 300px;
+    padding: 48px 16px;
+  }
+  .svc-cta-title { font-size: 26px; line-height: 1.2; margin-bottom: 12px; }
+  .svc-cta-text  { font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
+  .svc-cta-btn   {
+    width: auto;
+    min-width: 160px;
+    padding: 13px 28px;
+    font-size: 14px;
+    border-radius: 14px;
+    height: 48px;
+  }
+}
+
+/* =========================================================
+   ≤ 640px
+========================================================= */
+@media (max-width: 640px) {
+  .svc-container { width: min(100% - 24px, var(--svc-container)); }
+
+  /* HERO */
+  .svc-hero-title { font-size: 20px; }
+  .svc-hero-sub,
+  .svc-section-sub,
+  .svc-about-text { font-size: 13px; }
+
+  /* WHY CHOOSE — keep 2 cols */
+  .id-why-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* STATS */
+  .svc-stats    { gap: 20px; }
+  .svc-stat-num { font-size: 28px; }
+}
+
+/* =========================================================
+   ≤ 480px
+========================================================= */
+@media (max-width: 480px) {
+
+  /* HERO */
+  .svc-hero { padding: 24px 0 40px; }
+  .svc-hero-title { font-size: 19px; }
+  .svc-hero-pill  { font-size: 8px; letter-spacing: 1.4px; }
+
+  /* ABOUT */
+  .svc-about { padding: 44px 0 40px; }
+  .svc-about .svc-section-title { font-size: 20px; }
+  .svc-stats { gap: 16px; }
+
+  /* EXPERTISE */
+  .svc-expertise { padding: 44px 0 44px; }
+  .svc-expertise-card { padding: 18px 14px 20px; }
+
+  /* HOW IT WORKS */
+  .hiw-section { padding: 44px 0 48px; }
+  .hiw-title   { font-size: 20px; }
+  .hiw-ghost   { font-size: 56px; height: 46px; }
+
+  /* WHY CHOOSE */
+  .id-why { padding: 44px 0 44px; }
+  .id-section-head h2 { font-size: 20px; }
+
+  /* CTA */
+  .svc-cta-title { font-size: 22px; }
+  .svc-cta-text  { font-size: 13px; }
+  .svc-cta-btn   { min-width: 140px; padding: 12px 20px; font-size: 13px; }
+}
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
 @media (prefers-reduced-motion: reduce) {
   .svc-ring-cw,
   .svc-ring-ccw,

@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { APP_BASE_PATH } from "@/config/appConfig";
-import "@/styles/service.css";
+import "@/styles/solutions.css";
 
 const whyIcons = [
   { src: "/assets/icons/fastresol.png", label: "Fast Resolution" },
@@ -110,60 +110,102 @@ export default function Services() {
       <section className="svc-hero">
         <div className="svc-hero-wrap">
 
+          {/* LEFT SIDE */}
           <div className="svc-hero-side svc-hero-side-left">
             <div className="svc-hero-profile">
-              <div className="svc-ring-fade"></div>
               <div className="svc-ring-outer"></div>
               <div className="svc-ring-inner"></div>
-
               <div className="svc-hero-avatar">
                 <img src="/assets/images/ring1.png" alt="Mediator" />
               </div>
             </div>
 
+            {/*
+        carrow1: tail=top-right, head=bottom-left
+        Sits to the RIGHT of the ring — tail near ring right edge,
+        head naturally points down-left toward Legal Mediation tag
+      */}
             <img src="/assets/icons/carrow1.png" alt="" className="svc-hero-arrow-left" />
+
+            {/* Legal Mediation tag — bottom-left, rotated */}
             <img src="/assets/icons/lm.png" alt="Legal Mediation" className="svc-hero-legal-tag" />
           </div>
 
-          {/* Centre content */}
+          {/* CENTRE */}
           <div className="svc-hero-content">
             <div className="svc-hero-pill">WE HANDLE EVERY DISPUTE PROFESSIONALLY</div>
-            <h1 className="svc-hero-title">Alternative Dispute Resolution<br />Services</h1>
+            <h1 className="svc-hero-title">
+              Alternative Dispute Resolution<br />Services
+            </h1>
             <p className="svc-hero-sub">
               With a track record of successfully resolving a wide range of legal issues, we&apos;re
               committed to protecting your interests and helping you achieve peace of mind.
             </p>
             <div className="svc-hero-actions">
               <button
-                className="svc-btn-primary svc-btn-hammer"
+                className="svc-btn-hammer"
                 onClick={() => navigateToApp("/user/file-new-case/step1")}
               >
                 <span className="svc-btn-label">Discover Our Services</span>
                 <span className="svc-btn-hammer-wrap" aria-hidden="true">
-                  <img src="/assets/icons/hammer.png" alt="" className="svc-hammer-icon" />
+                  <svg
+                    className="svc-hammer-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M13.5 6.5L17.5 10.5L9 19L5 15L13.5 6.5Z"
+                      fill="currentColor"
+                      stroke="currentColor"
+                      strokeWidth="1.2"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M15 5L19 9L20.5 7.5C21.3 6.7 21.3 5.4 20.5 4.6L19.4 3.5C18.6 2.7 17.3 2.7 16.5 3.5L15 5Z"
+                      fill="currentColor"
+                      stroke="currentColor"
+                      strokeWidth="1.2"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M5.5 15.5L3 21L8.5 18.5"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                 </span>
               </button>
               <Link href="/ContactUs" className="svc-btn-secondary">Learn More</Link>
             </div>
           </div>
 
+          {/* RIGHT SIDE */}
           <div className="svc-hero-side svc-hero-side-right">
-            <img src="/assets/icons/tag.png" alt="" className="svc-hero-top-badge" />
+            {/*
+        carrow2: tail=bottom-left, head=top-right
+        Sits ABOVE and LEFT of badge — tail near ring top, head points to badge
+      */}
             <img src="/assets/icons/carrow2.png" alt="" className="svc-hero-arrow-right" />
 
+            {/* Badge — top-right corner, arrow head points here */}
+            <img src="/assets/icons/tag.png" alt="" className="svc-hero-top-badge" />
+
             <div className="svc-hero-profile">
-              <div className="svc-ring-fade"></div>
               <div className="svc-ring-outer"></div>
               <div className="svc-ring-inner"></div>
-
               <div className="svc-hero-avatar">
                 <img src="/assets/images/ring2.png" alt="Legal Expert" />
               </div>
             </div>
           </div>
 
-          <div className="svc-hero-scroll"><span>&#8595;</span></div>
         </div>
+
+        {/* Scroll indicator outside wrap — centers to full section */}
+        <div className="svc-hero-scroll"><span>&#8595;</span></div>
       </section>
 
       {/* ── EXPERTISE ── */}
@@ -225,21 +267,33 @@ export default function Services() {
       </section>
 
       {/* ── ABOUT ── */}
-      {/* NOTE: className is just "svc-about" — the "about-animate" class is added directly via DOM in useEffect */}
       <section ref={aboutRef} className="svc-about">
         <div className="svc-container svc-about-grid">
+
+          {/* LEFT — Image with rotating rings */}
           <div className="svc-about-img">
             <div className="svc-about-ring-wrap">
-              <div className="svc-about-ring-spinner">
-                <div className="svc-about-ring-inner">
-                  <img src="/assets/images/abt.png" alt="RaaziMarzi dispute resolution illustration" />
-                </div>
+              <div className="svc-about-ring-outer"></div>
+              <div className="svc-about-ring-inner"></div>
+              <div className="svc-about-ring-center">
+                <img src="/assets/images/abt.png" alt="RaaziMarzi dispute resolution illustration" />
               </div>
+              {/* carrow1: tail near ring bottom-right, head points right toward content */}
+              <img
+                src="/assets/icons/carrow3.png"
+                alt=""
+                className="svc-about-arrow"
+                aria-hidden="true"
+              />
             </div>
           </div>
+
+          {/* RIGHT — Content */}
           <div className="svc-about-content">
             <p className="svc-eyebrow svc-eyebrow-left">ABOUT RAAZIMARZI</p>
-            <h2 className="svc-section-title svc-left">Your Trusted ADR Platform for Modern Disputes</h2>
+            <h2 className="svc-section-title svc-left">
+              Your Trusted ADR Platform for Modern Disputes
+            </h2>
             <p className="svc-about-text">
               RaaziMarzi leverages cutting-edge Online Dispute Resolution technology to provide
               transparent, efficient, and legally binding settlements for individuals and businesses alike.
@@ -256,7 +310,7 @@ export default function Services() {
                 <span className="svc-stat-label">CASES RESOLVED</span>
               </div>
               <div className="svc-stat">
-                <span className="svc-stat-num svc-stat-fall svc-stat-fall-3">50M+</span>
+                <span className="svc-stat-num svc-stat-fall svc-stat-fall-3">₹50M+</span>
                 <span className="svc-stat-label">SETTLED FUNDS</span>
               </div>
             </div>
@@ -265,14 +319,13 @@ export default function Services() {
               className="svc-btn-about-learn"
               onClick={() => navigateToApp("/user/file-new-case/step1")}
             >
-              <span className="svc-about-icon-wrap" aria-hidden="true">
-                <span className="svc-about-icon">→≡</span>
-              </span>
-              <span className="svc-about-btn-label">Know More</span>
+              Know More
             </button>
           </div>
+
         </div>
       </section>
+
 
       {/* ── HOW IT WORKS ── */}
       <section ref={hiwRef} className={`hiw-section${hiwVisible ? " hiw-animate" : ""}`}>
