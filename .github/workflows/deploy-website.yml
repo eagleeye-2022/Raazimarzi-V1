@@ -18,9 +18,12 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /var/www/raazimarzi
-            git pull origin main
+            git fetch --all
+            git reset --hard origin/main
             cd website
             npm install
             npm run build
-            sudo systemctl reload nginx
+            cp -r .next/static .next/standalone/.next/static
+            cp -r public .next/standalone/public
+            pm2 restart website
             echo "✅ Website deployed"
